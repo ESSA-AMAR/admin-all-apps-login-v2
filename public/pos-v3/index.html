@@ -19,10 +19,10 @@
 })();
 </script>
 <script>
-/* the theme (dark, light or smart) is applied before the first paint */
+/* the theme is applied before the first paint. POS v3 always opens in Smart: a Dark or Light picked in the profile menu lasts until the page
+   is reloaded. (Saving "smart" here also makes the skin script further down, which reads the same key, start in Smart.) */
 (function () {
-  var m = 'smart'; try { m = localStorage.getItem('cm-pos-v3-theme') || 'smart'; } catch (e) {}
-  if (m !== 'dark' && m !== 'light') m = 'smart';
+  var m = 'smart'; try { localStorage.setItem('cm-pos-v3-theme', 'smart'); } catch (e) {}
   var d = document.documentElement; d.classList.toggle('light', m === 'light'); d.setAttribute('data-theme', m);
 })();
 </script>
@@ -100,6 +100,8 @@
     background: rgba(255,255,255,.015); }
   .fl-room { position: absolute; left: 50%; top: 50%; width: 1720px; height: 660px; transform: translate(-50%, -50%); }
   .fl-lbl { position: absolute; font-size: 13px; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: rgba(250,250,250,.35); }
+  .fl-poly { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
+  .fl-poly polygon { fill: rgba(var(--ice-hi), .03); stroke: rgba(var(--ice-hi), .3); stroke-width: 7; stroke-linejoin: round; }
   .fl-wall { position: absolute; border-radius: 8px; background: rgba(var(--ice-hi), .08); box-shadow: inset 0 0 0 1px rgba(var(--ice-hi), .06); }
   .ft { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border-radius: 8px; text-align: center;
     background: rgba(var(--ice-hi), .035); box-shadow: inset 0 0 0 1.5px rgba(var(--ice-hi), .22); transition: background .25s, box-shadow .25s, transform .15s, opacity .3s; }
@@ -247,6 +249,58 @@
   .fe-seg { display: flex; gap: 3px; padding: 3px; border-radius: 8px; background: rgba(var(--ice-hi), .05); box-shadow: inset 0 0 0 1px rgba(var(--ice-hi), .08); }
   .fe-seg button { height: 38px; padding: 0 14px; border-radius: 8px; font-size: 14px; font-weight: 600; color: rgba(250,250,250,.6); }
   .fe-seg button.on { background: rgba(var(--ice-hi), .14); color: #fff; }
+  /* measured floor plan: the room outline, real lengths, chair zones, fixed spots, the pencil */
+  .fe-ins { overflow-y: auto; padding-right: 8px; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.18) transparent; }
+  .fe-ins > * { flex-shrink: 0; }
+  .fe-sc svg.fe-svg { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
+  .fe-svg .rm { fill: rgba(var(--ice-hi), .05); stroke: rgba(var(--ice-hi), .6); stroke-width: 7; stroke-linejoin: round; }
+  .fe-svg .pen { fill: none; stroke: #fff; stroke-width: 4; stroke-dasharray: 12 9; stroke-linejoin: round; }
+  .fe-svg .pv { fill: #fff; } .fe-svg .pv.first { fill: #e02d3c; stroke: #fff; stroke-width: 3; } .fe-svg .pc { fill: rgba(255,255,255,.7); }
+  .fe-dim { position: absolute; z-index: 8; transform: translate(-50%, -50%) scale(calc(1 / var(--k, 1))); padding: 3px 9px; border-radius: 6px; font: 500 14px 'Roboto Mono', monospace; color: #fff; white-space: nowrap;
+    background: rgba(8,12,20,.92); box-shadow: inset 0 0 0 1px rgba(var(--ice-hi), .4); cursor: text; touch-action: none; }
+  .fe-dim:hover { box-shadow: inset 0 0 0 1.5px #fff; }
+  .fe-dim.live { pointer-events: none; color: rgba(var(--ice-hi), 1); }
+  .fe-fx { position: absolute; inset: 0; pointer-events: none; z-index: 7; }
+  .fe-bay { position: absolute; border-radius: 14px; background: rgba(var(--ice-hi), .045); box-shadow: inset 0 0 0 1px rgba(var(--ice-hi), .12); }
+  .fe-bay.me { background: rgba(var(--ice-hi), .09); }
+  .fe-halo { position: absolute; border-radius: 22px; border: 1.5px dashed rgba(var(--ice-hi), .22); }
+  .fe-slot { position: absolute; box-sizing: border-box; border-radius: 8px; border: 2px dashed rgba(var(--ice-hi), .65); background: rgba(var(--ice-hi), .07); }
+  .fe-slot.round { border-radius: 50%; } .fe-slot.on { border: 2px solid #5fe0a0; background: rgba(95,224,160,.14); }
+  .fe-gl { position: absolute; border-top: 2px solid #5fe0a0; } .fe-gl.v { border-top: 0; border-left: 2px solid #5fe0a0; } .fe-gl.bad { border-color: #ffb454; }
+  .fe-gd { position: absolute; transform: translate(-50%, -50%) scale(calc(1 / var(--k, 1))); padding: 2px 7px; border-radius: 5px; font: 600 12px 'Roboto Mono', monospace; white-space: nowrap; color: #0b1a12; background: #5fe0a0; }
+  .fe-gd.bad { background: #ffb454; color: #2a1800; }
+  .fe-sc .ft.tight { box-shadow: inset 0 0 0 2px #ffb454, 0 0 0 4px rgba(255,180,84,.2); }
+  .fe-sc .ft.out { box-shadow: inset 0 0 0 2px #e02d3c, 0 0 0 4px rgba(224,45,60,.25); opacity: .7; }
+  .fe-sc .ft.lock { box-shadow: inset 0 0 0 2px #5fe0a0, 0 0 0 4px rgba(95,224,160,.22); }
+  .fe-room.pen { cursor: crosshair; } .fe-room.pen .ed { pointer-events: none; }
+  .fe-penbar { position: absolute; left: 330px; right: 420px; top: 118px; height: 30px; display: flex; align-items: center; justify-content: center; gap: 14px; font-size: 14px; color: rgba(250,250,250,.75); }
+  .fe-penbar[hidden], .fe-lenbox[hidden] { display: none; }
+  .fe-penbar b { color: #fff; } .fe-penbar button { height: 28px; padding: 0 12px; border-radius: 7px; font-size: 13px; font-weight: 600; background: rgba(var(--ice-hi), .1); box-shadow: inset 0 0 0 1px rgba(var(--ice-hi), .2); }
+  .fe-lenbox { position: absolute; z-index: 20; display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 9px; background: #0a0e15; transform: translate(-50%, -50%); box-shadow: inset 0 0 0 1.5px #fff, 0 14px 34px rgba(0,0,0,.7); }
+  .fe-lenbox input { width: 88px; height: 34px; padding: 0 8px; border: 0; outline: 0; border-radius: 6px; background: rgba(var(--ice-hi), .1); color: #fff; font: 500 17px 'Roboto Mono', monospace; text-align: right; }
+  .fe-lenbox input.bad { box-shadow: inset 0 0 0 1.5px #e02d3c; } .fe-lenbox i { font: normal 500 15px 'Roboto Mono', monospace; color: rgba(250,250,250,.7); }
+  .fe-cmw { display: flex; align-items: center; gap: 8px; } .fe-cmw i { font: normal 500 14px 'Roboto Mono', monospace; color: rgba(250,250,250,.5); }
+  .fe-row input.fe-num { width: 104px; text-align: right; font-family: 'Roboto Mono', monospace; }
+  .fe-dims { display: flex; align-items: center; gap: 8px; } .fe-dims input { width: 82px !important; text-align: right; font-family: 'Roboto Mono', monospace !important; } .fe-dims em { font-style: normal; color: rgba(250,250,250,.45); }
+  .fe-chk { margin-top: 14px; padding: 12px 14px; border-radius: 8px; font-size: 14px; line-height: 1.4; font-weight: 600; }
+  .fe-chk small { display: block; margin-top: 3px; font-weight: 400; font-size: 13px; color: rgba(250,250,250,.6); }
+  .fe-chk.ok { color: #8be8b0; background: rgba(60,200,120,.08); box-shadow: inset 0 0 0 1px rgba(60,200,120,.3); }
+  .fe-chk.warn { color: #ffcf8a; background: rgba(255,180,84,.08); box-shadow: inset 0 0 0 1px rgba(255,180,84,.34); }
+  .fe-sum { display: flex; align-items: baseline; gap: 10px; margin-top: 10px; } .fe-sum b { font: 600 24px 'Roboto Mono', monospace; white-space: nowrap; } .fe-sum small { font-size: 13px; color: rgba(250,250,250,.55); }
+  /* plan first, then the table: type, size, place */
+  .fe-item .lk { display: none; margin-left: auto; flex: none; opacity: .85; }
+  .fe-pal.no-room .fe-item.tbl { opacity: .38; } .fe-pal.no-room .fe-item.tbl .lk { display: block; }
+  .fe-item.on { background: rgba(var(--ice-hi), .14); box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.7); }
+  .fe-steps { position: absolute; left: 330px; right: 420px; top: 118px; height: 30px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; color: rgba(250,250,250,.5); }
+  .fe-steps[hidden] { display: none; }
+  .fe-steps .st { display: flex; align-items: center; gap: 7px; white-space: nowrap; }
+  .fe-steps .st i { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font: normal 700 11px 'Roboto Mono', monospace; background: rgba(var(--ice-hi), .1); box-shadow: inset 0 0 0 1px rgba(var(--ice-hi), .2); }
+  .fe-steps .st.on { color: #fff; font-weight: 600; } .fe-steps .st.on i { background: #e02d3c; box-shadow: none; color: #fff; }
+  .fe-steps .st.done { color: rgba(250,250,250,.75); } .fe-steps .st.done i { background: rgba(95,224,160,.2); color: #5fe0a0; box-shadow: inset 0 0 0 1px rgba(95,224,160,.5); }
+  .fe-steps em { width: 22px; height: 1px; background: rgba(255,255,255,.18); }
+  .fe-stepcard { margin-top: 14px; padding: 14px; border-radius: 8px; background: rgba(224,45,60,.1); box-shadow: inset 0 0 0 1px rgba(224,45,60,.4); font-size: 14px; line-height: 1.45; color: rgba(250,250,250,.85); }
+  .fe-stepcard b { display: block; margin-bottom: 4px; font-size: 15px; color: #fff; } .fe-stepcard .fe-btns { margin-top: 12px; }
+  .fe-pill.fe-go { background: #e02d3c; color: #fff; box-shadow: none; }
   .fe-btns { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
   .fe-note { margin-top: 16px; padding: 12px 14px; border-radius: 8px; font-size: 14px; line-height: 1.5; color: rgba(250,250,250,.7); background: rgba(224,45,60,.1); box-shadow: inset 0 0 0 1px rgba(224,45,60,.3); }
   .fe-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; }
@@ -4040,19 +4094,19 @@ html #stage#stage#stage .utilities .glass-btn:hover img { opacity: 1; }
 html #stage#stage#stage .utilities .glass-btn:active img { transform: scale(.92); }
 
 /* the search in the top bar has no box: closed it is the magnifier with its name under it, like the other top icons (same 96 x 71 footprint, the icon and the name on the same lines as theirs);
-   open it is the magnifier and the text field, the name fades out. It still slides open on click. The magnifier is drawn smaller in its box than the Clients icon is (16 of 20 against
-   27 of 28), so its box is 34px: the glass is then as wide as the Clients icon. */
+   open it is the magnifier and the text field, the name fades out. It still slides open on click. The magnifier sits in the same 28px box as the other top icons, on the same line;
+   drawn at 16 of 20 it paints 22.7px, the same as the Pending icon (22.8px). A 34px box painted 27.5px square and read as huge next to them. */
 html #order .a-util .o-search, html #order .a-util .o-search:focus-within, html #order .a-util .o-search:has(input:not(:placeholder-shown)) {
   background: none !important; box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; border: 0; }
 html #order .a-util .o-search { position: relative; flex: none; width: 96px; height: 71px; padding: 0; gap: 0; overflow: visible; }
-html #order .a-util .o-search .mi { position: absolute; inset-inline-start: 31px; top: 7px; width: 34px; height: 34px; opacity: .95;
+html #order .a-util .o-search .mi { position: absolute; inset-inline-start: 34px; top: 10px; width: 28px; height: 28px; opacity: .95;
   transition: inset-inline-start .5s cubic-bezier(.22, 1, .36, 1), top .5s cubic-bezier(.22, 1, .36, 1), opacity .2s; }
 html #order .a-util .o-search .o-st { position: absolute; inset-inline: 0; top: 44px; text-align: center; font-size: 14px; font-weight: 600; line-height: normal; white-space: nowrap;
   color: rgba(250,250,250,.9); pointer-events: none; transition: opacity .2s; }
-html #order .a-util .o-search input { position: absolute; inset-inline-start: 58px; inset-inline-end: 16px; top: 50%; width: auto; height: 36px; margin-top: -18px; flex: none; opacity: 0; transition: opacity .25s .1s; }
+html #order .a-util .o-search input { position: absolute; inset-inline-start: 52px; inset-inline-end: 16px; top: 50%; width: auto; height: 36px; margin-top: -18px; flex: none; opacity: 0; transition: opacity .25s .1s; }
 html #order .a-util .o-search:hover .mi { opacity: 1; }
 html #order .a-util .o-search:focus-within, html #order .a-util .o-search:has(input:not(:placeholder-shown)) { width: 380px; gap: 0; }
-html #order .a-util .o-search:focus-within .mi, html #order .a-util .o-search:has(input:not(:placeholder-shown)) .mi { inset-inline-start: 12px; top: 18.5px; opacity: 1; }
+html #order .a-util .o-search:focus-within .mi, html #order .a-util .o-search:has(input:not(:placeholder-shown)) .mi { inset-inline-start: 12px; top: 21.5px; opacity: 1; }
 html #order .a-util .o-search:focus-within .o-st, html #order .a-util .o-search:has(input:not(:placeholder-shown)) .o-st { opacity: 0; }
 html #order .a-util .o-search:focus-within input, html #order .a-util .o-search:has(input:not(:placeholder-shown)) input { opacity: 1; }
 
@@ -4129,6 +4183,200 @@ html .hv, html .fl { width: 1888px; }
 html #order .o-head { top: 7px; }
 html #order .rail { top: 92px; height: 828px; }   /* it ends where the tools and keypad panel starts (y 920) */
 html #order .o-main { top: 104px; height: 951px; }
+
+/* DISH CARDS: six to a row (was five), narrower photos and close together. A column is 211.7px; each card has 6px at its sides, so its photo is about 200px wide (234px at the start)
+   and the space between two photos is 12px, the same as between rows. The menu is topped up in whole rows of six (see FILL). The category column (119px), the receipt (501px),
+   the keypad (480px) and the dish area (1276px) keep their original sizes. */
+html #order .cards { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+html #order .prod.prod.prod { padding-left: 6px; padding-right: 6px; }
+
+/* SUB-CATEGORIES FOR FINGERS: a slim path bar (the back arrow, the steps of the path, and a red pill with the choice at this level) and a sheet of big tiles that the pill opens. */
+html #order .subbar { display: flex; flex-wrap: nowrap; align-items: center; overflow: visible; padding: 0 8px 0 0; }
+html #order .subbar .sb-back { flex: none; width: 56px; height: 50px; display: grid; place-items: center; color: #fff; transition: transform .1s; }
+html #order .subbar .sb-back .mi { width: 22px; height: 22px; transform: rotate(90deg); }
+html #order .subbar .sb-cat { flex: none; padding: 0 6px 0 18px; font: 500 15px 'Roboto', sans-serif; color: rgba(250,250,250,.6); white-space: nowrap; }
+html #order .subbar .sb-crumb { flex: none; height: 50px; padding: 0 8px; font: 500 15px 'Roboto', sans-serif; color: rgba(250,250,250,.7); white-space: nowrap; transition: color .15s, transform .1s; }
+html #order .subbar .sb-crumb:first-of-type { padding-left: 14px; }
+html #order .subbar .sb-crumb:hover { color: #fff; }
+html #order .subbar .sb-back:active, html #order .subbar .sb-crumb:active { transform: scale(.94); }
+html #order .subbar .sb-sep { flex: none; color: rgba(250,250,250,.3); font-size: 18px; line-height: 1; }
+html #order .subbar .sb-cur { flex: none; margin-left: 6px; height: 40px; padding: 0 12px 0 16px; border-radius: 10px; display: flex; align-items: center; gap: 10px; white-space: nowrap; font: 600 15px 'Roboto', sans-serif; color: #fff;
+  background: rgba(224,45,60,.16); box-shadow: inset 0 0 0 1.5px #e02d3c; transition: transform .1s, background .15s; }
+html #order .subbar .sb-cur:active { transform: scale(.96); background: rgba(224,45,60,.26); }
+html #order .subbar .sb-cur .n { font: 500 13px 'Roboto Mono', monospace; padding: 2px 8px; border-radius: 10px; background: #e02d3c; }
+html #order .subbar .sb-cur .mi { width: 16px; height: 16px; transition: transform .2s; }
+html #order .subbar .sb-cur[aria-expanded="true"] .mi { transform: rotate(180deg); }
+html #order .sb-sheet { position: absolute; z-index: 8; left: 0; right: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; padding: 12px; max-height: 560px; overflow-y: auto; scrollbar-width: none;
+  background: rgba(10,10,12,.98); border-radius: 0 0 12px 12px; box-shadow: inset 0 -1px 0 rgba(255,255,255,.1), 0 40px 70px -20px rgba(0,0,0,.95); }
+html #order .sb-sheet[hidden] { display: none; }
+html #order .sb-sh-h { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; padding: 0 2px 2px 6px; font: 600 18px 'Roboto', sans-serif; color: #fff; }
+html #order .sb-x { width: 44px; height: 44px; border-radius: 10px; display: grid; place-items: center; font: 300 28px/1 'Roboto', sans-serif; color: rgba(250,250,250,.8); background: rgba(255,255,255,.08); }
+html #order .sb-x:active { transform: scale(.92); }
+html #order .sb-tile { height: 64px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; text-align: center; font: 500 16px/1.15 'Roboto', sans-serif; color: rgba(250,250,250,.92);
+  background: rgba(255,255,255,.07); box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); transition: transform .1s, background .15s; }
+html #order .sb-tile:active { transform: scale(.96); background: rgba(255,255,255,.14); }
+html #order .sb-tile.on { background: rgba(224,45,60,.2); box-shadow: inset 0 0 0 2px #e02d3c; }
+html #order .sb-tile .n { font: 400 13px 'Roboto Mono', monospace; opacity: .55; } html #order .sb-tile .mi { width: 14px; height: 14px; flex: none; opacity: .7; transform: rotate(-90deg); }
+/* long names, many options, empty groups, search, Arabic and Light: the path shrinks with an ellipsis (the red pill is never pushed out), a tile shows two lines, an empty group is dimmed, a long
+   sheet scrolls inside itself, and the search state has its own Clear button. */
+html #order .subbar .sb-path { flex: 0 1 auto; min-width: 0; display: flex; align-items: center; overflow: hidden; }
+html #order .subbar .sb-path .sb-crumb, html #order .subbar .sb-path .sb-cat { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+html #order .subbar .sb-cur { max-width: 460px; min-width: 0; } html #order .subbar .sb-cur > span:first-child { overflow: hidden; text-overflow: ellipsis; }
+html #order .subbar .sb-res { flex: 0 1 auto; min-width: 0; padding: 0 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 600 15px 'Roboto', sans-serif; color: #fff; }
+html #order .subbar .sb-clear { flex: none; margin-left: 10px; height: 40px; padding: 0 18px; border-radius: 10px; font: 600 15px 'Roboto', sans-serif; color: #fff; background: rgba(224,45,60,.16); box-shadow: inset 0 0 0 1.5px #e02d3c; }
+html #order .subbar .sb-clear:active { transform: scale(.96); }
+html #order .sb-tile > span:first-child { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word; }
+html #order .sb-tile.empty { opacity: .45; }
+html #order .sb-sh-h b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html #order .sb-sheet { overscroll-behavior: contain; max-height: min(560px, calc(100% - 80px)); }
+.rtl #order .subbar .sb-back .mi { transform: rotate(-90deg); } .rtl #order .subbar .sb-sep { transform: scaleX(-1); } .rtl #order .sb-tile .mi { transform: rotate(90deg); }
+html.light #stage #order :is(.sb-tile.on) { filter: url(#lflip); }
+html.light #stage #order :is(.subbar .sb-cur, .subbar .sb-clear)::after { filter: url(#lflip); }
+
+/* ====== A GOOD LOOK FOR THE SUB-CATEGORIES ======
+   The bar is a soft glass strip: a round back button, the path with small chevrons (the level you are in is bold and white), and a red pill with the choice and its count. The pill opens a
+   glass sheet that rises over the dishes, which dim behind it: a title with its number of options, big rounded tiles with the count as a badge, a chevron on tiles that go deeper and a red
+   tile with a tick for the chosen one. */
+html #order .subbar { height: 48px; min-height: 48px; padding: 0 8px; border-radius: 0; background: none; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }   /* no strip behind the path: it sits straight on the screen */
+html #order .subbar .sb-back { width: 40px; height: 40px; margin: 0; margin-inline-end: 8px; border-radius: 50%; background: rgba(255,255,255,.08); box-shadow: inset 0 0 0 1px rgba(255,255,255,.16), inset 0 1px 0 rgba(255,255,255,.12); }
+html #order .subbar .sb-back .mi { width: 18px; height: 18px; }
+html #order .subbar .sb-back:hover { background: rgba(255,255,255,.14); }
+html #order .subbar .sb-crumb, html #order .subbar .sb-cat { height: 36px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 10px; font: 500 15px 'Roboto', sans-serif; color: rgba(250,250,250,.62); }
+html #order .subbar .sb-cat { padding: 0; padding-inline-end: 12px; }
+html #order .subbar .sb-crumb:hover { color: #fff; background: rgba(255,255,255,.07); }
+html #order .subbar .sb-path > :nth-last-child(2) { color: #fff; font-weight: 600; }
+html #order .subbar .sb-sep { flex: none; width: 12px; height: 12px; font-size: 0; margin: 0 -4px; background: rgba(250,250,250,.38); -webkit-mask: url(/pos/assets/dine/caret-open.svg) center / contain no-repeat; mask: url(/pos/assets/dine/caret-open.svg) center / contain no-repeat; transform: rotate(-90deg); }
+.rtl #order .subbar .sb-sep { transform: rotate(90deg); }
+html #order .subbar .sb-cur { height: 40px; margin: 0; margin-inline-start: 8px; padding: 0; padding-inline: 16px 12px; border-radius: 6px; gap: 8px; position: relative; background: none; box-shadow: none; }   /* an empty button: only the red outline (drawn by ::after, so Light can keep it red) */
+html #order .subbar .sb-cur:active, html #order .subbar .sb-clear:active { background: rgba(224,45,60,.14); }
+html #order .subbar :is(.sb-cur, .sb-clear)::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1.5px #e02d3c; pointer-events: none; }
+
+/* THE PROFILE MENU: the red box on the current screen (Order, Tables, ...) has sharp corners. */
+html #stage .drawer .dr-it, html #stage .drawer .dr-it.on, html #stage .drawer .dr-it::before, html #stage .drawer .dr-it::after { border-radius: 0; }
+
+/* DISH CARDS WITHOUT PHOTOS (the Cards view, and any dish with no picture): a bigger name at the top, the price at the bottom right, and a dish on the ticket shows its count in a round badge
+   in the top corner. */
+html #order :is(.icons .prod, .prod:has(> .ph.noimg)) { min-height: 112px; }
+html #order :is(.icons .prod, .prod:has(> .ph.noimg)) .info, html .rtl #order :is(.icons .prod, .prod:has(> .ph.noimg)) .info { position: relative; justify-content: flex-start; align-items: flex-start; gap: 0; padding: 18px 18px 46px; }
+html #order :is(.icons .prod, .prod:has(> .ph.noimg)) .nm { font-size: clamp(18px, 10.4cqw, 23px); font-weight: 600; line-height: 1.2; color: rgba(255,255,255,.95); }
+html #order :is(.icons .prod, .prod:has(> .ph.noimg)).has .nm { padding-inline-end: 40px; }
+html #order :is(.icons .prod, .prod:has(> .ph.noimg)) .pr { position: absolute; bottom: 14px; inset-inline-end: 18px; display: flex; align-items: baseline; gap: 5px; }
+html #order :is(.icons .prod, .prod:has(> .ph.noimg)) .pr b { font: 600 clamp(18px, 10cqw, 22px)/1 'Roboto Mono', monospace; color: rgba(255,255,255,.95); }
+html #order :is(.icons .prod, .prod:has(> .ph.noimg)) .pr small { font-size: 13px; color: rgba(255,255,255,.5); }
+html #order :is(.icons .prod, .prod:has(> .ph.noimg)) .ph .qb { top: 14px; inset-inline: auto 8px; min-width: 32px; height: 32px; padding: 0 6px; border-radius: 999px; display: grid; place-items: center; font: 700 16px 'Roboto Mono', monospace; box-shadow: 0 6px 14px -4px rgba(224,45,60,.7); }
+html #order .subbar .sb-cur .n { background: none; padding: 0; padding-inline-start: 8px; border-radius: 0; border-inline-start: 1.5px solid rgba(255,255,255,.4); font-size: 13px; line-height: 18px; }   /* the count is plain text after a thin divider, no dark box */
+html #order .subbar .sb-cur .mi { width: 18px; height: 18px; padding: 3px; box-sizing: content-box; border-radius: 50%; background-color: #fff; color: #e02d3c; }
+html #order .subbar .sb-clear { height: 40px; margin: 0; margin-inline-start: 8px; border-radius: 6px; position: relative; background: none; box-shadow: none; }
+html #order .sb-scrim { position: absolute; left: 0; right: 0; bottom: 0; z-index: 7; background: rgba(2,2,4,.55); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); animation: sbFade .2s ease; }
+html #order .sb-scrim[hidden] { display: none; }
+html #order .sb-sheet { left: 8px; right: 8px; margin-top: 4px; padding: 16px; gap: 12px; border-radius: 16px; background: linear-gradient(180deg, rgba(26,26,31,.97), rgba(10,10,13,.985)); -webkit-backdrop-filter: blur(22px); backdrop-filter: blur(22px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.07), inset 0 -1px 0 rgba(255,255,255,.12), 0 50px 80px -24px rgba(0,0,0,.95); }
+html #order .sb-sheet:not([hidden]) { animation: sbIn .26s cubic-bezier(.22, 1, .36, 1); }
+.lite #order :is(.sb-sheet, .sb-scrim) { animation: none !important; }
+@keyframes sbIn { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: none; } }
+@keyframes sbFade { from { opacity: 0; } to { opacity: 1; } }
+html #order .sb-sh-h { padding: 2px 4px 8px 8px; }
+html #order .sb-sh-h b { display: block; font: 800 24px/1.1 'Inter Tight', 'Roboto', sans-serif; letter-spacing: -.02em; }
+html #order .sb-sh-h small { display: block; margin-top: 4px; font: 500 13px 'Roboto', sans-serif; color: rgba(250,250,250,.5); }
+html #order .sb-sh-h { position: sticky; top: -16px; z-index: 2; margin: -16px -16px 0; padding: 16px 16px 12px; background: linear-gradient(180deg, rgb(26,26,31) 80%, rgba(26,26,31,0)); }   /* a long list scrolls under its title, the close button stays in reach */
+html #order .sb-x { width: 46px; height: 46px; border-radius: 50%; background: rgba(255,255,255,.09); box-shadow: inset 0 0 0 1px rgba(255,255,255,.16); }
+html #order .sb-tile { position: relative; height: 72px; padding: 0 44px 0 16px; border-radius: 14px; justify-content: flex-start; text-align: left; font: 600 17px/1.15 'Roboto', sans-serif;
+  background: linear-gradient(160deg, rgba(255,255,255,.11), rgba(255,255,255,.04)); box-shadow: inset 0 0 0 1px rgba(255,255,255,.12), inset 0 1px 0 rgba(255,255,255,.16); }
+html #order .sb-tile .n { position: absolute; top: 8px; right: 8px; padding: 2px 8px; border-radius: 10px; background: rgba(255,255,255,.1); font: 500 12px 'Roboto Mono', monospace; opacity: 1; color: rgba(250,250,250,.85); }
+html #order .sb-tile .mi { position: absolute; right: 12px; bottom: 12px; width: 16px; height: 16px; opacity: .85; }
+html #order .sb-tile.on { background: linear-gradient(160deg, rgba(255,79,92,.45), rgba(224,45,60,.2)); box-shadow: inset 0 0 0 2px #ff4f5c, 0 12px 24px -14px rgba(224,45,60,.95); }
+html #order .sb-tile.on::after { content: ""; position: absolute; right: 12px; bottom: 12px; width: 20px; height: 20px; border-radius: 50%;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e02d3c' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12.5l4 4 8-9'/%3E%3C/svg%3E") center / 13px no-repeat; }
+html #order .sb-tile.on .mi { display: none; }
+.rtl #order .sb-tile { padding: 0 16px 0 44px; text-align: right; } .rtl #order .sb-tile .n { right: auto; left: 8px; } .rtl #order .sb-tile .mi, .rtl #order .sb-tile.on::after { right: auto; left: 12px; }
+
+/* ====== A GOOD LOOK FOR THE TOOLS ABOVE PAY ======
+   Three tiles side by side, each with its own colour (Park blue, Send green with a red count badge, No receipt neutral with a tick when it is on), then a big red Pay button that also
+   says how much is due. Sharp corners, and the buttons run edge to edge: they touch the left and right lines of the ticket and each other. */
+html #order .tk-act { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: 80px 80px; grid-auto-rows: auto; gap: 0; padding: 0; margin: 4px -24px -24px; border-radius: 0; overflow: visible; background: none; --ln: transparent; box-shadow: 0 -1px 0 var(--sep) !important; }
+html #order .tk-act::before { display: none; }
+html #order .tk-act :is(.park, .send, .norc), html #order .ticket.ticket .tk-act :is(.park, .send, .norc) { position: relative; grid-row: 1; height: auto !important; border: 0; border-image: none; border-radius: 0 !important; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  font: 600 15px/1 'Roboto', sans-serif; letter-spacing: .2px; color: #fff; text-shadow: none; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  background: linear-gradient(160deg, rgba(var(--g), .10), rgba(var(--g), .03)) !important;
+  box-shadow: inset 0 0 0 1px rgba(var(--g), .15), inset 0 1px 0 rgba(255,255,255,.08) !important; }   /* lighter outlines: the tiles touch, so two outlines meet on every shared edge */
+html #order .tk-act .park { --g: 118,160,226; grid-column: 1; }   /* soft blue and soft green: a hint of colour, not a signal */
+html #order .tk-act .send { --g: 100,200,160; grid-column: 2; }
+html #order .tk-act .norc { --g: 190,200,220; grid-column: 3; }
+html #order .tk-act :is(.park, .send, .norc) .mi { width: 28px; height: 28px; filter: none; }
+html #order .tk-act .park .mi { color: #9db6e0; } html #order .tk-act .send .mi { color: #96cdb4; filter: none; } html #order .tk-act .norc .mi { color: rgba(250,250,250,.85); }
+html #order .tk-act .send .cnt { position: absolute; top: 8px; right: 8px; min-width: 24px; height: 24px; padding: 0 6px; border-radius: 12px; display: grid; place-items: center; font: 700 14px 'Roboto Mono', monospace; color: #fff;
+  background: #e02d3c; box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 6px 12px -4px rgba(224,45,60,.85); }
+html #order .tk-act .send .cnt[hidden] { display: none; }
+html #order .tk-act .send.done, html #order .ticket.ticket .tk-act .send.done { --g: 100,200,160; color: rgba(250,250,250,.85); opacity: 1; }
+html #order .tk-act .send.done .mi { color: #96cdb4; }
+html #order .tk-act .send.done, html #order .ticket.ticket .tk-act .send.done { border-radius: 0 !important; background: linear-gradient(160deg, rgba(var(--g), .10), rgba(var(--g), .03)) !important;
+  box-shadow: inset 0 0 0 1px rgba(var(--g), .15), inset 0 1px 0 rgba(255,255,255,.08) !important; }
+html #order .tk-act .norc.on, html #order .ticket.ticket .tk-act .norc.on { --g: 255,255,255; border-radius: 0 !important; color: #fff; background: linear-gradient(160deg, rgba(255,255,255,.34), rgba(255,255,255,.12)) !important;
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.9), inset 0 1px 0 rgba(255,255,255,.3) !important; }
+html #order .tk-act .norc.on::after { content: ""; position: absolute; top: 8px; right: 8px; left: auto; bottom: auto; width: 24px; height: 24px; margin: 0; border-radius: 50%; box-shadow: 0 6px 12px -4px rgba(224,45,60,.85);
+  background: #e02d3c url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12.5l4 4 8-9'/%3E%3C/svg%3E") center / 15px no-repeat; }
+html #order .tk-act :is(.park, .send, .norc):active { transform: none; opacity: .78; }
+html #order .tk-act .pay, html #order .ticket.ticket .tk-act .pay { grid-column: 1 / -1; grid-row: 2; height: auto !important; border-radius: 0 !important; display: flex; align-items: center; justify-content: center; gap: 16px;
+  font: 800 24px/1 'Inter Tight', 'Roboto', sans-serif; letter-spacing: .01em; color: #fff !important; text-shadow: 0 1px 2px rgba(90,0,12,.5) !important;
+  background: linear-gradient(180deg, #ff5a66 0%, #e02d3c 55%, #c61d2f 100%) !important;
+  box-shadow: inset 0 1.5px 0 rgba(255,255,255,.3), inset 0 0 0 1px rgba(255,130,140,.22), inset 0 -12px 20px -10px rgba(110,0,16,.6) !important; }
+html #order .ticket.ticket .tk-act .pay::before, html #order .ticket.ticket .tk-act .pay::after, html #order .tk-act .pay::before, html #order .tk-act .pay::after { border-radius: 0 !important; }
+html #order .tk-act .pay .mi { width: 28px; height: 28px; filter: none; }
+html #order .tk-act .pay .amt { padding: 0 0 0 16px; border-radius: 0; background: none; box-shadow: none; border-left: 1.5px solid rgba(255,255,255,.4); font: 600 22px/1.2 'Roboto Mono', monospace; letter-spacing: 0; text-shadow: none; }
+html #order .tk-act .pay:active { transform: none; opacity: .9; }
+html:not(.light) #order .ticket.ticket .tk-act .pay { box-shadow: inset 0 1px 0 rgba(255,255,255,.3), inset 0 0 0 1px rgba(255,180,186,.25), inset 0 -14px 22px -12px rgba(255,50,66,.8) !important; }   /* Pay's rim: lighter, no outer glow */
+html.light #stage #order .tk-act :is(.park, .send, .norc, .send .cnt) { filter: url(#lflip); }
+.rtl #order .tk-act .send .cnt, .rtl #order .tk-act .norc.on::after { right: auto; left: 8px; }
+
+/* SPACING: one rule for the dish column (131 to 1407). The dishes sit 8px in from both sides (2px of the list + 6px of each card), so the first cards, the path bar and the picker start on the
+   same line on the left and end on the same line on the right, and six cards of 212px make the 12px gaps and 200px photos. Sizes are multiples of 4 and 8 (4, 8, 12, 16, 24, 40, 48, 72, 80). */
+html #order .items { padding-left: 2px; padding-right: 2px; }
+html #order .prods { gap: 8px; }                 /* bar to dishes: 8 (was 10) */
+html #order .items { gap: 24px; }                /* group to group: 24 (was 22) */
+
+/* CHOOSE A TABLE: the rooms (Main hall, Terrace, Bar) are a switcher, like Photos / Icons on the order screen: one glass container and one glass pill that slides from room to room (the busy
+   count stays beside the name). The switcher sits at the end of the header row (the right, or the left in Arabic) when there is room, and drops under the title when there is not.
+   "Choose a" is white and the key word stays red. */
+html #stage .fl-top { flex-wrap: wrap; row-gap: 16px; }
+html #stage #flZones { position: relative; margin: 0; margin-inline: auto 0; }
+html #stage #flZones button, html #stage #flZones button.on { position: relative; z-index: 1; background: none !important; box-shadow: none !important; }
+html #stage #flZones .zpill { position: absolute; z-index: 0; top: 4px; left: 0; width: 0; height: 48px; border-radius: 8px; pointer-events: none; background: var(--gl-fill-hi);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.7), inset 0 0 0 1px rgba(var(--ice-hi), .5), 0 6px 14px -6px rgba(0,0,0,.5); transition: transform .45s var(--spring), width .45s var(--spring); }
+html #stage #v-tables .fl-top h2 { color: #fff; }
+
+/* THE FLOOR PLAN: the legend is a row of filter chips (44px to tap): choose a status and the other tables fade back, tap it again to see everything. The busy count gets a little bar that
+   goes from green to red as the floor fills. */
+html #stage .fl-legend.row { gap: 18px; }
+html #stage .fl-legend.row button { display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 12px; margin: -12px -6px; border-radius: 8px; font: inherit; color: inherit; background: none; transition: background .2s, opacity .2s, color .2s; }
+html #stage .fl-legend.row button:hover { background: rgba(var(--ice-hi), .08); }
+html #stage .fl-legend.row button.on { background: rgba(var(--ice-hi), .14); color: #fff; box-shadow: inset 0 0 0 1px rgba(var(--ice-hi), .32); }
+html #stage .fl-legend.row button.zero { opacity: .45; }
+html #stage .fl-legend.row button:active { opacity: .7; }
+html #stage .fl-legend.row b { display: flex; align-items: center; gap: 12px; }
+html #stage .fl-legend .occ { flex: none; width: 80px; height: 6px; border-radius: 3px; overflow: hidden; background: rgba(255,255,255,.12); }
+html #stage .fl-legend .occ i { display: block; height: 100%; border-radius: 3px; background: linear-gradient(90deg, #12b76a, #f5a524 60%, #e02d3c) 0 0 / 80px 100%; transition: width .5s var(--spring); }
+html #stage #flRoom .ft { transition-property: opacity, transform, box-shadow, background; transition-duration: .25s; }
+html #stage #flRoom .ft.dim { opacity: .3; }
+html #stage #flRoom .dm { font: 500 12px/14px 'Roboto Mono', monospace; letter-spacing: .02em; color: rgba(250,250,250,.62); }
+html #stage #flRoom:not(.show-dm) .dm { display: none; }
+html #stage .fl-legend.row .szt { margin-left: auto; }
+html #stage .fl-legend.row .szt + b { margin-left: 0; }
+
+/* TOOLS AND KEYPAD: the icons are a little lighter (they were 72% white) so they read on the glass; the red ones (Delete line, Cancel order) were already bright and stay. */
+html #order .tools .acts button:not(.dan) .mi { background-color: rgba(255,255,255,.96); }
+html #order .tools .kp button .mi { background-color: rgba(255,255,255,.96); }
+
+/* CATEGORY PHOTOS: the rail starts on photos at every sign-in, so they read bright and true to colour (they were 70% opaque and desaturated). */
+html #order .rail .rph img { opacity: .95; filter: saturate(1.06) contrast(1.04); }
+
+/* DISH PHOTOS: framed a little higher so the dish (not the table or the plate's edge) fills the card, a steady grade that calms bright backgrounds, a hairline light edge, and each photo
+   fades in instead of popping in. */
+html #order .prod .ph img { object-position: 50% 42%; filter: contrast(1.08) saturate(1.12) brightness(.95); }
+html #order .prod .ph:not(.ld):not(.noimg) img { opacity: 0; }
+html #order .prod .ph::before { box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
+
+/* KEYPAD: keys between the wide original (120 x 53) and a square (53 x 53): 86.7 x 53.3. Four columns make the keypad 346.7px wide (it was 480); the tool buttons take the freed width. */
+html #order .tools .kp { width: calc((120px + 160px / 3) / 2 * 4); }
 html #app { padding: 0 16px 25px 16px; }
 html #app .a-head { width: 1888px; height: 84px; margin-bottom: 36px; }
 html #app .a-head::after { left: -16px; right: -16px; top: 84px; }
@@ -4527,6 +4775,8 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
               </div>
             </div>
             <div class="subbar" id="subbar" hidden></div>
+            <div class="sb-scrim" id="sbScrim" hidden></div>
+            <div class="sb-sheet" id="sbSheet" hidden role="menu" aria-label="More sub-categories"></div>
             <div class="items" id="items"></div>
             <div class="kbuf" id="kbuf" hidden></div>
           </div>
@@ -4578,9 +4828,9 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
         </div>
         <div class="tk-act">
           <button class="park" id="parkBtn"><i class="mi" style="--ic:url(/pos/assets/dine/clock-blue.svg)"></i>Park</button>
-          <button class="send" id="sendBtn"><i class="mi" style="--ic:url(/pos/assets/dine/send.svg)"></i><span>Send 3</span></button>
+          <button class="send" id="sendBtn"><i class="mi" style="--ic:url(/pos/assets/dine/send.svg)"></i><span>Send</span><b class="cnt">3</b></button>
           <button class="norc" id="norcBtn" aria-pressed="false"><i class="mi" style="--ic:url(/pos/assets/dine/receipt-2.svg)"></i>No receipt</button>
-          <button class="pay" id="payBtn"><i class="mi" style="--ic:url(/pos/assets/dine/card.svg)"></i>Pay</button>
+          <button class="pay" id="payBtn"><i class="mi" style="--ic:url(/pos/assets/dine/card.svg)"></i><span class="pl">Pay</span><b class="amt">0.00 Dhs</b></button>
         </div>
       </aside>
     </div>
@@ -4741,7 +4991,10 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
       <div class="fe-act"><button class="fe-pill" id="feUndo" disabled>↶ Undo</button><button class="fe-btn fe-ghostb" id="feCancel">Cancel</button><button class="fe-btn red" id="feSave">Save floor plan</button></div>
     </header>
     <aside class="fe-pal" id="fePal"></aside>
-    <main class="fe-stage"><div class="fe-room" id="feRoom"><div class="fe-sc" id="feSc"></div></div></main>
+    <main class="fe-stage"><div class="fe-room" id="feRoom"><div class="fe-sc" id="feSc"></div>
+      <div class="fe-lenbox" id="feLenBox" hidden><input id="feLen" inputmode="decimal" autocomplete="off" spellcheck="false" aria-label="Length in metres"><i>m</i></div></div></main>
+    <div class="fe-steps" id="feSteps"></div>
+    <div class="fe-penbar" id="fePenBar" hidden><span>✎ <b>Drawing the room</b> · click each corner, or type a length and press <b>Enter</b></span><button id="fePenDone">Close the shape</button><button id="fePenCancel">Cancel</button></div>
     <aside class="fe-ins" id="feIns"></aside>
   </section>
   <div class="abs dr-scrim" id="drScrim"></div>
@@ -5413,6 +5666,7 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
     if (hubRole && parent !== window) { parent.postMessage({ type: 'cm-pos:lock' }, location.origin); return; }
     inPos = false; isPin = false; signedOut = false;
     if (O.catPics) { O.catPics = false; syncPics(); }   // the next person starts on icons
+    O.mode = 'icons';                                    // ... and on the Cards (no photos) view of the dishes
     posEl.getAnimations().forEach(a => a.cancel());
     stage.classList.remove('is-order', 'is-app', 'is-tables', 'is-pos', 'is-pin', 'verifying');
     carousel.classList.remove('focus');
@@ -5488,11 +5742,18 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
   const ic = (name, dir = 'dine') => `<i class="mi" style="--ic:url(/pos/assets/${dir}/${name}.svg)"></i>`;
   // Category photos for the rail (profile menu → Category photos): stock food photos, with the line icon
   // as the fallback if a photo cannot load.
-  const CAT_PIC = {
-    fav: 'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=160&h=160&q=70&auto=format&fit=crop', all: 'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=160&h=160&q=70&auto=format&fit=crop', burgers: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=160&h=160&q=70&auto=format&fit=crop',
-    pizza: 'https://images.unsplash.com/photo-1628840042765-356cda07504e?w=160&h=160&q=70&auto=format&fit=crop', pasta: 'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=160&h=160&q=70&auto=format&fit=crop', salads: 'https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=160&h=160&q=70&auto=format&fit=crop',
-    sides: 'https://images.unsplash.com/photo-1585109649139-366815a0d713?w=160&h=160&q=70&auto=format&fit=crop', drinks: 'https://images.unsplash.com/photo-1600271886742-f049cd451bba?w=160&h=160&q=70&auto=format&fit=crop', dessert: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=160&h=160&q=70&auto=format&fit=crop',
-    offers: 'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=160&h=160&q=70&auto=format&fit=crop', sauce: 'https://images.unsplash.com/photo-1472476443507-c7a5948772fc?w=160&h=160&q=70&auto=format&fit=crop',
+  const CAT_PIC = {   // hand-picked: one clear, bright, different dish per category
+    fav: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=240&h=240&q=85&auto=format&fit=crop',
+    all: 'https://images.unsplash.com/photo-1493770348161-369560ae357d?w=240&h=240&q=85&auto=format&fit=crop',
+    burgers: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=240&h=240&q=85&auto=format&fit=crop',
+    pizza: 'https://images.unsplash.com/photo-1628840042765-356cda07504e?w=240&h=240&q=85&auto=format&fit=crop',
+    pasta: 'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=240&h=240&q=85&auto=format&fit=crop',
+    salads: 'https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=240&h=240&q=85&auto=format&fit=crop',
+    sides: 'https://images.unsplash.com/photo-1585109649139-366815a0d713?w=240&h=240&q=85&auto=format&fit=crop',
+    drinks: 'https://images.unsplash.com/photo-1600271886742-f049cd451bba?w=240&h=240&q=85&auto=format&fit=crop',
+    dessert: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=240&h=240&q=85&auto=format&fit=crop',
+    offers: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=240&h=240&q=85&auto=format&fit=crop',
+    sauce: 'https://images.unsplash.com/photo-1472476443507-c7a5948772fc?w=240&h=240&q=85&auto=format&fit=crop',
   };
   const CATS = [
     { id: 'fav', name: 'Favorites', icon: 'rail-star' }, { id: 'all', name: 'All items', icon: 'rail-all' },
@@ -5517,11 +5778,23 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
                 ['double', 'Double'], ['bacon', 'Bacon']] },
               { id: 'chick', name: 'Chicken & sandwiches', subs: [['crispy', 'Chicken burgers', ['Pulled Chicken Burger', 'Crispy Chicken', 'Spicy Chicken', 'Chicken Avocado']],
                                                                    ['sandw', 'Sandwiches', ['Club Sandwich', 'Tuna Melt', 'Steak Sandwich']]] }],
-    pizza: [{ id: 'pclassic', name: 'Classics', subs: [['pveg', 'Vegetarian', ['Margherita', 'Marinara', 'Napoli']], ['pmeat', 'With meat', ['Pepperoni', 'Prosciutto', 'Hawaiian', 'Capricciosa']]] },
-            { id: 'pspecial', name: 'Specials', subs: [['pcheese', 'Cheese & veggie', ['Veggie Supreme', 'Four Cheese', 'Truffle Mushroom', 'Burrata Pizza']],
-                                                     ['pspicy', 'Meat & spicy', ['Diavola', 'BBQ Chicken', 'Tandoori Chicken', 'Calzone']], ['psea', 'Seafood', ['Seafood Pizza']]] }],
-    pasta: [{ id: 'ptomato', name: 'Tomato' }, { id: 'pcream', name: 'Creamy' },
-            { id: 'pchef', name: 'Chef specials', subs: [['asea', 'Seafood', ['Seafood Spaghetti', 'Shrimp Linguine', 'Lobster Ravioli', 'Salmon Pasta']], ['apesto', 'Pesto', ['Farfalle Pesto', 'Pesto Gnocchi']]] }],
+    // USE CASE 1, Pizza: category › sub › sub › sub. Both sections go three levels down, one level at a time in the top bar (Pizza › Specials › Meat & spicy › Hot & spicy)
+    pizza: [{ id: 'pclassic', name: 'Classics', subs: [
+              ['pveg', 'Vegetarian', null, [['pvcheese', 'Cheese & tomato', ['Margherita', 'Marinara', 'Napoli']], ['pvveg', 'Garden']]],
+              ['pmeat', 'With meat', null, [['pmpork', 'Pork & beef', ['Pepperoni', 'Prosciutto']], ['pmchick', 'Chicken & mixed', ['Hawaiian', 'Capricciosa']]]]] },
+            { id: 'pspecial', name: 'Specials', subs: [
+              ['pcheese', 'Cheese & veggie', null, [['pcmelt', 'Melted cheese', ['Four Cheese', 'Burrata Pizza']], ['pcgarden', 'Garden & truffle', ['Veggie Supreme', 'Truffle Mushroom']]]],
+              ['pspicy', 'Meat & spicy', null, [['pshot', 'Hot & spicy', ['Diavola', 'Tandoori Chicken']], ['psbbq', 'BBQ & baked', ['BBQ Chicken', 'Calzone']]]],
+              ['psea', 'Seafood', null, [['psfish', 'Fish', ['Seafood Pizza']], ['psshell', 'Shellfish']]]] }],
+    // USE CASE 2, Pasta: category › four subs side by side (Tomato, Creamy, Oven baked, Chef specials), the last one going four levels down:
+    // Chef specials › Seafood › Shellfish › Prawns & shrimp (Seafood also has Fish beside Shellfish; Chef specials also has Meat & ragù and Pesto)
+    pasta: [{ id: 'ptomato', name: 'Tomato' }, { id: 'pcream', name: 'Creamy' }, { id: 'pbaked', name: 'Oven baked' },
+            { id: 'pchef', name: 'Chef specials', subs: [
+              ['asea', 'Seafood', null, [
+                ['ashell', 'Shellfish', null, [['aprawn', 'Prawns & shrimp', ['Seafood Spaghetti', 'Shrimp Linguine']], ['acrab', 'Lobster & crab', ['Lobster Ravioli']]]],
+                ['afish', 'Fish', ['Salmon Pasta']]]],
+              ['amest', 'Meat & ragù', ['Tagliatelle Beef Ragù']],
+              ['apesto', 'Pesto', ['Farfalle Pesto', 'Pesto Gnocchi']]] }],
     salads: [{ id: 'sal', name: 'Salads', subs: [['slight', 'Light', ['Garden Salad', 'Greek Salad', 'Quinoa Salad']], ['sprot', 'With protein', ['Caesar Salad', 'Niçoise Salad', 'Tuna Salad']],
                                                ['scheese', 'With cheese', ['Burrata Salad', 'Goat Cheese Salad']]] },
              { id: 'bowls', name: 'Bowls', subs: [['bmeat', 'Meat & fish', ['Chicken Power Bowl', 'Salmon Poke Bowl', 'Teriyaki Bowl', 'Steak Bowl']], ['bveg', 'Veggie', ['Veggie Buddha Bowl', 'Falafel Bowl', 'Mexican Bowl']]] }],
@@ -5547,7 +5820,29 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
     offers: [{ id: 'combos', name: 'Combos', subs: [['solo', 'For one', ['Burger Menu', 'Kids Menu', 'Pasta Menu', 'Salad & Drink', 'Student Deal', 'Lunch Formula']],
                                                   ['share', 'To share', ['Mini Burger Duo', 'Pizza Night for Two', 'Family Burger Box', 'Wings Bucket', 'Party Platter', 'Dessert Duo']]] }],
     sauce: [{ id: 'dips', name: 'Dips', subs: [['mayo', 'Mayo & creamy', ['Garlic Mayo', 'Spicy Harissa Mayo', 'Ranch', 'Cheddar Dip', 'Samurai', 'Algerian']],
-                                             ['ketch', 'Classic', ['Tomato Ketchup', 'BBQ Sauce', 'Sweet Chili', 'Honey Mustard', 'Curry Sauce', 'Pepper Sauce']]] }],
+                                             ['ketch', 'Classic', ['Tomato Ketchup', 'BBQ Sauce', 'Sweet Chili', 'Honey Mustard', 'Curry Sauce', 'Pepper Sauce']]] },
+    // TEST CASE for a lot of sub-categories: twelve sections side by side, so the top bar has 13 chips and has to scroll
+             { id: 'sspicy', name: 'Spicy & hot' },
+             { id: 'sbbq', name: 'BBQ & smoky' },
+             { id: 'sasian', name: 'Asian' },
+             { id: 'sherb', name: 'Herbs & green' },
+             { id: 'ssweet', name: 'Sweet & fruity' },
+             { id: 'scheesy', name: 'Cheesy' },
+             { id: 'sdress', name: 'Dressings' },
+             { id: 'soils', name: 'Oils & vinegars' },
+             { id: 'ssalsa', name: 'Salsas' },
+             { id: 'schut', name: 'Chutneys & pickles' },
+             { id: 'smid', name: 'Middle East' },
+             { id: 'sgarlic', name: 'Garlic & onion' },
+             { id: 'scitrus', name: 'Citrus' },
+             { id: 'smustard', name: 'Mustard' },
+             { id: 'spepper', name: 'Peppery' },
+             { id: 'stomato', name: 'Tomato-based' },
+             { id: 'snutty', name: 'Nutty' },
+             { id: 'ssmoky', name: 'Smoky' },
+             { id: 'screamy', name: 'Creamy herb' },
+             { id: 'sfruit', name: 'Fruit' },
+             { id: 'ssweetdip', name: 'Sweet dips' }],
   };
   const SECTIONS = CATS.flatMap(c => (SECS[c.id] || []).map(x => ({ ...x, cat: c.id })));
   const PHOTO = {
@@ -5629,7 +5924,7 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
     { id: 'z5', name: 'Diavola', price: 74, img: P(8), cat: 'pizza', sec: 'pspecial', out: true },
     { id: 'a1', name: 'Penne Arrabbiata', price: 58, img: P(12), cat: 'pasta', sec: 'ptomato' },
     { id: 'a2', name: 'Spaghetti Carbonara', price: 68, img: P(16), cat: 'pasta', sec: 'pcream', fav: true },
-    { id: 'a3', name: 'Tagliatelle Beef Ragù', price: 79, img: P(14), cat: 'pasta', sec: 'pcream' },
+    { id: 'a3', name: 'Tagliatelle Beef Ragù', price: 79, img: P(14), cat: 'pasta', sec: 'pchef' },
     { id: 'a4', name: 'Seafood Spaghetti', price: 95, img: P(13), cat: 'pasta', sec: 'pchef' },
     { id: 'a5', name: 'Farfalle Pesto', price: 62, img: P(15), cat: 'pasta', sec: 'pchef' },
     { id: 's1', name: 'Caesar Salad', price: 52, img: P(20), cat: 'salads', sec: 'sal', fav: true },
@@ -5700,7 +5995,7 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
   for (const x of Object.values(SECS).flat()) walk(x.subs, x.id, null);
   PRODUCTS.forEach(p => { if (p.ss) p.path = NODE[p.ss].path; });
   // POS v3: a fuller test menu, so the first page of every category is full. Every group (an end of the sub-section tree, or a section with no
-  // sub-sections) is topped up to whole rows of five, and every category to at least 40 dishes: no half-empty row, no empty space under the dishes.
+  // sub-sections) is topped up to whole rows of six, and every category to at least 40 dishes: no half-empty row, no empty space under the dishes.
   // The new dishes take the photos of their own group (else of their category); the names are made up.
   const FILL = {
     cplain: ['Plain Smash Burger', 'Garden Burger', 'Onion Burger', 'Pickle Burger'],
@@ -5711,37 +6006,69 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
     bacon: ['Bacon BBQ Burger', 'Bacon Jam Burger'],
     crispy: ['Crispy Buffalo Burger', 'Nashville Chicken Burger'],
     sandw: ['Chicken Wrap', 'Falafel Sandwich', 'Turkey Club', 'Grilled Cheese Sandwich'],
-    pveg: ['Funghi', 'Margherita Extra', 'Pizza Verdure', 'Pesto Veggie', 'Caprese', 'Spinach & Ricotta', 'Roasted Veg', 'Artichoke', 'Olive & Feta'],
-    pmeat: ['Salami Piccante', 'Ham & Mushroom', 'Pepperoni Double', 'Bresaola', 'Meat Lovers', 'Sausage & Peppers', 'Pancetta'],
-    pcheese: ['Gorgonzola & Pear', 'Goat Cheese & Honey', 'Mozzarella Bufala', 'Cheese Lovers', 'Ricotta & Herbs', 'Taleggio', 'Smoked Scamorza'],
-    pspicy: ['Spicy Salami', 'Nduja Pizza', 'Chorizo Pizza', 'Hot Honey Pepperoni', 'Merguez Pizza', 'Beef & Jalapeño', 'Kebab Pizza'],
-    psea: ['Tuna & Onion', 'Anchovy Pizza', 'Shrimp Scampi Pizza', 'Salmon Cream Pizza', 'Calamari Pizza', 'Mussel Pizza', 'Smoked Salmon Pizza', 'Tuna Olive Pizza', 'Seafood Bianca'],
+    pvcheese: ['Margherita Extra', 'Caprese', 'Funghi'],
+    pvveg: ['Pizza Verdure', 'Pesto Veggie', 'Spinach & Ricotta', 'Roasted Veg', 'Artichoke', 'Olive & Feta'],
+    pmpork: ['Salami Piccante', 'Pepperoni Double', 'Bresaola', 'Pancetta', 'Sausage & Peppers'],
+    pmchick: ['Ham & Mushroom', 'Chicken Ranch Pizza', 'Chicken Alfredo Pizza', 'Meat Lovers'],
+    pcmelt: ['Gorgonzola & Pear', 'Goat Cheese & Honey', 'Mozzarella Bufala', 'Cheese Lovers'],
+    pcgarden: ['Ricotta & Herbs', 'Taleggio', 'Smoked Scamorza', 'Pizza Funghi Bianca'],
+    pshot: ['Spicy Salami', 'Nduja Pizza', 'Chorizo Pizza', 'Hot Honey Pepperoni'],
+    psbbq: ['Merguez Pizza', 'Beef & Jalapeño', 'Kebab Pizza', 'Sausage Calzone'],
+    psfish: ['Tuna & Onion', 'Anchovy Pizza', 'Salmon Cream Pizza', 'Smoked Salmon Pizza', 'Tuna Olive Pizza'],
+    psshell: ['Shrimp Scampi Pizza', 'Calamari Pizza', 'Mussel Pizza', 'Seafood Bianca', 'Garlic Prawn Pizza', 'Octopus Pizza'],
+    pbaked: ['Lasagna al Forno', 'Cannelloni Ricotta', 'Baked Ziti', 'Stuffed Shells', 'Pasta al Forno', 'Baked Rigatoni'],
+    aprawn: ['Linguine Scampi', 'Garlic Prawn Penne', 'Shrimp Alfredo', 'Chilli Prawn Linguine', 'Prawn Tagliatelle'],
+    acrab: ['Crab Linguine', 'Lobster Linguine', 'Spaghetti Vongole', 'Mussel Linguine', 'Black Ink Spaghetti'],
+    afish: ['Tuna Penne', 'Salmon Tagliatelle', 'Smoked Salmon Pasta', 'Cod & Lemon Spaghetti', 'Anchovy Spaghetti'],
+    amest: ['Beef Ragù Pappardelle', 'Sausage Rigatoni', 'Meatball Spaghetti', 'Bolognese Tagliatelle', 'Lamb Ragù'],
     ptomato: ['Spaghetti Arrabbiata', 'Rigatoni Pomodoro', 'Penne Siciliana', 'Spaghetti Napoli', 'Fusilli Basilico', 'Bucatini Amatriciana'],
     pcream: ['Carbonara Bianca', 'Penne Gorgonzola', 'Rigatoni Quattro Formaggi', 'Tagliatelle Funghi', 'Creamy Salmon Penne'],
-    asea: ['Spaghetti Vongole', 'Linguine Scampi', 'Black Ink Spaghetti', 'Tuna Penne', 'Mussel Linguine', 'Seafood Tagliatelle', 'Crab Linguine'],
     apesto: ['Trofie Pesto', 'Penne Pesto Genovese', 'Pesto Chicken Pasta', 'Rocket Pesto Spaghetti', 'Sun-dried Tomato Pesto', 'Pistachio Pesto Pasta', 'Pesto Burrata Penne', 'Pesto Shrimp Linguine', 'Basil Pesto Fusilli'],
-    slight: ['Caprese Salad', 'Cucumber Mint Salad', 'Tomato Onion Salad', 'Moroccan Salad', 'Green Bean Salad', 'Beetroot Salad', 'Carrot Orange Salad', 'Rocket Parmesan Salad'],
-    sprot: ['Grilled Chicken Salad', 'Shrimp Salad', 'Steak Salad', 'Egg & Avocado Salad', 'Smoked Salmon Salad', 'Turkey Salad', 'Crispy Chicken Salad', 'Tuna Pasta Salad'],
-    scheese: ['Feta Salad', 'Halloumi Salad', 'Mozzarella Tomato Salad', 'Parmesan Salad', 'Blue Cheese Pear Salad', 'Ricotta Beet Salad', 'Camembert Salad', 'Burrata Tomato Salad', 'Cheddar Apple Salad'],
-    bmeat: ['Beef Teriyaki Bowl', 'Chicken Katsu Bowl', 'Shrimp Rice Bowl', 'Salmon Avocado Bowl', 'Pulled Beef Bowl', 'BBQ Chicken Bowl', 'Tuna Sushi Bowl'],
-    bveg: ['Tofu Bowl', 'Sweet Potato Bowl', 'Hummus Bowl', 'Greek Bowl', 'Mediterranean Bowl', 'Quinoa Veggie Bowl', 'Avocado Rice Bowl', 'Roasted Cauliflower Bowl'],
-    fplain: ['Skin-on Fries', 'Shoestring Fries', 'Waffle Fries', 'Crinkle Fries', 'Steak Fries', 'Fries Large'],
-    floaded: ['Chili Cheese Fries', 'Bacon Cheese Fries', 'Pulled Beef Fries', 'Peri-peri Fries', 'Parmesan Herb Fries', 'Buffalo Fries', 'BBQ Loaded Fries'],
-    wings: ['Honey Garlic Wings', 'Hot Wings ×6', 'Lemon Pepper Wings', 'Teriyaki Wings', 'Chicken Popcorn', 'Crispy Tenders ×5', 'Spicy Tenders'],
-    bites: ['Jalapeño Poppers', 'Fried Calamari', 'Cheese Croquettes', 'Falafel Bites', 'Chicken Nuggets ×9', 'Spring Rolls', 'Veggie Samosas'],
+    slight: ['Caprese Salad', 'Cucumber Mint Salad', 'Tomato Onion Salad', 'Moroccan Salad', 'Green Bean Salad', 'Beetroot Salad', 'Carrot Orange Salad', 'Rocket Parmesan Salad', 'Radish Citrus Salad'],
+    sprot: ['Grilled Chicken Salad', 'Shrimp Salad', 'Steak Salad', 'Egg & Avocado Salad', 'Smoked Salmon Salad', 'Turkey Salad', 'Crispy Chicken Salad', 'Tuna Pasta Salad', 'Lamb Kofta Salad'],
+    scheese: ['Feta Salad', 'Halloumi Salad', 'Mozzarella Tomato Salad', 'Parmesan Salad', 'Blue Cheese Pear Salad', 'Ricotta Beet Salad', 'Camembert Salad', 'Burrata Tomato Salad', 'Cheddar Apple Salad', 'Pear Gorgonzola Salad'],
+    bmeat: ['Beef Teriyaki Bowl', 'Chicken Katsu Bowl', 'Shrimp Rice Bowl', 'Salmon Avocado Bowl', 'Pulled Beef Bowl', 'BBQ Chicken Bowl', 'Tuna Sushi Bowl', 'Lamb Kofta Bowl'],
+    bveg: ['Tofu Bowl', 'Sweet Potato Bowl', 'Hummus Bowl', 'Greek Bowl', 'Mediterranean Bowl', 'Quinoa Veggie Bowl', 'Avocado Rice Bowl', 'Roasted Cauliflower Bowl', 'Roasted Beet Bowl'],
+    fplain: ['Skin-on Fries', 'Shoestring Fries', 'Waffle Fries', 'Crinkle Fries', 'Steak Fries', 'Fries Large', 'Rustic Fries'],
+    floaded: ['Chili Cheese Fries', 'Bacon Cheese Fries', 'Pulled Beef Fries', 'Peri-peri Fries', 'Parmesan Herb Fries', 'Buffalo Fries', 'BBQ Loaded Fries', 'Truffle Loaded Fries'],
+    wings: ['Honey Garlic Wings', 'Hot Wings ×6', 'Lemon Pepper Wings', 'Teriyaki Wings', 'Chicken Popcorn', 'Crispy Tenders ×5', 'Spicy Tenders', 'Smoky BBQ Tenders'],
+    bites: ['Jalapeño Poppers', 'Fried Calamari', 'Cheese Croquettes', 'Falafel Bites', 'Chicken Nuggets ×9', 'Spring Rolls', 'Veggie Samosas', 'Arancini Bites'],
     soda: ['Coca-Cola Cherry', 'Orangina'],
+    juice: ['Pomegranate Juice'],
+    mclassic: ['Café Crème'],
     water: ['Still Water 1L', 'Sparkling Lime', 'Mineral Water 50cl', 'Big Water 1.5L'],
     iced: ['Iced Latte', 'Iced Mocha', 'Iced Peach Tea'],
     eblack: ['Ristretto', 'Lungo', 'Espresso Doppio'],
     mflav: ['Pistachio Latte', 'White Mocha'],
     brew: ['Cold Brew', 'V60 Pour-over', 'Moka Pot Coffee'],
     tea: ['Moroccan Mint Tea Pot', 'Black Tea', 'Chamomile Tea'],
-    choc: ['Chocolate Fondant', 'Chocolate Mousse', 'Chocolate Tart', 'Double Chocolate Cake', 'Chocolate Éclair', 'Chocolate Cookie', 'Molten Lava Cake', 'Chocolate Pudding'],
-    cream: ['Strawberry Shortcake', 'Vanilla Panna Cotta', 'Mille-feuille', 'Profiteroles', 'Pavlova', 'Berry Tart'],
-    ice: ['Strawberry Sundae', 'Pistachio Gelato', 'Mango Sorbet', 'Lemon Sorbet', 'Caramel Sundae', 'Oreo Sundae', 'Banana Split', 'Coffee Gelato'],
-    treats: ['Churros Chocolate Dip', 'Belgian Waffle Berry', 'Donut Single', 'Cinnamon Roll', 'Banoffee Pancakes'],
-    solo: ['Chicken Burger Menu', 'Pizza Menu', 'Salad Menu', 'Wrap Menu', 'Nuggets Menu', 'Fish Menu', 'Veggie Menu', 'Breakfast Menu', 'Sandwich Menu', 'Wings Menu', 'Pasta & Drink', 'Burger & Fries', 'Bowl Menu', 'Late Lunch Deal', 'Chef Menu'],
-    share: ['Pizza Duo', 'Burger Trio', 'Wings & Fries Platter', 'Pasta Duo', 'Family Pizza Box', 'Brunch for Two', 'Salad Platter', 'Date Night Menu', 'Group Burger Box', 'Nacho Platter', 'Dessert Platter', 'Friends Platter', 'Pizza & Wings Combo', 'Team Box', 'Grill Platter'],
+    choc: ['Chocolate Fondant', 'Chocolate Mousse', 'Chocolate Tart', 'Double Chocolate Cake', 'Chocolate Éclair', 'Chocolate Cookie', 'Molten Lava Cake', 'Chocolate Pudding', 'Dark Chocolate Truffle'],
+    cream: ['Strawberry Shortcake', 'Vanilla Panna Cotta', 'Mille-feuille', 'Profiteroles', 'Pavlova', 'Berry Tart', 'Crème Brûlée'],
+    ice: ['Strawberry Sundae', 'Pistachio Gelato', 'Mango Sorbet', 'Lemon Sorbet', 'Caramel Sundae', 'Oreo Sundae', 'Banana Split', 'Coffee Gelato', 'Raspberry Sorbet'],
+    treats: ['Churros Chocolate Dip', 'Belgian Waffle Berry', 'Donut Single', 'Cinnamon Roll', 'Banoffee Pancakes', 'Honey Baklava'],
+    solo: ['Chicken Burger Menu', 'Pizza Menu', 'Salad Menu', 'Wrap Menu', 'Nuggets Menu', 'Fish Menu', 'Veggie Menu', 'Breakfast Menu', 'Sandwich Menu', 'Wings Menu', 'Pasta & Drink', 'Burger & Fries', 'Bowl Menu', 'Late Lunch Deal', 'Chef Menu', 'Steak Menu', 'Shawarma Menu', 'Tacos Menu'],
+    share: ['Pizza Duo', 'Burger Trio', 'Wings & Fries Platter', 'Pasta Duo', 'Family Pizza Box', 'Brunch for Two', 'Salad Platter', 'Date Night Menu', 'Group Burger Box', 'Nacho Platter', 'Dessert Platter', 'Friends Platter', 'Pizza & Wings Combo', 'Team Box', 'Grill Platter', 'Mezze Platter', 'BBQ Platter', 'Taco Party Box'],
+    sgarlic: ['Garlic Aioli', 'Roasted Garlic Mayo', 'Onion Marmalade', 'Caramelised Onion Dip', 'Garlic Chive Dip', 'Shallot Vinaigrette'],
+    scitrus: ['Lemon Butter', 'Lime Crema', 'Orange Glaze', 'Yuzu Sauce', 'Grapefruit Dressing', 'Lemon Pepper Dip'],
+    smustard: ['Dijon Cream', 'Whole Grain Mustard', 'Honey Dijon', 'Spicy Brown Mustard', 'Maple Dijon', 'Hot English Mustard'],
+    spepper: ['Black Pepper Sauce', 'Green Peppercorn', 'Pink Pepper Cream', 'Szechuan Pepper Oil', 'Cracked Pepper Dip', 'Peppercorn Gravy'],
+    stomato: ['Marinara Dip', 'Arrabbiata Sauce', 'Pomodoro', 'Roasted Tomato Jam', 'Sun-dried Tomato Dip', 'Pizza Sauce'],
+    snutty: ['Peanut Dip', 'Almond Romesco', 'Walnut Pesto', 'Pistachio Cream', 'Cashew Cream', 'Hazelnut Chocolate Dip'],
+    ssmoky: ['Smoked Aioli', 'Chipotle Crema', 'Liquid Smoke Mayo', 'Smoked Paprika Dip', 'Hickory Mayo', 'Mesquite Sauce'],
+    screamy: ['Light Ranch', 'Chive Cream', 'Tarragon Cream', 'Parsley Cream', 'Dill Yogurt', 'Cucumber Raita'],
+    sfruit: ['Strawberry Dip', 'Blueberry Glaze', 'Cranberry Sauce', 'Cherry Chipotle', 'Peach Salsa', 'Apple Chutney'],
+    ssweetdip: ['Caramel Dip', 'Chocolate Dip', 'Vanilla Cream', 'Honey Butter', 'Maple Syrup', 'Hazelnut Spread'],
+    sspicy: ['Habanero Sauce', 'Jalapeño Sauce', 'Ghost Pepper Sauce', 'Chili Garlic Paste', 'Scotch Bonnet Sauce', 'Fire Roasted Salsa'],
+    sbbq: ['Texas BBQ', 'Kansas City BBQ', 'Smoked Paprika Sauce', 'Chipotle BBQ', 'Honey BBQ', 'Hickory Glaze'],
+    sasian: ['Sweet Soy Glaze', 'Hoisin Sauce', 'Ponzu', 'Satay Sauce', 'Thai Peanut Sauce', 'Miso Dressing'],
+    sherb: ['Basil Pesto Dip', 'Coriander Chutney', 'Mint Yogurt', 'Parsley Gremolata', 'Green Goddess', 'Dill Sauce'],
+    ssweet: ['Mango Chili', 'Pineapple Glaze', 'Apricot Dip', 'Raspberry Chipotle', 'Honey Sriracha', 'Maple Mustard'],
+    scheesy: ['Nacho Cheese', 'Four Cheese Dip', 'Parmesan Cream', 'Gorgonzola Dip', 'Smoked Cheddar Dip', 'Mozzarella Fondue'],
+    sdress: ['Honey Vinaigrette', 'Balsamic Dressing', 'Lemon Tahini', 'Italian Dressing', 'Thousand Island', 'Yogurt Dressing'],
+    soils: ['Chili Oil', 'Garlic Oil', 'Basil Oil', 'Truffle Oil', 'Balsamic Glaze', 'Olive Oil & Herbs'],
+    ssalsa: ['Pico de Gallo', 'Salsa Verde', 'Corn Salsa', 'Pineapple Salsa', 'Roasted Tomato Salsa', 'Guacamole'],
+    schut: ['Mango Chutney', 'Onion Jam', 'Pickled Jalapeños', 'Cucumber Relish', 'Date Chutney', 'Spicy Pickle Mix'],
+    smid: ['Garlic Toum', 'Tahini Sauce', 'Zhoug', 'Muhammara', 'Hummus Dip', 'Baba Ganoush'],
     mayo: ['Truffle Mayo', 'Chipotle Mayo', 'Lemon Mayo', 'Blue Cheese Dip', 'Tartar Sauce', 'Aioli', 'Caesar Dressing', 'Sriracha Mayo', 'Wasabi Mayo', 'Herb Yogurt Dip', 'Tzatziki', 'Burger Sauce', 'Cocktail Sauce', 'Pesto Mayo', 'Honey Mayo'],
     ketch: ['Smoky Ketchup', 'Spicy Ketchup', 'Hot Sweet Chili', 'Peri-peri Sauce', 'Harissa', 'Hot Sauce', 'Buffalo Sauce', 'Teriyaki Sauce', 'Sweet & Sour', 'Chimichurri', 'Salsa', 'Mustard', 'BBQ Hickory', 'Tomato Chutney', 'Garlic Chili Oil'],
   };
@@ -5752,11 +6079,11 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
     let n = 0;
     for (const c of Object.keys(SECS)) {
       const leaves = SECS[c].flatMap(x => x.subs ? ends(x.subs, x.id) : [{ key: x.id, sec: x.id, ss: null }]);
-      const per = Math.ceil(Math.max(40 / leaves.length, 5) / 5) * 5;                 // at least 40 dishes in the category, whole rows of five in every group
+      const per = Math.ceil(Math.max(40 / leaves.length, 6) / 6) * 6;                 // at least 40 dishes in the category, whole rows of six in every group
       const catImgs = [...new Set(PRODUCTS.filter(p => p.cat === c && p.img).map(p => p.img))];
       for (const lf of leaves) {
         const mine = PRODUCTS.filter(p => p.cat === c && p.sec === lf.sec && (lf.ss ? p.ss === lf.ss : !p.ss));
-        const want = Math.max(per, Math.ceil(mine.length / 5) * 5) - mine.length;
+        const want = Math.max(per, Math.ceil(mine.length / 6) * 6) - mine.length;
         const imgs = [...new Set(mine.filter(p => p.img).map(p => p.img))], pool = imgs.length ? imgs : catImgs;
         const names = (FILL[lf.key] || []).filter(nm => !taken.has(nm));
         for (let j = 0; j < want; j++) {
@@ -5766,12 +6093,36 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
         }
       }
     }
-    // Favorites: five dishes from the first group of every category, so each favorites group is one full row
+    // Favorites: six dishes from the first group of every category, so each favorites group is one full row
     PRODUCTS.forEach(p => { delete p.fav; });
     for (const c of Object.keys(SECS)) {
       const first = SECS[c][0], lf = first.subs ? ends(first.subs, first.id)[0] : { sec: first.id, ss: null };
-      PRODUCTS.filter(p => p.cat === c && p.sec === lf.sec && (lf.ss ? p.ss === lf.ss : !p.ss) && !p.out).slice(0, 5).forEach(p => { p.fav = true; });
+      PRODUCTS.filter(p => p.cat === c && p.sec === lf.sec && (lf.ss ? p.ss === lf.ss : !p.ss) && !p.out).slice(0, 6).forEach(p => { p.fav = true; });
     }
+  })();
+  // POS v3: every dish has its own picture. The menu has about 380 dishes but only 55 curated photos, so most dishes shared one. Each dish keeps its curated photo
+  // while it is the first to use it; every later dish that would repeat a photo takes a new, different one from the pool of its own group (pizzas from pizza photos,
+  // desserts from dessert photos, hot drinks from cups...), preferring a photo whose name shares a word with the dish. A group with no photo left shows no picture
+  // (the card without a photo) rather than repeat one. The pools are free demo photos (TheMealDB, TheCocktailDB, Wikimedia Commons), not the restaurant's own.
+  (() => {
+    const URL_OF = ([s, c, , w]) => s === 'm' ? `https://www.themealdb.com/images/media/meals/${c}.jpg` : s === 'd' ? `https://www.thecocktaildb.com/images/media/drink/${c}.jpg`
+      : `https://upload.wikimedia.org/wikipedia/commons/thumb/${c}/${w || 500}px-${c.split('/').pop()}`;
+    const POOL = {"pizza":[["m","x0lk931587671540","Pizza Express Margherita"],["w","8/8e/D.O.C._Margherita_Pizza_at_Punch_Pizza_St_Paul_%282198174643%29.jpg","D.O.C. Margherita Pizza at Punch Pizza S"],["w","d/d9/Gemignani_Margherita_Pizza.JPG","Gemignani Margherita Pizza"],["w","4/41/Margherita_-_Five50_Aria.jpg","Margherita - Five50 Aria"],["w","d/d4/Margherita_Originale.JPG","Margherita Originale"],["w","b/bd/Margherita_Pizza_of_The_Point_Pizza_and_Point.jpg","Margherita Pizza of The Point Pizza and "],["w","7/72/Margherita_pizza_%285209912131%29.jpg","Margherita pizza (5209912131)"],["w","0/03/Margherita_pizza_from_il_Bel_Paese_Sheung_Wan.jpg","Margherita pizza from il Bel Paese Sheun"],["w","c/cf/Pizza_Margherita%2C_at_Restaurant_Gusto_%282013.07.13%29_1.jpg","Pizza Margherita, at Restaurant Gusto (2"],["w","4/41/Pizza_Margherita%2C_at_Restaurant_Gusto_%282013.07.13%29_2.jpg","Pizza Margherita, at Restaurant Gusto (2"],["w","2/2e/Pizza_Margherita%2C_in_Naka-ku%2C_Nagoya_%282015.04.07%29.jpg","Pizza Margherita, in Naka-ku, Nagoya (20"],["w","c/c6/Pizza_Margherita_%28%29.JPG","Pizza Margherita ()"],["w","4/43/Pizza_Margherita_%2814565452088%29.jpg","Pizza Margherita (14565452088)"],["w","d/d7/Pizza_Margherita_%28Verde_Ischia%29.jpg","Pizza Margherita (Verde Ischia)"],["w","8/88/Pizza_Margherita_01.jpg","Pizza Margherita 01"],["w","e/ed/Pizza_Margherita_in_Naples_2015.JPG","Pizza Margherita in Naples 2015"],["w","c/c8/Pizza_Margherita_stu_spivack.jpg","Pizza Margherita stu spivack"],["w","0/08/Pizza_Margherita_%E3%83%94%E3%82%B6%E3%83%BB%E3%83%9E%E3%83%AB%E3%82%B2%E3%83%AA%E3%83%BC%E3%82%BF.jpg","Pizza Margherita ピザ・マルゲリータ"],["w","b/b8/Pizza_margherita_at_Down_The_Rabbit_Hole_2018.jpg","Pizza margherita at Down The Rabbit Hole"],["w","1/1e/Pizza_marguerita_%40_Firenze.jpg","Pizza marguerita @ Firenze"],["w","b/b0/All_Good_pizza_%2838501728345%29.jpg","All Good pizza (38501728345)"],["w","e/e4/Four-storey_pizza_01.jpg","Four-storey pizza 01"],["w","2/27/Four-storey_pizza_02.jpg","Four-storey pizza 02"],["w","e/e3/Four-storey_pizza_05.jpg","Four-storey pizza 05"],["w","a/a8/Meat_pizza_from_Pizza_Hut.jpg","Meat pizza from Pizza Hut"],["w","8/89/Pepperoni_pizza_bagel.jpg","Pepperoni pizza bagel"],["w","8/8d/Pepperoni_pizza_called_%22New_Jersey_Drive%22_from_Finnish_restaurant_Skiffer.jpg","Pepperoni pizza called \"New Jersey Drive"],["w","a/aa/Pizza_estilo_pepperoni_en_exhibici%C3%B3n_en_local_gastron%C3%B3mico_a_una_cuadra_del_Obelisco_de_Buenos_Aires.jpg","Pizza estilo pepperoni en exhibición en "],["w","2/2d/Neapolitan_pizza.jpg","Neapolitan pizza"],["w","5/57/Neapolitan_pizza_at_Trappica_%2848701940197%29.jpg","Neapolitan pizza at Trappica (4870194019"],["w","c/ce/Neapolitan_pizza_with_crab_and_asparagus.jpg","Neapolitan pizza with crab and asparagus"],["w","0/09/Pizza_22_cm_Moscow_01.jpg","Pizza 22 cm Moscow 01"],["w","c/cf/Pizza_Napoletana_%2860035026%29.jpeg","Pizza Napoletana (60035026)"],["w","0/0b/Pizza_Napoletana_Contemporanea.jpg","Pizza Napoletana Contemporanea"],["w","b/b7/Pizza_Napoletana_in_Pompei%2C_Italy.jpg","Pizza Napoletana in Pompei, Italy"],["w","e/ed/Punch_Neapolitan_Pizza_%282257030480%29.jpg","Punch Neapolitan Pizza (2257030480)"],["w","5/5a/Tony%27s_Pizza_Napoletana_%2848214988301%29.jpg","Tony's Pizza Napoletana (48214988301)"],["w","2/2e/Tony%27s_Pizza_Napoletana_%2848214989166%29.jpg","Tony's Pizza Napoletana (48214989166)"],["w","f/f9/Tony%27s_Pizza_Napoletana_%2848214990831%29.jpg","Tony's Pizza Napoletana (48214990831)"],["w","d/df/2026-07-01_19_25_52_A_frozen_Red_Baron_deep_dish_four_cheese_pizza_in_Ewing_Township%2C_Mercer_County%2C_New_Jersey.jpg","2026-07-01 19 25 52 A frozen Red Baron d"],["w","7/72/2026-07-01_19_27_12_A_heated_Red_Baron_deep_dish_four_cheese_pizza_in_Ewing_Township%2C_Mercer_County%2C_New_Jersey.jpg","2026-07-01 19 27 12 A heated Red Baron d"],["w","2/2c/Four_Cheese_-_Pizza_500_2023-11-10.jpg","Four Cheese - Pizza 500 2023-11-10"],["w","b/bf/Four_Cheese_Pizza_from_Fog_Bar_and_Restaurant.jpg","Four Cheese Pizza from Fog Bar and Resta"],["w","c/c7/Four_cheese_pizza.jpg","Four cheese pizza"],["w","a/ad/Pizza_quattro_formaggi_at_restaurant%2C_Chalk_Farm_Road%2C_London.jpg","Pizza quattro formaggi at restaurant, Ch"],["w","4/42/Two_pizza_halves_at_Guido%27s_Pizza_Stockmann.jpg","Two pizza halves at Guido's Pizza Stockm"],["w","5/5b/%D0%98%D1%82%D0%B0%D0%BB%D0%B8%D1%8F_4_%D1%81%D1%8B%D1%80_%D0%BF%D0%B8%D1%86%D1%86%D0%B0%D1%81%D1%8B.jpg","Италия 4 сыр пиццасы"],["w","5/56/-2021-08-28_Pepperoni_and_mushroom_pizza%2C_Trimingham%2C_Norfolk_%281%29.JPG","-2021-08-28 Pepperoni and mushroom pizza"],["w","a/a1/-2021-08-28_Pepperoni_and_mushroom_pizza%2C_Trimingham%2C_Norfolk_%282%29.JPG","-2021-08-28 Pepperoni and mushroom pizza"],["w","d/d4/-2021-08-28_Pepperoni_and_mushroom_pizza%2C_Trimingham%2C_Norfolk_%283%29.JPG","-2021-08-28 Pepperoni and mushroom pizza"],["w","1/11/Columbus_Eateries_06.jpg","Columbus Eateries 06"],["w","9/90/Delicious_pepperoni_and_mushroom_pizza_on_a_wooden_table%2C_ready_to_be_enjoyed_for_a_casual_meal_with_friends_or_family.jpg","Delicious pepperoni and mushroom pizza o"],["w","f/f9/Margarita_Pizza_from_Pizza_Express.jpg","Margarita Pizza from Pizza Express"],["w","d/de/Margherita_pizza_on_plate.jpg","Margherita pizza on plate"],["w","c/cd/Pizza_Margherita%2C_Stara_Zagora%2C_Bulgaria.jpg","Pizza Margherita, Stara Zagora, Bulgaria"],["w","a/a4/Pizza_Margherita_%289235473304%29.jpg","Pizza Margherita (9235473304)"],["w","0/0e/Pizza_Margherita_at_Pizza_hut.jpg","Pizza Margherita at Pizza hut"],["w","6/66/Pizza_Margherita_in_Gusto.jpg","Pizza Margherita in Gusto"],["w","d/d6/Azzip_Pizza_-_November_2023_-_Sarah_Stierch_09.jpg","Azzip Pizza - November 2023 - Sarah Stie"],["w","f/f8/Four-storey_pizza_03.jpg","Four-storey pizza 03"],["w","b/bb/Meatball_pizza_with_Italian_sausage_and_pepperoni.jpg","Meatball pizza with Italian sausage and "],["w","e/e4/Nice_pepperoni_pizza.jpg","Nice pepperoni pizza"],["w","3/30/Pepperoni_Pizza_from_Fellini%E2%80%99s_Pizza.jpg","Pepperoni Pizza from Fellini’s Pizza"],["w","f/f7/Pepperoni_pizza_%289519127849%29.jpg","Pepperoni pizza (9519127849)"]],"burgers":[["w","5/58/190524-classic-american-cheeseburger-ew-207p.jpg","190524-classic-american-cheeseburger-ew-"],["w","1/1b/Burger_King_A1_Ultimate_Bacon_Cheeseburger_%2819566324005%29.jpg","Burger King A1 Ultimate Bacon Cheeseburg"],["w","4/4d/Cheeseburger.jpg","Cheeseburger"],["w","3/34/Cheeseburger_%283%29.jpg","Cheeseburger (3)"],["w","9/96/Cheeseburger_%2836914104970%29.jpg","Cheeseburger (36914104970)"],["w","3/32/Cheeseburger_maison.jpg","Cheeseburger maison"],["w","f/f9/Cheeseburger_on_Plate.jpg","Cheeseburger on Plate"],["w","b/b2/Cheeseburger_with_lettuce.jpg","Cheeseburger with lettuce"],["w","c/cf/Cheeseburger_with_onions_at_Hatfield_Heath_Festival_2017.jpg","Cheeseburger with onions at Hatfield Hea"],["w","d/de/Argentine_Hamburger_with_Lettuce_and_Tomato_on_a_Plate.jpg","Argentine Hamburger with Lettuce and Tom"],["w","9/9a/Big_Mac_hamburger.jpg","Big Mac hamburger"],["w","9/9d/Cultivated_hamburger%2C_2013.jpg","Cultivated hamburger, 2013"],["w","6/69/Grilld_hamburger_gn.jpg","Grilld hamburger gn"],["w","7/7f/Hamburger_%282%29.jpg","Hamburger (2)"],["w","5/58/Hamburger_%288%29.jpg","Hamburger (8)"],["w","4/47/Hamburger_%28black_bg%29.jpg","Hamburger (black bg)"],["w","2/22/Hamburger_Iraqi.JPG","Hamburger Iraqi"],["w","6/69/Hamburger_Montagnard%2C_Bistro_Burger%2C_Montparnasse%2C_Paris_003.jpg","Hamburger Montagnard, Bistro Burger, Mon"],["w","7/79/Hamburger_with_Dijon_mustard%2C_pickle_and_onion.jpg","Hamburger with Dijon mustard, pickle and"],["w","c/c4/Homemade_Argentine_hamburger_with_fried_potatoes.jpg","Homemade Argentine hamburger with fried "],["w","8/88/Homemade_Hamburger%2C_May_2024.jpg","Homemade Hamburger, May 2024"],["w","6/62/NCI_Visuals_Food_Hamburger.jpg","NCI Visuals Food Hamburger"],["m","44bzep1761848278","Aussie Burgers"],["m","sbx7n71587673021","Chick-Fil-A Sandwich"],["m","hcg6l91763596970","Chicken Shawarma with homemade garlic herb yoghurt sauce"],["m","j80gmw1764372176","Chivito sandwich"],["m","djdg8l1784578885","Cuban Sandwich"],["m","ae6clc1760524712","Falafel Pita Sandwich with Tahini Sauce"],["m","lgmnff1763789847","kofta burgers"],["m","k420tj1585565244","Lamb Tzatziki Burgers"],["m","o93jur1782769321","Num Pang – Cambodian Baguette Sandwich"]],"pasta":[["m","syqypv1486981727","Chicken Alfredo Primavera"],["m","usywpp1511189717","Chilli prawn linguine"],["m","0jv5gx1661040802","Fettuccine Alfredo"],["m","uquqtu1511178042","Fettucine alfredo"],["m","wtsvxx1511296896","Lasagne"],["m","kpiu4t1782242131","Macaroni Pie"],["m","ssyqwr1511451678","Mushroom & Chestnut Rotolo"],["m","8a8fu01762772651","Nordic smørrebrød with asparagus and horseradish cream"],["m","vvtvtr1511180578","Pilchard puttanesca"],["m","qtqvys1468573168","Rigatoni with fennel sausage sauce"],["m","xxrxux1503070723","Salmon Prawn Risotto"],["m","llcbn01574260722","Spaghetti alla Carbonara"],["m","sutysw1468247559","Spaghetti Bolognese"],["m","vpcqn01763335688","Spaghetti with Spanish flavours"],["m","ustsqw1468250014","Spicy Arrabiata Penne"],["m","wspuvp1511303478","Spinach & Ricotta Cannelloni"],["m","wxswxy1511452625","Squash linguine"],["m","5fu4ew1760524857","Syrian Spaghetti"],["m","rvxxuy1468312893","Vegan Lasagna"],["m","qvrwpt1511181864","Venetian Duck Ragu"],["m","1529444830","Beef Lo Mein"],["m","rvtvuw1511190488","Clam chowder"],["m","2wx8cm1763373419","Drunken noodles (pad kee mao)"],["m","d8f6qx1604182128","Japanese Katsudon"],["m","rvypwy1503069308","Laksa King Prawn Noodles"],["m","8hx4fi1780087744","Mango chow"],["m","xquakq1619787532","Mee goreng mamak"],["m","rg9ze01763479093","Pad Thai"],["m","ip5xtp1769779958","Ramen Noodles with Boiled Egg"],["m","1529445434","Shrimp Chow Fun"],["m","f3cxnc1765656994","Singapore Noodles with Shrimp"],["m","568t931763584227","Spicy Thai prawn noodles"],["m","wrustq1511475474","Yaki Udon"],["m","qt4i0n1763256454","Arroz al horno (baked rice)"],["m","02s6gc1763799560","Aubergine couscous salad"],["m","f0cdwk1782688162","Bai Sach Chrouk – Grilled Pork with Rice"],["m","sytuqu1511553755","Beef and Mustard Pie"],["m","wrssvt1511556563","Beef and Oyster pie"],["m","uyqrrv1511553350","Beef Dumpling Stew"],["m","fk80jp1763280767","Chicken & chorizo rice pot"],["m","qxytrx1511304021","Chicken Couscous"],["m","wuyd2h1765655837","Chicken Fried Rice"],["m","xrrtss1511555269","Chicken Ham and Leek Pie"],["m","qserum1780156275","Clear Soup with Semolina Dumplings"],["m","pvfkz61761595976","Cumberland Pie"]],"salads":[["m","tbj1bs1764118062","Algerian Flafla (Bell Pepper Salad)"],["m","zub3s91764110535","Aubergine & hummus grills"],["m","4xcfai1763765676","Bang bang prawn salad"],["m","z0ageb1583189517","Beef Banh Mi Bowls with Sriracha Mayo, Carrot & Pickled Cucumber"],["m","6awyvm1782685205","Bulgarian Green Salad"],["m","q21suk1782772956","Cayman Style Potato Salad"],["m","k29viq1585565980","Chicken Quinoa Greek Salad"],["m","t5rgav1784659936","Chicken Salad With Mushrooms and Bacon"],["m","v8eaed1763257313","Chorizo & soft-boiled egg salad"],["m","6cskio1763338156","Chorizo & tomato salad"],["m","5q88l31784664151","Classic Potato Salad"],["m","ei21r61764365935","Cucumber & fennel salad"],["m","u5e9qq1763795441","Falafel"],["m","gpon5u1763801180","Hummus"],["m","ji3mho1782499823","Liegeoise Salad"],["m","wvqpwt1468339226","Mediterranean Pasta Salad"],["m","zry07j1763779321","Noodle bowl salad"],["m","7ytdtz1784833420","Papaya salad"],["m","hglsbl1614346998","Piri-piri chicken and slaw"],["m","fqpqml1764359125","Pomegranate salad"],["m","ebvuir1699013665","Potato Salad (Olivier Salad)"],["m","0iryz91763778419","Prawn & noodle salad with crispy shallots"],["m","1549542994","Salmon Avocado Salad"],["m","2i0plx1784837241","Sauerkraut and Fish Salad"],["m","93iok31766436070","Sesame Cucumber Salad"],["m","bqx8mc1782684286","Shopska Salad"],["m","7whfgi1782678933","Simple heart of palm & tomato salad"],["m","urtwux1486983078","Spicy North African Potato Salad"],["m","wsu0rc1761848482","Squid, chickpea & chorizo salad"],["m","st9shl1763755808","Steak & Vietnamese noodle salad"],["m","b66myb1683207208","Stuffed Bell Peppers with Quinoa and Black Beans"],["m","z458v91763817681","Sweet potato salad"],["m","e2g2r21764367568","Tangy cabbage slaw"],["m","dbazbg1763779999","Tangy carrot, cabbage & onion salad"],["m","6g3rso1763486069","Thai rice noodle salad"],["m","pk8wtn1763758591","Vietnamese chicken salad"],["m","g7jomp1763763994","Vietnamese pork salad"],["m","ktsws11761998344","Warm roast asparagus salad"],["m","3m8yae1763257951","Air fryer patatas bravas"],["m","flrajf1762341295","Avocado dip with new potatoes"],["m","urtpqw1487341253","Baingan Bharta"],["m","ra2k8a1764365055","Beetroot & red cabbage sauerkraut"],["m","qwicc91764368097","Beetroot latkes"],["m","zadvgb1699012544","Beetroot Soup (Borscht)"],["m","81ahfr1784394567","Black Beans Hotpot"],["m","z267f71764364072","Braised stuffed cabbage"],["m","60oc3k1699009846","Cabbage Soup (Shchi)"],["m","xjii2g1784836867","Carrot and Bean Fritters"],["m","tvtxpq1511464705","Chickpea Fajitas"],["m","grhn401765687086","Air Fryer Egg Rolls"],["m","o2cd4r1764113576","Algerian Carrots"],["m","pa03n41777540582","Apple Potato Mash (Hete bliksem) "],["m","ejht7k1780092390","Arepa"],["m","dlmh401760524897","Baba Ghanoush"],["m","j223gc1784579841","Baked Yuca Fries"],["m","de0sns1779555283","Bolani with Potato Filling"],["m","qywups1511796761","Boulangère Potatoes"],["m","qqpwsy1511796276","Brie wrapped in prosciutto & brioche"],["m","tkxquw1628771028","Burek"],["m","16zbeu1763789342","Cacik"],["m","73o3vq1765317873","Callaloo and SaltFish"]],"sides:fries":[["w","d/d3/Argentine-Style_French_Fries_and_Fried_Egg.jpg","Argentine-Style French Fries and Fried E"],["w","4/4f/Argentine-style_French_fries_served_with_mozzarella_pizza.jpg","Argentine-style French fries served with"],["w","1/19/Cajun_fries_from_Popeyes_Louisiana_Kitchen%2C_Stratford%2C_Ontario%2C_2025-08-04.jpg","Cajun fries from Popeyes Louisiana Kitch"],["w","9/93/Chips_french_fries_Highgate_Cricket_Club%2C_Crouch_End%2C_London_1_cool_render.jpg","Chips french fries Highgate Cricket Club"],["w","e/eb/Close-up_of_golden_rustic_French_fries_in_Capiov%C3%AD%2C_Misiones%2C_Argentina.jpg","Close-up of golden rustic French fries i"],["w","5/53/French_Fries_with_Ketchup_01.jpg","French Fries with Ketchup 01"],["w","f/f8/French_fries_%28Made_in_Argentina%29.jpg","French fries (Made in Argentina)"],["w","a/ab/French_fries_%28made_in_Argentina%29.jpg","French fries (made in Argentina)"],["w","c/cd/French_fries_and_fried_egg_side_by_side_on_a_plate.jpg","French fries and fried egg side by side "],["w","a/af/French_fries_and_pizza_with_rucola_in_Argentina.jpg","French fries and pizza with rucola in Ar"],["w","7/7d/French_fries_box.jpg","French fries box"],["w","a/ab/French_fries_in_Argentina.jpg","French fries in Argentina"],["w","3/35/French_fries_in_Argentina_%28dish%29.jpg","French fries in Argentina (dish)"],["w","b/b0/French_fries_made_in_Argentina.jpg","French fries made in Argentina"],["w","8/8c/French_fries_of_Argentina.jpg","French fries of Argentina"],["w","1/12/Fried_egg_surrounded_by_French_fries_on_a_white_plate.jpg","Fried egg surrounded by French fries on "],["w","8/85/Homemade_French_Fries_in_Argentina.jpg","Homemade French Fries in Argentina"],["w","6/66/Papas_fritas_%28French_fries%29.jpg","Papas fritas (French fries)"],["w","9/95/Plate_of_chips_at_the_Chalet_Cafe%2C_Cowfold%2C_West_Sussex%2C_England.jpg","Plate of chips at the Chalet Cafe, Cowfo"],["w","7/7a/Rustic_French_fries_served_on_a_metal_tray_in_Capiov%C3%AD%2C_Misiones%2C_Argentina.jpg","Rustic French fries served on a metal tr"],["w","8/8e/Truffle_oil_french_fries_%2833024792848%29.jpg","Truffle oil french fries (33024792848)"],["w","8/88/Baked_Sweet_Potato_Fries_With_Rosemary_and_Parmesan_-_8420845814.jpg","Baked Sweet Potato Fries With Rosemary a"],["w","e/e6/Fried_sweet_potatoes_with_salsa_golf.jpg","Fried sweet potatoes with salsa golf"],["w","f/f5/Goguma-stick.jpg","Goguma-stick"],["w","2/2e/Greenock_Hotel_20241120-183747.jpg","Greenock Hotel 20241120-183747"],["w","e/ec/Mooyah_Chicken_Burger_Sweet_Potato_Fries_Metaire_LA.jpg","Mooyah Chicken Burger Sweet Potato Fries"],["w","4/46/Sweet_Potato_Fries.jpg","Sweet Potato Fries"],["w","6/6f/Sweet_potato_fries_%281%29.jpg","Sweet potato fries (1)"]],"sides:snacks":[["w","2/28/16-03-17-Chicken-Wings-Burger-King-RalfR-WP_20160317_001.jpg","16-03-17-Chicken-Wings-Burger-King-RalfR"],["w","7/73/Bankrueed_fried_chicken_wings.jpg","Bankrueed fried chicken wings"],["w","0/02/Buffalo_Burgers_Buffalo_Chicken_Wings_%2836082467922%29.jpg","Buffalo Burgers Buffalo Chicken Wings (3"],["w","c/ce/Chicken_Wings-_It%27s_been_a_while._Baton_Rouge_LA_2026.jpg","Chicken Wings- It's been a while. Baton "],["w","f/f4/Chicken_Wings_%287069003341%29.jpg","Chicken Wings (7069003341)"],["w","0/00/Chicken_Wings_with_Montreal_Seasoning.jpg","Chicken Wings with Montreal Seasoning"],["w","4/4e/Chicken_wings_and_vegan_nuggets_-_Lost_Boys_Chicken_2023-11-12.jpg","Chicken wings and vegan nuggets - Lost B"],["w","d/d3/Chicken_wings_at_Bar_Loosister.jpg","Chicken wings at Bar Loosister"],["w","8/89/Chicken_wings_at_Hesburger.jpg","Chicken wings at Hesburger"],["w","7/7a/Chicken_wings_at_home.jpg","Chicken wings at home"],["w","c/c7/Chicken_wings_with_mashed_carrot.jpg","Chicken wings with mashed carrot"],["w","a/a6/Fried_Chicken_Wings_%2852769476180%29.jpg","Fried Chicken Wings (52769476180)"],["w","d/d5/Fried_Chicken_Wings_%2854282490120%29.jpg","Fried Chicken Wings (54282490120)"],["w","f/f5/Las_b%C3%A1sicas_chicken_wings..._%40_Hooters_GT.jpg","Las básicas chicken wings... @ Hooters G"],["w","7/75/Original_Wings_Wing_Zone.jpg","Original Wings Wing Zone"],["w","5/5f/Thai_caramel_wings_with_garlic.jpg","Thai caramel wings with garlic"],["w","d/dd/Buffalo_-_Wings_at_Airport_Anchor_Bar.jpg","Buffalo - Wings at Airport Anchor Bar"],["w","3/34/Buffalo_Wild_Wings_-_33549464081.jpg","Buffalo Wild Wings - 33549464081"],["w","5/5f/Buffalo_Wild_Wings_-_33679094605.jpg","Buffalo Wild Wings - 33679094605"],["w","2/20/Buffalo_Wild_Wings_Parmesan_Garlic_Boneless_Wings_%2816083476037%29.jpg","Buffalo Wild Wings Parmesan Garlic Bonel"],["w","4/4a/Buffalo_Wings_%286676460575%29.jpg","Buffalo Wings (6676460575)"],["w","8/87/Buffalo_Wings_%288779045398%29.jpg","Buffalo Wings (8779045398)"],["m","5jdtie1763289302","Ajo blanco"],["m","fg7d641784666908","Baked brie with sorrel jam"],["m","x0mreq1784577446","Black Bean soup"],["m","tvvxpv1511191952","Broccoli & Stilton soup"],["m","zdyurx1783801146","Colombian Style Stuffed Potatoes"],["m","wurrux1468416624","Cream Cheese Tart"]],"drinks:hot":[["d","vqwptt1441247711","Cafe Savoy"],["d","upusyu1472667977","H.D."],["d","spvrtp1472668037","Hot Creamy Bush"],["d","sywsqw1439906999","Irish Coffee"],["d","xqptps1441247257","Jamaican Coffee"],["d","uppqty1441247374","Kioki Coffee"],["d","uyrpww1441246384","Masala Chai"],["d","xwtptq1441247579","Melya"],["d","isql6y1487602375","Spiking coffee"],["d","rswqpy1441246518","Talos Coffee"],["d","txruqv1441245770","Tennesee Mud"],["d","kvvd4z1485621283","Zorro"],["d","hdzwrh1487603131","Orange Scented Hot Chocolate"],["d","wrvpuu1472667898","Fuzzy Asshole"],["d","vtwyyx1441246448","Mocha-Berry"],["d","ywtrvt1441246783","Swedish Coffee"],["d","ytprxy1454513855","Iced Coffee"],["d","sxtxrp1454514223","Iced Coffee Fillip"],["d","vqwryq1441245927","Frappé"],["d","wquwxs1441247025","Thai Coffee"],["d","rqpypv1441245650","Thai Iced Coffee"],["d","xrsrpr1441247464","Kurant Tea"],["d","trvwpu1441245568","Thai Iced Tea"],["d","rrstxv1441246184","Herbal flame"],["d","xxtxsu1472720505","Black Forest Shake"],["d","861tzm1504784164","Boozy Snickers Milkshake"],["d","1xhjk91504783763","Butter Baby"],["d","tyvpxt1468875212","Chocolate Monkey"],["d","rvwrvv1468877323","151 Florida Bushwacker"]],"drinks:cold":[["d","uyrvut1479473214","Citrus Coke"],["d","iixv4l1485620014","Zinger"],["d","rsxuyr1472719526","California Root Beer"],["d","xspxyr1472719185","Brandon and Will's Coke Float"],["d","ytsxxw1441167732","Orangeade"],["d","eg9i1d1487603469","Pineapple Gingerale Smoothie"],["d","spvvxp1468924425","Strawberry Lemonade"],["d","vdp2do1487603520","Mango Orange Smoothie"],["d","xwqvur1468876473","Apple Berry Smoothie"],["d","wsyvrt1468876267","Aloha Fruit punch"],["d","uptxtv1468876415","Apello"],["d","sxpcj71487603345","Sweet Bananas"],["d","trttrv1441254466","Yoghurt Cooler"],["d","9h1vvt1487603404","Strawberry Shivers"],["d","qxvypq1468924331","Spiced Peach Punch"],["d","869qr81487603278","Tomato Tang"],["d","syusvw1468876634","Apple Karate"],["d","vuquyv1468876052","Afterglow"],["d","qyqtpv1468876144","Alice Cocktail"],["d","stsuqq1441207660","Rail Splitter"],["d","ft8ed01485620930","Zoksel"],["d","sxxsyq1472719303","Darkwood Sling"],["d","jylbrq1582580066","Belgian Blue"]],"dessert:cakes":[["m","xvsurr1511719182","Apple & Blackberry Crumble"],["m","c0gmo31766594751","Apple cake"],["m","wxywrq1468235067","Apple Frangipan Tart"],["m","stnxzp1784835840","Apple Pie"],["m","ax643t1784731109","Apple pie pops"],["m","5pmn0g1779813285","Authentic Laos Tapioca Pudding with Bananas"],["m","wyrqqq1468233628","Bakewell tart"],["m","sywswr1511383814","Banana Pancakes"],["m","ywwrsp1511720277","Battenberg Cake"],["m","xlqqhw1764369924","Beetroot pancakes"],["m","tkwxmv1777540463","Boterkoek (Dutch Butter Cake)"],["m","h68o161782679437","Brazilian carrot cake"],["m","xqwwpy1483908697","Bread and Butter Pudding"],["m","z672jx1780263633","Breadfruit in Butter Sauce Recipe"],["m","wpputp1511812960","Canadian Butter Tarts"],["m","vrspxv1511722107","Carrot Cake"],["m","2mrghf1782773422","Cassava Cake"],["m","qtqwwu1511792650","Chinon Apple Tarts"],["m","rqvwxt1511384809","Choc Chip Pecan Pie"],["m","tqtywx1468317395","Chocolate Gateau"],["m","yypvst1511386427","Chocolate Raspberry Brownies"],["m","ldnrm91576791881","Christmas cake"],["m","vvusxs1483907034","Christmas Pudding Flapjack"],["m","r33cud1576791081","Christmas Pudding Trifle"],["m","uttuxy1511382180","Chocolate Avocado Mousse"],["m","1550442508","Chocolate Caramel Crispy"],["m","erzs951763296201","Chocolate churros with chocolate & salted caramel sauce"],["m","8oupz51761848432","Chocolate Coconut Squares"],["m","u9ezi21764375474","Chocolate empanadas"],["m","twspvx1511784937","Chocolate Souffle"]],"dessert:sweets":[["m","a4kgf21763075288","Alfajores"],["m","q47rkb1762324620","Anzac biscuits"],["m","adxcbq1619787919","Apam balik"],["m","p277uc1764109195","Apricot & Turkish delight mess"],["m","y4t9zg1777628842","Arnhemse meisjes"],["m","dokbyt1779645030","Arra të Mbushura me Fik Walnut Stuffed Figs (with Fig Syrup)"],["m","jp09191782856005","Arroz con Leche Recipe"],["m","yk78uc1763075719","Authentic Norwegian Kransekake"],["m","bjtjyl1779552068","Baghlaw-e-Khanagi"],["m","ytme8t1764111401","Baklava with spiced nuts, ricotta & chocolate"],["m","6v583k1780093743","Banana den Forno"],["m","ryppsv1511815505","BeaverTails"],["m","gl92ih1789802951","Biss Jaggery Modak"],["m","rpvptu1511641092","Blackberry Fool"],["m","e756bf1761848342","Blueberry & lemon friands"],["m","dg7tad1782588053","Brazilian chocolate truffles - brigadeiro"],["m","1549542877","Budino Di Ricotta"],["m","y75q5j1782685779","Bulgarian Honey Cookies"],["m","9kecho1784575366","CAFE LA LLAVE ESPRESSO ICE CREAM"],["m","h7zrys1779736460","Cambodian Waffles (Num Poum)"],["m","z1hz7z1765316430","Caribbean Tamarind balls"],["m","t3r3ka1560461972","Cashew Ghoriba Biscuits"],["m","vqpwrv1511723001","Chelsea Buns"],["m","k9o0xr1764373018","Chocolate alfajores"]],"offers":[["m","020z181619788503","Ayam Percik"],["m","8rfd4q1764112993","Algerian Kefta (Meatballs)"],["m","dxs5t71782678369","Acaraje black-eyed pea fritters with shrimp filling"],["m","tzsy461763769901","Barbecue pork buns"],["m","04axct1763793018","Adana kebab"],["m","nmxec11782498644","Belgian Waterzooi Chicken"],["m","13fg4j1764441982","Arepa Pabellón"],["m","diuub11782687570","Amok Trey – Cambodian Fish Curry"],["m","atd5sh1583188467","BBQ Pork Sloppy Joes"],["m","8xuvhj1763794991","Chilli ginger lamb chops"],["m","9ya6o71780262651","Bengali Chicken Curry with Potatoes"],["m","jgl9qq1764437635","Arepa pelua"],["m","jc6oub1763196663","Arroz con gambas y calamar"],["m","byolko1782500400","Belgian Stoemp"],["m","p9tebp1764118792","Chorba Hamra bel Frik (Algerian Lamb, Tomato, and Freekeh Soup)"],["m","sypxpx1515365095","Brown Stew Chicken"],["m","kgfh3q1763075438","Asado"],["m","e2kcut1782591669","Bahia-style Moqueca prawn stew"],["m","md8w601593348504","Bigos (Hunters Stew)"],["m","ttfxxn1762773067","Fårikål (Norwegian National Dish)"],["m","uuuspp1511297945","Chicken & mushroom Hotpot"],["m","5tf8j11782236249","Barbados Pepperpot"],["m","1548772327","Baked salmon with fennel & tomatoes"],["m","naqyel1608588563","Boxty Breakfast"],["m","jyylmo1763790808","Hot cumin lamb wrap with crunchy slaw & spicy mayo"],["m","mp9z0i1782238092","Chicken and Potato Roti"],["m","m0p0j81765568742","Beef and Broccoli Stir-Fry"],["m","qqwhw51780093126","Balchi di Pisca"],["m","g33c901763365484","Bryndzové Halušky"],["m","ampz9v1763787134","Imam bayildi with BBQ lamb & tzatziki"],["m","wruvqv1511880994","Chicken Basquaise"],["m","pkopc31683207947","Beef Asado"],["m","r7mcjm1780261264","Bangladeshi fish curry with daikon"],["m","wympxc1779734808","Cambodian Stir-fried Morning Glory with Pork, Fermented Soybeans, and Garlic"],["m","sxysrt1468240488","Kapsalon"],["m","1529446352","Chicken Congee"],["m","vtqxtu1511784197","Beef Bourguignon"],["m","4o4wh11761848573","Barramundi with Moroccan spices"],["m","lrfdwz1764438393","Cassava pizza"],["m","7vdtqi1780160088","Kelem dolmasi"],["m","qtuwxu1468233098","Chicken Enchilada Casserole"],["m","ursuup1487348423","Beef Brisket Pot Roast"]]};
+    const STOP = new Set(['with', 'and', 'style', 'double', 'classic', 'spicy', 'extra', 'large', 'small', 'plate', 'menu', 'duo', 'trio', 'box', 'deal', 'mini', 'pizza', 'pasta', 'salad', 'burger', 'bowl',
+      'fries', 'chicken', 'beef', 'sweet', 'sour', 'fresh', 'crispy', 'grilled', 'special', 'chef', 'sauce', 'cheese', 'smash', 'platter', 'night', 'family', 'party', 'student', 'lunch']);
+    const words = s => (String(s).toLowerCase().match(/[a-zà-ÿ]{4,}/g) || []).filter(w => !STOP.has(w));
+    const used = new Set(), todo = [];
+    PRODUCTS.forEach(p => { if (!p.img) return; if (used.has(p.img)) todo.push(p); else used.add(p.img); });
+    const avail = k => (POOL[k] || []).filter(e => !used.has(URL_OF(e)));
+    const take = p => {
+      const own = POOL[p.cat + ':' + p.sec] ? p.cat + ':' + p.sec : POOL[p.cat] ? p.cat : null;
+      // a dish that names another food (Pizza Duo, Burger Trio, Wings Menu...) looks first in that food's photos
+      const named = [[/pizza/i, 'pizza'], [/burger/i, 'burgers'], [/pasta/i, 'pasta'], [/salad/i, 'salads'], [/wings|tenders|nuggets/i, 'sides:snacks'], [/fries/i, 'sides:fries']].filter(([r]) => r.test(p.name)).map(x => x[1]);
+      const ks = [...(p.cat === 'offers' ? named : []), own, ...Object.keys(POOL).filter(k => k === p.cat || k.startsWith(p.cat + ':'))].filter((k, i, a) => k && a.indexOf(k) === i), w = words(p.name);
+      for (const k of ks) { const list = avail(k); if (list.length) return list.find(e => words(e[2]).some(x => w.includes(x))) || list[0]; }
+      return null;
+    };
+    todo.forEach(p => { const e = take(p); if (e) { p.img = URL_OF(e); used.add(p.img); } else p.img = ''; });
   })();
   const inNode = (p, id) => !!p.path?.includes(id);
   const COURSES = ['Mains', 'Sides', 'Drinks'];
@@ -5803,7 +6154,7 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
   const isG = () => T.kind === 'glovo';
   const isTk = () => T.kind === 'take';
   const hhmm = ts => { const d = new Date(ts); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
-  const O = { cat: 'dessert', sub: 'all', ss: null, q: '', mode: 'photos', kbuf: '', tk: 'dark', parked: 0, catPics: false };
+  const O = { cat: 'dessert', sub: 'all', ss: null, q: '', mode: 'icons', kbuf: '', tk: 'dark', parked: 0, catPics: false };
   // the receipt's mode (the sun / moon icon at its top): what you pick is kept in every theme and after a reload; with no pick yet it follows the theme
   const TK_KEY = 'cm-pos-v3-tk';
   let tkPicked = null; try { const v = localStorage.getItem(TK_KEY); if (v === 'light' || v === 'dark') tkPicked = v; } catch (e) {}
@@ -5842,35 +6193,68 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
   // POS v3: the sub-categories are a bar above the dishes instead of a column beside them. One level at a time, up to five levels deep:
   // a category opens its sections, a section opens its sub-sections, and so on down to the last ones, which show only their dishes.
   // The first chip is where you are (a back chip once you are inside something), then "All" and the options of this level (up to five).
+  // Sub-categories for fingers: one slim PATH BAR shows where you are (Pizza › Specials › Meat & spicy) and the choice made at this level in a red pill. Tapping the pill opens a
+  // sheet of big tiles with all the options of this level; a tile that has levels below drills in (the sheet stays open on the next level), a last one picks and closes the sheet.
+  // Tapping a step of the path jumps back up to that level; the arrow at the start goes up one level. Any number of options, any depth, and the dishes stay in view.
+  let sbKeep = false;   // set while drilling: the sheet stays open on the next level
+  const sbOpen = () => !$o('sbSheet').hidden;
+  function sbClose() { $o('sbSheet').hidden = true; $o('sbScrim').hidden = true; $o('subbar').querySelector('.sb-cur')?.setAttribute('aria-expanded', 'false'); }
+  function sbScrollSel() {   // a long list opens with the chosen tile in view
+    const sh = $o('sbSheet'), on = sh.querySelector('.sb-tile.on');
+    sh.scrollTop = on ? Math.max(0, on.offsetTop - (sh.clientHeight - on.offsetHeight) / 2) : 0;
+  }
+  function sbToggle() {
+    if (sbOpen()) return sbClose();
+    const bar = $o('subbar'), sh = $o('sbSheet'), sc = $o('sbScrim'); sh.style.top = sc.style.top = bar.offsetHeight + 'px'; sc.hidden = false; sh.hidden = false; bar.querySelector('.sb-cur')?.setAttribute('aria-expanded', 'true'); sbScrollSel(); sfx.tap();
+  }
+  addEventListener('keydown', e => { if (e.key === 'Escape' && sbOpen()) sbClose(); });
   function renderSubs(anim) {
     const s = $o('subbar');
     s.hidden = O.cat === 'all' || O.cat === 'fav';        // Favorites and All items have no sub-category bar: dishes by section
-    if (s.hidden) { s.innerHTML = ''; O.sub = 'all'; O.ss = null; return; }
+    if (!s.hidden && !SECTIONS.some(x => x.cat === O.cat)) s.hidden = true;           // a category without sections has nothing to choose
+    if (s.hidden) { s.innerHTML = ''; sbClose(); O.sub = 'all'; O.ss = null; return; }
+    // while searching, the dishes come from the whole menu: the bar says so (with a Clear button) instead of showing a category that no longer applies
+    const qs = O.q.trim();
+    if (qs) {
+      const N = PRODUCTS.filter(p => p.name.toLowerCase().includes(qs.toLowerCase())).length, esc = v => v.replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[ch]);
+      sbClose(); sbKeep = false; $o('sbSheet').innerHTML = '';
+      s.innerHTML = `<span class="sb-cat">Search</span><span class="sb-sep" aria-hidden="true">›</span><span class="sb-res">“${esc(qs)}” · ${N} dish${N === 1 ? '' : 'es'}</span><button class="sb-clear" type="button" data-clear="1">× Clear</button>`;
+      return;
+    }
     const secs = SECTIONS.filter(x => x.cat === O.cat), inCat = catList(O.cat), c = CATS.find(c => c.id === O.cat);
     const n = sec => inCat.filter(p => p.sec === sec).length, go = ic('caret-open').replace('mi', 'mi go');
     const sec = secs.find(x => x.id === O.sub && x.subs);
+    const crumb = (label, attrs) => `<button class="sb-crumb" type="button" ${attrs}>${label}</button>`, sep = '<span class="sb-sep" aria-hidden="true">›</span>';
+    const tile = (label, cnt, attrs, on, drill) => `<button class="sb-tile${on ? ' on' : ''}${cnt === 0 ? ' empty' : ''}" type="button" role="menuitem" ${attrs}><span>${label}</span><span class="n">${cnt}</span>${drill ? go : ''}</button>`;
+    let lead = '', path, cur, title, tiles, opts;
     if (sec) {
       const at = O.ss ? NODE[O.ss] : null, level = at?.kids ? at : at && at.path.length > 1 ? NODE[at.path.at(-2)] : null;
       const here = level || { id: '', name: sec.name, kids: sec.subs }, inSec = inCat.filter(p => p.sec === sec.id);
       const up = level ? (level.path.length > 1 ? level.path.at(-2) : '') : 'all';
-      const cnt = id => id ? inSec.filter(p => inNode(p, id)).length : inSec.length;
-      const trail = [c.name, sec.name, ...(level ? level.path.map(id => NODE[id].name) : [])].join(' › ');
-      s.innerHTML = `<button class="sb back" data-up="${up}" aria-label="Back" title="${trail}">${ic('caret-open')}<span>${here.name}</span></button>` +
-        `<button class="sb ${!at || at.kids ? 'on' : ''}" data-ss="${here.id}"><span>All</span><span class="n">${cnt(here.id)}</span></button>` +
-        here.kids.map(([id, nm, , k]) => `<button class="sb ${at?.id === id && !k ? 'on' : ''}" data-ss="${id}"${k ? ' data-in="1"' : ''}>` +
-          `<span>${nm}</span><span class="n">${cnt(id)}</span>${k ? go : ''}</button>`).join('');
-    } else
-      s.innerHTML = `<button class="sb ${O.sub === 'all' ? 'on' : ''}" data-sub="all"><span>All ${c.name.toLowerCase()}</span><span class="n">${inCat.length}</span></button>` +
-        secs.map(x => `<button class="sb ${O.sub === x.id ? 'on' : ''}" data-sub="${x.id}"><span>${x.name}</span><span class="n">${n(x.id)}</span>${x.subs ? go : ''}</button>`).join('');
-    if (anim) [...s.children].forEach((b, i) => b.animate(
+      const cnt = id => id ? inSec.filter(p => inNode(p, id)).length : inSec.length, leaf = at && !at.kids ? at : null;
+      lead = `<button class="sb-back" type="button" data-up="${up}" aria-label="Back">${ic('caret-open')}</button>`;
+      path = [crumb(c.name, 'data-sub="all"'), crumb(sec.name, `data-sub="${sec.id}"`), ...(level ? level.path.map(id => crumb(NODE[id].name, `data-ss="${id}" data-in="1"`)) : [])];
+      cur = leaf ? [leaf.name, cnt(leaf.id)] : ['All', cnt(here.id)]; title = here.name; opts = here.kids.length;
+      tiles = tile('All', cnt(here.id), `data-ss="${here.id}"`, !leaf) + here.kids.map(([id, nm, , k]) => tile(nm, cnt(id), `data-ss="${id}"${k ? ' data-in="1"' : ''}`, leaf?.id === id, !!k)).join('');
+    } else {
+      const picked = secs.find(x => x.id === O.sub);
+      path = [`<span class="sb-cat">${c.name}</span>`]; cur = picked ? [picked.name, n(picked.id)] : [`All ${c.name.toLowerCase()}`, inCat.length]; title = c.name; opts = secs.length;
+      tiles = tile(`All ${c.name.toLowerCase()}`, inCat.length, 'data-sub="all"', O.sub === 'all') + secs.map(x => tile(x.name, n(x.id), `data-sub="${x.id}"`, O.sub === x.id, !!x.subs)).join('');
+    }
+    if (!sbKeep) sbClose(); sbKeep = false;
+    s.innerHTML = lead + '<div class="sb-path">' + path.join(sep) + sep + '</div>' + `<button class="sb-cur" type="button" aria-haspopup="true" aria-expanded="${sbOpen()}" title="${cur[0]}"><span>${cur[0]}</span><span class="n">${cur[1]}</span>${ic('caret-open')}</button>`;
+    $o('sbSheet').innerHTML = `<div class="sb-sh-h"><div><b>${title}</b><small>${opts} option${opts === 1 ? '' : 's'}</small></div><button class="sb-x" type="button" aria-label="Close">×</button></div>` + tiles;
+    if (sbOpen()) sbScrollSel();
+    if (anim) [...s.querySelectorAll('.sb-back, .sb-crumb, .sb-cat, .sb-cur')].forEach((b, i) => b.animate(
       anim === 'in' || anim === 'out' ? [{ opacity: 0, transform: `translateX(${(anim === 'in') !== RTL() ? 28 : -28}px)` }, { opacity: 1, transform: 'none' }]
                                       : [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }],
       { duration: 340, delay: i * 30, easing: RISE, fill: 'backwards' }));
   }
+  addEventListener('pointerdown', e => { if (sbOpen() && !e.target.closest('#sbSheet, .sb-cur')) sbClose(); });
   function prodCard(p) {
     const q = qtyOf(p.id);
     return `<button class="prod ${q ? 'has' : ''} ${p.out ? 'out' : ''}" data-pid="${p.id}" ${p.out ? 'aria-disabled="true"' : ''} aria-label="Add ${p.name}">
-      <div class="ph ${p.img ? '' : 'noimg'}">${p.img ? `<img src="${p.img}" alt="" loading="lazy">` : ''}${ic(CATS.find(c => c.id === p.cat).icon)}${p.out ? '<span class="so">Sold out</span>' : ''}<span class="qb">${q || ''}</span></div>
+      <div class="ph ${p.img ? '' : 'noimg'}">${p.img ? `<img src="${p.img}" alt="" loading="lazy" onload="this.parentNode.classList.add('ld')" onerror="this.remove();this.parentNode.classList.add('noimg')">` : ''}${ic(CATS.find(c => c.id === p.cat).icon)}${p.out ? '<span class="so">Sold out</span>' : ''}<span class="qb">${q || ''}</span></div>
       <div class="info"><span class="nm">${p.name}</span><span class="pr"><b>${fmt(p.price)}</b><small>Dhs</small></span><span class="add">${ic('plus-card')}</span></div></button>`;
   }
   function renderProducts(anim) {
@@ -5897,7 +6281,8 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
         const G = L.filter(p => inNode(p, g.id));
         return G.length ? gh((tag ? tag + ' › ' : '') + g.label, G.length) + `<div class="cards">${G.map(prodCard).join('')}</div>` : '';
       }).join('') + (L.some(p => !p.ss) ? `<div class="cards">${L.filter(p => !p.ss).map(prodCard).join('')}</div>` : '');
-    }).join('') : `<div class="empty">${ic('search')}<b>No dish matches “${O.q}”</b><span>Try another name.</span></div>`;
+    }).join('') : q ? `<div class="empty">${ic('search')}<b>No dish matches “${O.q}”</b><span>Try another name.</span></div>`
+                    : `<div class="empty">${ic('search')}<b>No dishes here yet</b><span>Pick another sub-category.</span></div>`;
     if (anim) it.querySelectorAll('.sec-h, .ss-h, .prod, .empty').forEach((el, i) => el.animate([{ opacity: 0, transform: 'translateY(16px)' }, { opacity: 1, transform: 'none' }],
       { duration: 450, delay: (anim === true ? 300 : 0) + i * 30, easing: RISE, fill: 'backwards' }));    revealOnScroll();
   }
@@ -5969,9 +6354,11 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
     document.querySelector('#acts [data-act="note"]').classList.toggle('on', !!T.note || T.lines.some(l => l.key === T.sel && l.mods.some(m => m[1] === 'm-note')));
     $o('tkDisc').textContent = '−' + fmt(tt.disc);
     roll($o('tkTot'), lastTot, tt.total); lastTot = tt.total; lastSel = T.sel;
+    $o('payBtn').querySelector('.amt').textContent = `${fmt(tt.total)} Dhs`;
     const sb = $o('sendBtn');
     sb.classList.toggle('done', !tt.unsent);
-    { const sl = sb.querySelector('span'), nt = tt.unsent ? `Send ${tt.unsent}` : 'All sent';
+    { const sl = sb.querySelector('span'), ct = sb.querySelector('.cnt'), nt = tt.unsent ? 'Send' : 'All sent';
+      ct.textContent = tt.unsent || ''; ct.hidden = !tt.unsent;
       if (sl.textContent !== nt) { sl.textContent = nt; if (!stage.classList.contains('lite')) sl.animate([{ scale: .78, opacity: .25 }, { scale: 1, opacity: 1 }], { duration: 340, easing: SPRING }); } }
     $o('norcBtn').classList.toggle('on', T.noReceipt); $o('norcBtn').setAttribute('aria-pressed', T.noReceipt);
     document.querySelector('#acts [data-act="loyalty"]').classList.toggle('on', T.loyalty);
@@ -6056,7 +6443,21 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
     renderSubs(true); swapItems();
   });
   $o('subbar').addEventListener('click', e => {
-    const b = e.target.closest('button'); if (!b || b.dataset.sub === 'none') return;
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.clear) { O.q = ''; $o('oSearch').value = ''; setBuf?.(''); renderSubs(); renderProducts('switch'); return; }
+    if (b.classList.contains('sb-cur')) return sbToggle();
+    if (b.dataset.up == null && b.dataset.sub == null && b.dataset.ss == null) return;
+    sbKeep = sbOpen(); subTap(b);      // going back or up while the sheet is open keeps it open on that level
+  });
+  $o('sbSheet').addEventListener('click', e => {
+    if (e.target.closest('.sb-x')) return sbClose();
+    const b = e.target.closest('.sb-tile'); if (!b) return;
+    // a tile with levels below drills in and the sheet stays open on the next level; a last one picks and the sheet closes
+    const drill = b.dataset.in != null || (b.dataset.sub && b.dataset.sub !== 'all' && !!SECTIONS.find(x => x.id === b.dataset.sub)?.subs);
+    if (b.classList.contains('on') && !drill) return sbClose();       // already chosen: nothing to change
+    sbKeep = !!drill; subTap(b); if (!drill) sbClose();
+  });
+  function subTap(b) {
     sfx.tap();
     let dir = null;
     if (b.dataset.up != null) { dir = 'out'; if (b.dataset.up === 'all') { O.sub = 'all'; O.ss = null; } else O.ss = b.dataset.up || null; }
@@ -6067,7 +6468,7 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
     }
     else { O.sub = b.dataset.sub; O.ss = null; if (SECTIONS.find(x => x.id === O.sub)?.subs) dir = 'in'; }
     renderSubs(dir); swapItems();
-  });
+  }
   let modeFx = null;
   function setMode(m, fx) {
     O.mode = m;
@@ -6081,7 +6482,7 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
     out.onfinish = () => { out.cancel(); modeFx = null; want(); it.animate([{ opacity: 0, scale: .985 }, { opacity: 1, scale: 1 }], { duration: 360, easing: RISE }); };
   }
   $o('vs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { sfx.tap(); setMode(b.dataset.mode, true); } });
-  $o('oSearch').addEventListener('input', e => { O.q = e.target.value; renderProducts('switch'); });
+  $o('oSearch').addEventListener('input', e => { O.q = e.target.value; renderSubs(); renderProducts('switch'); });
 
   $o('items').addEventListener('click', e => {
     const c = e.target.closest('.prod'); if (!c || c.classList.contains('out')) return;
@@ -6583,24 +6984,33 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
   const ZONES = [{ id: 'main', name: 'Main hall', pre: 'T' }, { id: 'terrace', name: 'Terrace', pre: 'E' }, { id: 'bar', name: 'Bar', pre: 'B' }];
   const TABLES = [];
   const addT = (id, z, x, y, w, h, seats, round = false) => TABLES.push({ id, z, x, y, w, h, seats, round });
-  // Main hall: four rows of five, mixing round twos, square fours and long sixes
-  [[1, 'r2'], [2, 's4'], [3, 's4'], [4, 'r2'], [5, 'l6'], [6, 's4'], [7, 'l6'], [8, 'r2'], [9, 's4'], [10, 's4'], [11, 'r2'], [12, 's4'], [13, 's4'], [14, 'l6'], [15, 'r2'],
-   [16, 'l8'], [17, 's4'], [18, 'r4'], [19, 's4'], [20, 'l6']].forEach(([n, k], i) => {
-    const sz = { r2: [120, 120, 2, true], r4: [150, 150, 4, true], s4: [160, 130, 4], l6: [230, 130, 6], l8: [290, 130, 8] }[k], cx = 170 + (i % 5) * 345, cy = 85 + Math.floor(i / 5) * 165;
-    addT('T' + n, 'main', cx - sz[0] / 2, cy - sz[1] / 2, ...sz); });
+  // Main hall, grouped by size so the right table is found by looking along the room: the window column has the round twos, the middle two columns the square fours, and the long group
+  // tables (and the big eight) are on the right near the kitchen. Four rows of five, numbered along each row.
+  [['r2', 's4', 's4', 'r2', 'l6'], ['r2', 's4', 's4', 's4', 'l6'], ['r2', 's4', 's4', 'r4', 'l6'], ['r2', 's4', 's4', 'l8', 'l6']].forEach((row, r) => row.forEach((k, c) => {
+    const sz = { r2: [120, 120, 2, true], r4: [150, 150, 4, true], s4: [160, 130, 4], l6: [230, 130, 6], l8: [290, 130, 8] }[k], cx = 150 + c * 345, cy = 80 + r * 165;
+    addT('T' + (r * 5 + c + 1), 'main', cx - sz[0] / 2, cy - sz[1] / 2, ...sz); }));
   // Terrace: two rows along the street, umbrellas for twos and fours
   for (let i = 0; i < 10; i++) { const r = i < 5, w = i % 2 ? 150 : 130; addT('E' + (i + 1), 'terrace', 150 + (i % 5) * 330 - w / 2, (r ? 150 : 400) - w / 2, w, w, i % 2 ? 4 : 2, true); }
   // Bar: high tables, then stools along the counter
   for (let i = 0; i < 6; i++) addT('B' + (i + 1), 'bar', 120 + i * 270, 90, 140, 140, 4, true);
   for (let i = 0; i < 12; i++) addT('S' + (i + 1), 'bar', 110 + i * 130, 400, 84, 84, 1, true);
+  // Real sizes in cm, shown on every table. The plan is drawn 1 unit = 1 cm, but the demo cards are a little larger than real tables so they can carry the ticket info; a table drawn in the
+  // floor plan editor has its real width and depth as its size, so it shows exactly those.
+  const realSize = t => t.round ? (t.seats <= 1 ? [40, 40] : t.seats <= 2 ? [80, 80] : t.seats <= 4 ? (t.z === 'bar' ? [90, 90] : [110, 110]) : [140, 140]) : t.seats <= 4 ? [140, 80] : t.seats <= 6 ? [200, 80] : [260, 90];
+  TABLES.forEach(t => { t.cm = realSize(t); t.px0 = [t.w, t.h]; });
+  const dimsOf = t => { const a = t.cm && t.px0 && Math.round(t.w) === t.px0[0] && Math.round(t.h) === t.px0[1] ? t.cm : [Math.round(t.w), Math.round(t.h)];
+    return t.round ? `Ø ${a[0]} cm` : `${a[0]} × ${a[1]} cm`; };
   // walls, counters and labels drawn on each zone (the floor plan editor moves, adds and removes them)
   const DECOR = [
-    { z: 'main', k: 'lbl', x: 6, y: 648, text: 'Entrance' }, { z: 'main', k: 'lbl', x: 1600, y: 648, text: 'Kitchen ↗' },
+    { z: 'main', k: 'lbl', x: 90, y: 664, text: '↑ Entrance' }, { z: 'main', k: 'lbl', x: 1500, y: 664, text: 'Kitchen ↗' },
     { z: 'terrace', k: 'wall', x: 0, y: 580, w: 1720, h: 10 }, { z: 'terrace', k: 'lbl', x: 6, y: 614, text: 'Street side' },
     { z: 'bar', k: 'lbl', x: 6, y: 270, text: 'High tables ↑ · Stools ↓' }, { z: 'bar', k: 'wall', x: 60, y: 520, w: 1600, h: 44 }, { z: 'bar', k: 'lbl', x: 70, y: 582, text: 'Bar counter' },
   ];
   const escH = v => String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-  const decorHTML = (z, ed) => DECOR.map((d, i) => d.z !== z ? '' : d.k === 'wall'
+  // a room drawn in the floor plan editor (its corners are in centimetres) shows as an outline under the tables
+  const roomHTML = z => { const zz = ZONES.find(x => x.id === z); if (!zz?.pts || zz.pts.length < 3) return '';
+    return `<svg class="fl-poly" width="${zz.rw}" height="${zz.rh}" viewBox="0 0 ${zz.rw} ${zz.rh}"><polygon points="${zz.pts.map(p => p.join(',')).join(' ')}"/></svg>`; };
+  const decorHTML = (z, ed) => roomHTML(z) + DECOR.map((d, i) => d.z !== z ? '' : d.k === 'wall'
     ? `<div class="fl-wall" style="left:${d.x}px;top:${d.y}px;width:${d.w}px;height:${d.h}px"></div>`
     : `<div class="fl-lbl" style="left:${d.x}px;top:${d.y}px">${escH(d.text)}</div>`).join('');
   // a layout saved in the floor plan editor replaces the default one
@@ -6618,13 +7028,13 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
     return (OPEN[id] = t);
   }
   // a busy evening for the demo
-  openTicket('T5', 5, 22, [['b3', 2, 1], ['a2', 1, 1], ['d1', 3, 1]]); openTicket('T7', 6, 64, [['b1', 3, 1], ['s1', 2, 1], ['d2', 4, 1], ['f2', 2, 1]]);
+  openTicket('T5', 5, 22, [['b3', 2, 1], ['a2', 1, 1], ['d1', 3, 1]]); openTicket('T7', 4, 64, [['b1', 3, 1], ['s1', 2, 1], ['d2', 4, 1], ['f2', 2, 1]]);
   openTicket('T11', 2, 9, [['b2', 1], ['d1', 2]]); openTicket('T14', 4, 51, [['b4', 2, 1], ['f2', 1, 1], ['d1', 4, 1]]); openTicket('T18', 3, 4);
   openTicket('E3', 2, 31, [['s1', 2, 1], ['d2', 2, 1]]); openTicket('E6', 4, 47, [['b1', 4, 1], ['d1', 4, 1]]); openTicket('B2', 3, 18, [['d1', 6, 1]]); openTicket('S4', 1, 12, [['d2', 1, 1]]);
   Object.keys(OPEN).forEach(id => { if (!TABLES.some(t => t.id === id)) delete OPEN[id]; });
   // beyond open tickets: tonight's reservations, tables paid while the guests stay on, and tables waiting to be cleared
   const hhAt = m => { const d = new Date(Date.now() + m * 60000); return `${String(d.getHours()).padStart(2, '0')}:${String(Math.round(d.getMinutes() / 5) * 5 % 60).padStart(2, '0')}`; };
-  const RESV = { T3: { at: hhAt(25), name: 'Alaoui', covers: 4 }, T16: { at: hhAt(50), name: 'Bennani', covers: 8 }, T19: { at: hhAt(80), name: 'Tazi', covers: 3 },
+  const RESV = { T3: { at: hhAt(25), name: 'Alaoui', covers: 4 }, T19: { at: hhAt(50), name: 'Bennani', covers: 8 }, T16: { at: hhAt(80), name: 'Tazi', covers: 2 },
     E1: { at: hhAt(35), name: 'Idrissi', covers: 2 }, E9: { at: hhAt(65), name: 'Chraibi', covers: 2 }, B5: { at: hhAt(40), name: 'Lahlou', covers: 4 } };
   const PAID = { T9: { at: Date.now() - 14 * 60000, covers: 4 }, T20: { at: Date.now() - 6 * 60000, covers: 5 }, E8: { at: Date.now() - 21 * 60000, covers: 4 } };
   const CLEAR = new Set(['T12', 'E5', 'S9']);
@@ -6636,7 +7046,7 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
     if (o) return o.lines.length && mins(o) > 45 ? 'late' : !o.lines.length || o.lines.some(l => !l.sent) ? 'order' : 'dine';
     return PAID[t.id] ? 'done' : RESV[t.id] ? 'resv' : CLEAR.has(t.id) ? 'clear' : 'free';
   }
-  const TB = { zone: ZONES[0].id, mode: 'browse', pick: null };
+  const TB = { zone: ZONES[0].id, mode: 'browse', pick: null, filter: null, dims: (() => { try { return localStorage.getItem('cm-pos-v3-dims') !== '0'; } catch (e) { return true; } })() };
   const ticketSum = t => t.lines.reduce((n, l) => n + l.price * l.qty, 0) * (t.loyalty ? .95 : 1);
   const mins = t => Math.max(1, Math.round((Date.now() - t.opened) / 60000));
   function chairs(t, occ = 0) {
@@ -6661,33 +7071,60 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
   }
   const ftClass = (t, cur, moving) => { const k = tStatus(t);
     return `ft ${t.round ? 'round' : ''} s-${k} ${OPEN[t.id] || PAID[t.id] ? 'busy' : ''} ${k === 'late' ? 'late' : ''} ${t.id === cur ? 'cur' : ''} ${moving && k !== 'free' && t.id !== cur ? 'off' : ''}`; };
+  function zonePill(slide) {   // put the pill under the chosen room; it slides when the room changes, and just sits there when the screen is drawn
+    const zb = $o('flZones'), zp = zb.querySelector('.zpill'), b = zb.querySelector('button.on'); if (!zp || !b || !b.offsetWidth) return;
+    if (!slide) zp.style.transition = 'none';
+    zp.style.width = b.offsetWidth + 'px'; zp.style.transform = `translateX(${b.offsetLeft}px)`;
+    if (!slide) { zp.offsetWidth; zp.style.transition = ''; }
+  }
+  document.fonts?.ready.then(() => zonePill(false));
   function renderFloor(anim) {
     const moving = TB.mode === 'move';
-    $o('flTitle').innerHTML = moving ? `Move <em>${escH(T.table)}</em> to…` : TB.mode === 'pick' ? 'Choose a <em>table</em>' : '<em>Tables</em>';   // one red word, as on the login
+    $o('flTitle').innerHTML = moving ? `Move <em>${escH(T.table)}</em> to…` : 'Choose a <em>table</em>';   // "Choose a" in white, one red word, as on the login
     $o('flSub').textContent = moving ? `Pick a free table. The order, its ${T.covers} covers and the timer move together.`
       : 'Tap a free table to seat guests, or an open one to continue its order.';
     if (moving) $o('flSub').textContent += ` Tap ${T.table} to cancel.`;
-    $o('flZones').innerHTML = ZONES.map(z => { const zt = TABLES.filter(t => t.z === z.id), busyN = zt.filter(t => OPEN[t.id] || PAID[t.id]).length;
-      return `<button class="${z.id === TB.zone ? 'on' : ''}" data-z="${z.id}">${z.name}<small>${busyN}/${zt.length}</small></button>`; }).join('');
+    { const zb = $o('flZones'); let zp = zb.querySelector('.zpill'); if (!zp) { zp = document.createElement('span'); zp.className = 'zpill'; zb.prepend(zp); }
+      zb.querySelectorAll('button').forEach(b => b.remove());      // the pill stays, so it can slide from the old room to the new one
+      zb.insertAdjacentHTML('beforeend', ZONES.map(z => { const zt = TABLES.filter(t => t.z === z.id), busyN = zt.filter(t => OPEN[t.id] || PAID[t.id]).length;
+        const hit = TB.filter ? zt.filter(t => tStatus(t) === TB.filter).length : 0;
+        return `<button class="${z.id === TB.zone ? 'on' : ''}" data-z="${z.id}">${z.name}<small>${TB.filter ? hit : busyN + '/' + zt.length}</small></button>`; }).join(''));
+      const slide = !!anim && zp.dataset.set === '1'; zp.dataset.set = '1'; zonePill(slide); queueMicrotask(() => zonePill(slide)); }   // again once the names are translated
     const busyAll = Object.keys(OPEN).length, guests = Object.values(OPEN).reduce((n, t) => n + t.covers, 0);
     const cnt = {}; TABLES.forEach(t => { const k = tStatus(t); cnt[k] = (cnt[k] || 0) + 1; });
-    $o('flLegend').innerHTML = STATUS.map(([k, l]) => `<span><i class="lg-${k}" ${k === 'dine' ? '' : 'data-c'}></i>${l}<em>${cnt[k] || 0}</em></span>`).join('')
-      + `<b id="flStat">${busyAll}/${TABLES.length} open · ${guests} guests</b>`;
+    $o('flLegend').innerHTML = STATUS.map(([k, l]) => `<button type="button" class="${TB.filter === k ? 'on' : ''}${cnt[k] ? '' : ' zero'}" data-f="${k}" aria-pressed="${TB.filter === k}"><i class="lg-${k}" ${k === 'dine' ? '' : 'data-c'}></i>${l}<em>${cnt[k] || 0}</em></button>`).join('')
+      + `<button type="button" class="szt" data-sz aria-pressed="${TB.dims}">Sizes</button>`
+      + `<b id="flStat"><span class="occ" aria-hidden="true"><i style="width:${Math.round(busyAll / Math.max(1, TABLES.length) * 100)}%"></i></span>${busyAll}/${TABLES.length} open · ${guests} guests</b>`;
     const cur = stage.classList.contains('is-order') || moving ? T.table : null;
+    // a zone with its own measured room is shown at the size of that room, scaled to fit the floor (the default 17.2 x 6.6 m shows as it always did)
+    { const zz = ZONES.find(x => x.id === TB.zone), rw = zz?.rw || 1720, rh = zz?.rh || 660, fr = $o('flRoom');
+      fr.style.width = rw + 'px'; fr.style.height = rh + 'px'; fr.style.transform = `translate(-50%, -50%) scale(${zz?.pts || zz?.rw || zz?.rh ? Math.min(1840 / rw, 690 / rh, 1.4) : 1})`; }
     $o('flRoom').innerHTML = decorHTML(TB.zone) + TABLES.filter(t => t.z === TB.zone).map((t, i) => {
       const o = OPEN[t.id], k = tStatus(t), pd = PAID[t.id];
       return `<button class="${ftClass(t, cur, moving)}" ${k === 'dine' ? '' : 'data-c'} data-t="${t.id}"
-        style="left:${t.x}px;top:${t.y}px;width:${t.w}px;height:${t.h}px;--dl:${(i * 1.7) % 9}s" aria-label="Table ${t.id}, ${STATUS.find(x => x[0] === k)[1]}"><span class="sh"></span><span class="chairs">${chairs(t, o ? o.covers : pd ? pd.covers : 0)}</span><b>${t.id}</b><span class="inf">${tableInfo(t)}</span></button>`;
+        style="left:${t.x}px;top:${t.y}px;width:${t.w}px;height:${t.h}px;--dl:${(i * 1.7) % 9}s" aria-label="Table ${t.id}, ${STATUS.find(x => x[0] === k)[1]}, ${dimsOf(t)}"><span class="sh"></span><span class="chairs">${chairs(t, o ? o.covers : pd ? pd.covers : 0)}</span><b>${t.id}</b><span class="inf">${tableInfo(t)}</span><small class="dm">${dimsOf(t)}</small></button>`;
     }).join('');
     // the table you just served pops with a ring as the floor comes back
     if (TB.flash && anim) { const f = $o('flRoom').querySelector(`[data-t="${TB.flash}"]`); if (f) { f.classList.add('pop'); f.insertAdjacentHTML('beforeend', '<span class="rip"></span>'); } TB.flash = null; }
-    if (anim) $o('flRoom').querySelectorAll('.ft').forEach((el, i) => el.animate([{ opacity: 0, transform: 'scale(.85)' }, { opacity: 1, transform: 'none' }],
+    applyFloorFilter();
+    if (anim) $o('flRoom').querySelectorAll('.ft').forEach((el, i) => el.animate([{ opacity: 0, transform: 'scale(.85)' }, { opacity: el.classList.contains('dim') ? .3 : 1, transform: 'none' }],
       { duration: 460, delay: 80 + i * 18, easing: SPRING, fill: 'backwards' }));
   }
+  function applyFloorFilter() {   // tables that do not match the chosen status fade back; tapping the same chip again shows all
+    const f = TB.filter;
+    $o('flRoom').classList.toggle('show-dm', TB.dims);
+    $o('flLegend').querySelector('[data-sz]')?.classList.toggle('on', TB.dims);
+    $o('flLegend').querySelector('[data-sz]')?.setAttribute('aria-pressed', TB.dims);
+    $o('flRoom').querySelectorAll('.ft').forEach(el => el.classList.toggle('dim', !!f && !el.classList.contains('s-' + f)));
+    $o('flLegend').querySelectorAll('[data-f]').forEach(b => { const on = b.dataset.f === f; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
+  }
+  $o('flLegend').addEventListener('click', e => { const b = e.target.closest('[data-f], [data-sz]'); if (!b) return; sfx.tap();
+    if (b.dataset.sz != null) { TB.dims = !TB.dims; try { localStorage.setItem('cm-pos-v3-dims', TB.dims ? '1' : '0'); } catch (e) {} return applyFloorFilter(); }
+    TB.filter = TB.filter === b.dataset.f ? null : b.dataset.f; renderFloor(); });
   setInterval(() => {
     if (view !== 'tables' || stage.classList.contains('is-order') || !stage.classList.contains('is-app') || document.hidden) return;
     $o('flRoom').querySelectorAll('.ft').forEach(el => { const t = TABLES.find(x => x.id === el.dataset.t), o = t && OPEN[t.id]; if (!t) return;
-      el.querySelector('.inf').innerHTML = tableInfo(t); const keep = ['cur', 'off', 'pop'].filter(c => el.classList.contains(c));
+      el.querySelector('.inf').innerHTML = tableInfo(t); const keep = ['cur', 'off', 'pop', 'dim'].filter(c => el.classList.contains(c));
       el.className = ftClass(t, null, false) + ' ' + keep.join(' '); el.toggleAttribute('data-c', tStatus(t) !== 'dine'); });
   }, 15000);
   $o('flZones').addEventListener('click', e => { const b = e.target.closest('button'); if (!b || b.dataset.z === TB.zone) return; sfx.tap(); TB.zone = b.dataset.z; renderFloor(true); });
@@ -6704,7 +7141,7 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
   // guests picker for a free table: the table's seat count is the suggested answer
   function openGuests(t) {
     TB.pick = t; const z = ZONES.find(x => x.id === t.z).name, r = RESV[t.id], def = Math.min(8, r ? r.covers : t.seats);
-    $o('cvpTitle').innerHTML = `Table <em>${escH(t.id)}</em>`; $o('cvpSub').textContent = r ? `Reserved ${r.at} · ${r.name} · ${r.covers} guests` : `${t.seats} seat${t.seats > 1 ? 's' : ''} · ${z}`;
+    $o('cvpTitle').innerHTML = `Table <em>${escH(t.id)}</em>`; $o('cvpSub').textContent = r ? `Reserved ${r.at} · ${r.name} · ${r.covers} guests · ${dimsOf(t)}` : `${t.seats} seat${t.seats > 1 ? 's' : ''} · ${dimsOf(t)} · ${z}`;
     $o('cvpGrid').innerHTML = Array.from({ length: 8 }, (_, i) => `<button class="${i + 1 === def ? 'def' : ''}" data-g="${i + 1}">${i + 1}${i + 1 === def ? `<small>${r ? 'booked' : 'seats'}</small>` : ''}</button>`).join('');
     const c = $o('cvp'); c.hidden = false;
     c.querySelector('.cvp-card').animate([{ opacity: 0, transform: 'translateY(24px) scale(.96)' }, { opacity: 1, transform: 'none' }], { duration: 460, easing: SPRING });
@@ -7186,72 +7623,186 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
   // Works on a draft of the zones, tables and decor. Save writes it back (open orders follow their table, renamed or moved),
   // stores it on this device and redraws the floor. Busy tables can move and be renamed but not removed.
   const PIECES = [
-    { k: 'r2', name: 'Round table', sub: '2 seats', w: 120, h: 120, seats: 2, round: true },
-    { k: 'r4', name: 'Round table', sub: '4 seats', w: 150, h: 150, seats: 4, round: true },
-    { k: 's4', name: 'Square table', sub: '4 seats', w: 160, h: 130, seats: 4 },
-    { k: 'l6', name: 'Long table', sub: '6 seats', w: 230, h: 130, seats: 6 },
-    { k: 'l8', name: 'Banquet', sub: '8 seats', w: 290, h: 130, seats: 8 },
+    { k: 'r2', name: 'Round table', sub: '2 seats', w: 80, h: 80, seats: 2, round: true },
+    { k: 'r4', name: 'Round table', sub: '4 seats', w: 110, h: 110, seats: 4, round: true },
+    { k: 's4', name: 'Rectangular table', sub: '4 seats', w: 140, h: 80, seats: 4 },
+    { k: 'l6', name: 'Long table', sub: '6 seats', w: 200, h: 80, seats: 6 },
+    { k: 'l8', name: 'Banquet', sub: '8 seats', w: 260, h: 90, seats: 8 },
     { k: 'st', name: 'Bar stool', sub: '1 seat', w: 84, h: 84, seats: 1, round: true, pre: 'S' },
     { k: 'wall', name: 'Wall', sub: 'Divider, window', w: 300, h: 10, decor: 'wall' },
     { k: 'ctr', name: 'Counter', sub: 'Bar, pass', w: 500, h: 44, decor: 'wall' },
     { k: 'lbl', name: 'Label', sub: 'Kitchen, door…', w: 120, h: 18, decor: 'lbl' },
   ];
-  const RW = 1720, RH = 660, GRID = 10, clampN = (v, a, b) => Math.max(a, Math.min(b, v)), snapN = v => FE.snap ? Math.round(v / FE.snap) * FE.snap : Math.round(v);
-  const FE = { on: false, zones: [], tables: [], decor: [], zone: 'main', sel: null, hist: [], k: .68, dirty: false, gap: 40, snap: 10 };
-  // the editor remembers how you like your floor: the space between tables and the snapping
-  try { const p = JSON.parse(localStorage.getItem('cm-pos-v3-floor-prefs') || '{}'); if ([20, 40, 70].includes(p.gap)) FE.gap = p.gap; if ([0, 10, 20].includes(p.snap)) FE.snap = p.snap; } catch (e) {}
-  const fePrefs = () => { try { localStorage.setItem('cm-pos-v3-floor-prefs', JSON.stringify({ gap: FE.gap, snap: FE.snap })); } catch (e) {} };
+  // The floor is drawn to scale: 1 unit = 1 cm. The room outline, the table sizes and the walkways are real measurements.
+  const GRID = 10, clampN = (v, a, b) => Math.max(a, Math.min(b, v)), snapN = v => FE.snap ? Math.round(v / FE.snap) * FE.snap : Math.round(v);
+  let RW = 1720, RH = 660;   // the size of the zone being edited, in cm (a drawn room sets its own)
+  const SEAT = 55, STOOL = 40, OBST = 20, ROOM_M = 130, SNAPR = 56;   // cm a seated guest needs behind the table edge · for a stool · kept clear of a counter or divider · canvas margin round a drawn room · how far a fixed spot pulls the table
+  const FE = { on: false, zones: [], tables: [], decor: [], zone: 'main', sel: null, hist: [], k: .68, dirty: false, gap: 90, snap: 10, fixed: true, bays: false, pen: null, len: null, draft: null, placed: 0 };
+  // the editor remembers how you like your floor: the walkway between tables (cm), the snapping, the fixed spots and the chair zones
+  try { const p = JSON.parse(localStorage.getItem('cm-pos-v3-floor-prefs') || '{}'), old = { 20: 60, 40: 90, 70: 120 };
+    if ([60, 90, 120].includes(p.gap)) FE.gap = p.gap; else if (old[p.gap]) FE.gap = old[p.gap];
+    if ([0, 10, 20].includes(p.snap)) FE.snap = p.snap; if (p.fixed === false) FE.fixed = false; if (p.bays) FE.bays = true; } catch (e) {}
+  const fePrefs = () => { try { localStorage.setItem('cm-pos-v3-floor-prefs', JSON.stringify({ gap: FE.gap, snap: FE.snap, fixed: FE.fixed, bays: FE.bays })); } catch (e) {} };
   const feBusy = t => !!(t.orig && OPEN[t.orig]);
+
+  /* ---- what a table needs around it, in real centimetres ----
+     The chairs of a table need room behind them (SEAT), and people walk between the tables (the walkway you choose: 60, 90 or 120 cm).
+     A table's "bay" is the table plus its chairs. Two bays must be at least a walkway apart; a bay must be half a walkway from the room's walls. */
+  const zoneObj = () => FE.zones.find(z => z.id === FE.zone);
+  const roomPoly = () => { const p = zoneObj()?.pts; return p && p.length >= 3 ? p : null; };
+  const wallC = () => Math.round(FE.gap / 2);
+  const wallsZ = () => FE.decor.filter(d => d.z === FE.zone && d.k === 'wall');
+  const cm = v => v >= 100 ? (v / 100).toFixed(2) + ' m' : Math.round(v) + ' cm';
+  const polyArea = p => Math.abs(p.reduce((s, a, i) => { const b = p[(i + 1) % p.length]; return s + a[0] * b[1] - b[0] * a[1]; }, 0)) / 2;
+  // chair room on each side [left, top, right, bottom]: rectangles seat along the top and the bottom, round tables all round (as the chairs are drawn)
+  function seatEdges(t) {
+    const n = t.seats || 0; if (!n) return [0, 0, 0, 0];
+    const s = n === 1 && t.round ? STOOL : SEAT;
+    if (t.round) return n === 1 ? [0, s, 0, 0] : n === 2 ? [0, s, 0, s] : [s, s, s, s];
+    return [0, s, 0, n - Math.ceil(n / 2) ? s : 0];
+  }
+  const bayOf = (t, x = t.x, y = t.y) => { const [l, u, r, d] = seatEdges(t); return { x: x - l, y: y - u, w: t.w + l + r, h: t.h + u + d }; };
+  const boxGap = (a, b) => Math.max(b.x - (a.x + a.w), a.x - (b.x + b.w), b.y - (a.y + a.h), a.y - (b.y + b.h));   // > 0 apart, < 0 overlapping
+  function inPoly(x, y, p) { let c = false; for (let i = 0, j = p.length - 1; i < p.length; j = i++) if ((p[i][1] > y) !== (p[j][1] > y) && x < (p[j][0] - p[i][0]) * (y - p[i][1]) / (p[j][1] - p[i][1]) + p[i][0]) c = !c; return c; }
+  function segHitsBox(ax, ay, bx, by, x0, y0, x1, y1) {   // Liang-Barsky: does the segment cross the box
+    let t0 = 0, t1 = 1; const dx = bx - ax, dy = by - ay;
+    for (const [p, q] of [[-dx, ax - x0], [dx, x1 - ax], [-dy, ay - y0], [dy, y1 - ay]]) {
+      if (p === 0) { if (q < 0) return false; } else { const r = q / p; if (p < 0) { if (r > t1) return false; if (r > t0) t0 = r; } else { if (r < t0) return false; if (r < t1) t1 = r; } } }
+    return true;
+  }
+  function bayInRoom(b, me) {
+    const poly = roomPoly(); if (!poly) return me.x >= 0 && me.y >= 0 && me.x + me.w <= RW && me.y + me.h <= RH;   // no outline drawn: the zone's canvas
+    const pad = wallC() - 1, x0 = b.x - pad, y0 = b.y - pad, x1 = b.x + b.w + pad, y1 = b.y + b.h + pad;
+    if (![[x0, y0], [x1, y0], [x1, y1], [x0, y1]].every(([x, y]) => inPoly(x, y, poly))) return false;
+    return !poly.some((a, i) => { const c = poly[(i + 1) % poly.length]; return segHitsBox(a[0], a[1], c[0], c[1], x0 + .5, y0 + .5, x1 - .5, y1 - .5); });
+  }
+  // what is wrong with a table standing at (x, y): touching another table or a wall (clash), closer than the walkway (tight), outside the room (out)
+  function spotState(t, x, y) {
+    const me = { x, y, w: t.w, h: t.h }, bb = bayOf(t, x, y); let clash = false, tight = false;
+    for (const o of zoneT()) { if (o === t) continue; if (overlap(me, o)) { clash = true; continue; } if (boxGap(bb, bayOf(o)) < FE.gap - .01) tight = true; }
+    for (const w of wallsZ()) { if (overlap(me, w)) clash = true; else if (boxGap(bb, w) < OBST - .01) tight = true; }
+    const out = !bayInRoom(bb, me);
+    return { clash, tight, out, ok: !clash && !tight && !out };
+  }
+  // positions that line up with, or keep the walkway from, what is around: the other tables, the counters and dividers, the room's walls
+  function slotAxis(t, ax) {
+    const isX = ax === 'x', [l, u, r, d] = seatEdges(t), lo = isX ? l : u, hi = isX ? r : d, len = isX ? t.w : t.h, g = FE.gap, out = [];
+    zoneT().forEach(o => { if (o === t) return; const b = bayOf(o), p = isX ? o.x : o.y, ol = isX ? o.w : o.h, bs = isX ? b.x : b.y, bl = isX ? b.w : b.h;
+      out.push(p, p + ol - len, p + (ol - len) / 2, bs + bl + g + lo, bs - g - hi - len); });
+    wallsZ().forEach(w => { const ws = isX ? w.x : w.y, wl = isX ? w.w : w.h; out.push(ws + wl + OBST + lo, ws - OBST - hi - len); });
+    const poly = roomPoly(), c = wallC();
+    if (poly) poly.forEach((a, i) => { const b = poly[(i + 1) % poly.length]; if (isX ? a[0] === b[0] : a[1] === b[1]) { const v = isX ? a[0] : a[1]; out.push(v + c + lo, v - c - hi - len); } });
+    return out;
+  }
+  // every valid position near (wx, wy), nearest first
+  function slotScan(t, wx, wy, radius) {
+    const near = (arr, c) => [...new Set(arr.concat([c, snapN(c)]).map(Math.round))].filter(v => Math.abs(v - c) <= radius).sort((a, b) => Math.abs(a - c) - Math.abs(b - c)).slice(0, 26);
+    const xs = near(slotAxis(t, 'x'), wx), ys = near(slotAxis(t, 'y'), wy), out = [];
+    xs.forEach(x => ys.forEach(y => { if (spotState(t, x, y).ok) out.push({ x, y, d: Math.hypot(x - wx, y - wy) }); }));
+    return out.sort((a, b) => a.d - b.d);
+  }
+  const bestSlot = (t, wx, wy, radius) => slotScan(t, wx, wy, radius)[0] || null;
+  function gridSlot(t, wx, wy) {   // the slow way, anywhere in the zone: used when nothing close is free
+    let best = null;
+    for (let y = 0; y <= RH - t.h; y += 10) for (let x = 0; x <= RW - t.w; x += 10) { const d = Math.hypot(x - wx, y - wy); if (best && d >= best.d) continue; if (spotState(t, x, y).ok) best = { x, y, d }; }
+    return best;
+  }
+  const pickSlots = (list, t, n) => { const out = []; for (const s of list) { if (out.length >= n) break; if (out.every(o => Math.hypot(o.x - s.x, o.y - s.y) > Math.max(t.w, t.h) * .8)) out.push(s); } return out; };
+  // the distance from a table's bay to the nearest thing on each side: what the owner would measure with a tape
+  function guides(t, x, y) {
+    const b = bayOf(t, x, y), poly = roomPoly(), res = [];
+    const boxes = zoneT().filter(o => o !== t).map(o => ({ ...bayOf(o), f: 't' })).concat(wallsZ().map(w => ({ x: w.x, y: w.y, w: w.w, h: w.h, f: 'o' })));
+    for (const dir of ['l', 'r', 'u', 'd']) {
+      const horiz = dir === 'l' || dir === 'r'; let best = null;
+      const consider = (g, a0, a1, f) => { if (g < -.5 || g > 450) return; const lo = Math.max(a0, horiz ? b.y : b.x), hi = Math.min(a1, horiz ? b.y + b.h : b.x + b.w); if (hi - lo <= 0) return; if (!best || g < best.g) best = { g, mid: (lo + hi) / 2, f }; };
+      boxes.forEach(o => { const g = dir === 'r' ? o.x - (b.x + b.w) : dir === 'l' ? b.x - (o.x + o.w) : dir === 'd' ? o.y - (b.y + b.h) : b.y - (o.y + o.h); consider(g, horiz ? o.y : o.x, horiz ? o.y + o.h : o.x + o.w, o.f); });
+      if (poly) poly.forEach((p, i) => { const q = poly[(i + 1) % poly.length];
+        if (horiz && p[0] === q[0]) consider(dir === 'r' ? p[0] - (b.x + b.w) : b.x - p[0], Math.min(p[1], q[1]), Math.max(p[1], q[1]), 'p');
+        if (!horiz && p[1] === q[1]) consider(dir === 'd' ? p[1] - (b.y + b.h) : b.y - p[1], Math.min(p[0], q[0]), Math.max(p[0], q[0]), 'p'); });
+      if (best) res.push({ dir, g: best.g, mid: best.mid, need: best.f === 'p' ? wallC() : best.f === 'o' ? OBST : FE.gap, b });
+    }
+    return res;
+  }
   const feSnap = () => JSON.stringify({ zones: FE.zones, tables: FE.tables, decor: FE.decor, zone: FE.zone });
   function feRemember() { FE.hist.push(feSnap()); if (FE.hist.length > 80) FE.hist.shift(); FE.dirty = true; $o('feUndo').disabled = false; }
   function feUndo() { const h = FE.hist.pop(); if (!h) return; Object.assign(FE, JSON.parse(h)); FE.sel = null; $o('feUndo').disabled = !FE.hist.length; feRender(); sfx.tap(); }
   function openFE() {
-    FE.zones = ZONES.map(z => ({ ...z })); FE.decor = DECOR.map(d => ({ ...d }));
-    FE.tables = TABLES.map(t => ({ ...t, orig: t.id })); FE.zone = TB.zone; FE.sel = null; FE.hist = []; FE.dirty = false; $o('feUndo').disabled = true;
-    const st = document.querySelector('.fe-stage'), room = $o('feRoom');
-    FE.k = Math.min((st.clientWidth - 10) / RW, (st.clientHeight - 10) / RH);
-    room.style.width = RW * FE.k + 'px'; room.style.height = RH * FE.k + 'px'; room.style.setProperty('--g', `${(FE.snap || 20) * FE.k}px`);
-    $o('feSc').style.transform = `scale(${FE.k})`;
+    FE.zones = ZONES.map(z => ({ ...z, ...(z.pts ? { pts: z.pts.map(p => [...p]) } : {}) })); FE.decor = DECOR.map(d => ({ ...d }));
+    FE.tables = TABLES.map(t => ({ ...t, orig: t.id })); FE.zone = TB.zone; FE.sel = null; FE.hist = []; FE.dirty = false; FE.pen = null; FE.draft = null; $o('feUndo').disabled = true;
+    $o('feRoom').classList.remove('pen'); $o('fePenBar').hidden = true; lenHide();
     renderPal(); feRender(); $o('fe').classList.add('on'); $o('fe').setAttribute('aria-hidden', 'false'); FE.on = true; sfx.whoosh();
     $o('feSc').querySelectorAll('.ed').forEach((el, i) => el.animate([{ opacity: 0, transform: 'scale(.85)' }, { opacity: 1, transform: 'none' }], { duration: 420, delay: 120 + i * 14, easing: SPRING, fill: 'backwards' }));
   }
-  function closeFE() { $o('fe').classList.remove('on'); $o('fe').setAttribute('aria-hidden', 'true'); FE.on = false; }
+  function closeFE() { if (FE.pen) penRestore(); FE.pen = null; lenHide(); $o('fe').classList.remove('on'); $o('fe').setAttribute('aria-hidden', 'true'); FE.on = false; }
   function renderPal() {
     const card = p => { const sw = Math.min(40, p.w * .22), sh = p.decor === 'lbl' ? 0 : Math.max(4, Math.min(30, p.h * .22));
       const prev = p.decor === 'lbl' ? '<span style="font-size:11px;letter-spacing:.14em;color:rgba(250,250,250,.6)">ABC</span>' : `<i style="width:${sw}px;height:${sh}px;${p.round ? 'border-radius:50%' : ''}"></i>`;
-      return `<button class="fe-item" data-p="${p.k}"><span class="shp">${prev}</span><span><b>${p.name}</b><small>${p.sub}</small></span></button>`; };
-    $o('fePal').innerHTML = `<div class="fe-cap">Tables · drag onto the floor</div>${PIECES.filter(p => !p.decor).map(card).join('')}
-      <div class="fe-cap">Room</div>${PIECES.filter(p => p.decor).map(card).join('')}
-      <div class="fe-tip">Drag to move · white corner to resize<br><kbd>←↑→↓</kbd> nudge · <kbd>Del</kbd> remove · <kbd>⌘Z</kbd> undo</div>`;
+      const lock = '<svg class="lk" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>';
+      return `<button class="fe-item${p.decor ? '' : ' tbl'}" data-p="${p.k}"><span class="shp">${prev}</span><span><b>${p.name}</b><small>${p.sub}${p.decor ? '' : p.round ? ` · ⌀${p.w} cm` : ` · ${p.w}×${p.h} cm`}</small></span>${p.decor ? '' : lock}</button>`; };
+    const pencil = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg>';
+    $o('fePal').innerHTML = `<div class="fe-cap">Tables · pick a type, enter its size</div>${PIECES.filter(p => !p.decor).map(card).join('')}
+      <div class="fe-cap">Room</div><button class="fe-item" data-tool="pen"><span class="shp">${pencil}</span><span><b>Draw the room</b><small>Pencil · real lengths</small></span></button>${PIECES.filter(p => p.decor).map(card).join('')}
+      <div class="fe-tip">1 Plan the room · 2 pick a table type · 3 enter its size · 4 place it<br>Drag to move · white corner to resize<br><kbd>←↑→↓</kbd> nudge · <kbd>Del</kbd> remove · <kbd>⌘Z</kbd> undo<br>Tables click into the right spot · hold <kbd>⌥</kbd> to place freely</div>`;
   }
   const zoneT = () => FE.tables.filter(t => t.z === FE.zone);
   const overlap = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+  // the zone's canvas is its room (or 17.2 x 6.6 m when no room is drawn), scaled to fit the stage
+  function feFit() {
+    const z = zoneObj(); RW = z?.rw || 1720; RH = z?.rh || 660;
+    const st = document.querySelector('.fe-stage'), room = $o('feRoom'), sc = $o('feSc');
+    FE.k = Math.min((st.clientWidth - 10) / RW, (st.clientHeight - 10) / RH);
+    room.style.width = RW * FE.k + 'px'; room.style.height = RH * FE.k + 'px'; room.style.setProperty('--g', `${(FE.pen ? 100 : FE.snap || 20) * FE.k}px`);
+    sc.style.width = RW + 'px'; sc.style.height = RH + 'px'; sc.style.transform = `scale(${FE.k})`; sc.style.setProperty('--k', FE.k);
+  }
+  // the lengths of the room's sides sit just outside the outline, each one a button that opens a field to type the real length
+  function roomDims(poly) {
+    const s = poly.reduce((a, p, i) => { const q = poly[(i + 1) % poly.length]; return a + p[0] * q[1] - q[0] * p[1]; }, 0) > 0 ? 1 : -1;
+    return poly.map((a, i) => { const b = poly[(i + 1) % poly.length], dx = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dx, dy); if (len < 1) return '';
+      const cx = (a[0] + b[0]) / 2 + s * dy / len * 20 / FE.k, cy = (a[1] + b[1]) / 2 - s * dx / len * 20 / FE.k;
+      return `<span class="fe-dim" data-e="${i}" data-x="${cx}" data-y="${cy}" style="left:${cx}px;top:${cy}px" title="Tap to type the real length">${cm(len)}</span>`; }).join('');
+  }
   function feRender() {
+    feFit();
     $o('feZones').innerHTML = FE.zones.map(z => `<button class="${z.id === FE.zone ? 'on' : ''}" data-z="${z.id}">${escH(z.name)}<small>${FE.tables.filter(t => t.z === z.id).length}</small></button>`).join('');
     const rz = '<span class="rz"></span>';
     const decor = FE.decor.map((d, i) => d.z !== FE.zone ? '' : d.k === 'wall'
       ? `<div class="fl-wall ed ${FE.sel === d ? 'sel' : ''}" data-d="${i}" style="left:${d.x}px;top:${d.y}px;width:${d.w}px;height:${d.h}px">${FE.sel === d ? rz : ''}</div>`
       : `<div class="fl-lbl ed ${FE.sel === d ? 'sel' : ''}" data-d="${i}" style="left:${d.x}px;top:${d.y}px">${escH(d.text)}</div>`).join('');
     const zt = zoneT();
-    const tables = FE.tables.map((t, i) => t.z !== FE.zone ? '' : `<div class="ft ed ${t.round ? 'round' : ''} ${FE.sel === t ? 'sel' : ''} ${feBusy(t) ? 'has' : ''} ${zt.some(o => o !== t && overlap(o, t)) ? 'clash' : ''}" data-i="${i}"
-      style="left:${t.x}px;top:${t.y}px;width:${t.w}px;height:${t.h}px"><span class="chairs">${chairs(t)}</span><b>${escH(t.id)}</b><small>${t.seats} seat${t.seats > 1 ? 's' : ''}</small>${FE.sel === t ? rz : ''}</div>`).join('');
-    $o('feSc').innerHTML = decor + tables;
-    renderIns();
+    const tables = FE.tables.map((t, i) => { if (t.z !== FE.zone) return ''; const st = spotState(t, t.x, t.y);
+      return `<div class="ft ed ${t.round ? 'round' : ''} ${FE.sel === t ? 'sel' : ''} ${feBusy(t) ? 'has' : ''} ${st.clash ? 'clash' : st.out ? 'out' : st.tight ? 'tight' : ''}" data-i="${i}"
+      style="left:${t.x}px;top:${t.y}px;width:${t.w}px;height:${t.h}px"><span class="chairs">${chairs(t)}</span><b>${escH(t.id)}</b><small>${t.seats} seat${t.seats > 1 ? 's' : ''}</small>${FE.sel === t ? rz : ''}</div>`; }).join('');
+    const poly = roomPoly(), svg = poly ? `<svg class="fe-svg" width="${RW}" height="${RH}" viewBox="0 0 ${RW} ${RH}"><polygon class="rm" points="${poly.map(p => p.join(',')).join(' ')}"/></svg>` : '';
+    $o('feSc').innerHTML = svg + decor + tables + (poly && !FE.pen ? roomDims(poly) : '') + '<div class="fe-fx" id="feFx"></div>';
+    if (FE.pen) penDraw(); else if (FE.bays) feFx(null);
+    palMark(); renderSteps(); renderIns();
+  }
+  // overlays while dragging: the chair zones and walkways, the fixed spots the table can click into, and the distances to what is around it
+  function feFx(it) {
+    const fx = $o('feFx'); if (!fx) return; const g = FE.gap, st = feDrag?.fx; let h = '';
+    if (FE.bays || it) zoneT().forEach(o => { const b = bayOf(o); h += `<i class="fe-bay${o === it ? ' me' : ''}" style="left:${b.x}px;top:${b.y}px;width:${b.w}px;height:${b.h}px"></i><i class="fe-halo" style="left:${b.x - g / 2}px;top:${b.y - g / 2}px;width:${b.w + g}px;height:${b.h + g}px"></i>`; });
+    if (it && st) { st.slots.forEach(s => { h += `<i class="fe-slot${it.round ? ' round' : ''}${st.lock && st.lock.x === s.x && st.lock.y === s.y ? ' on' : ''}" style="left:${s.x}px;top:${s.y}px;width:${it.w}px;height:${it.h}px"></i>`; });
+      guides(it, it.x, it.y).forEach(q => { const b = q.b, bad = q.g < q.need - .01, horiz = q.dir === 'l' || q.dir === 'r';
+        const x0 = q.dir === 'r' ? b.x + b.w : q.dir === 'l' ? b.x - q.g : q.mid, y0 = q.dir === 'd' ? b.y + b.h : q.dir === 'u' ? b.y - q.g : q.mid;
+        h += `<i class="fe-gl ${horiz ? 'h' : 'v'}${bad ? ' bad' : ''}" style="left:${x0}px;top:${y0}px;${horiz ? `width:${q.g}px` : `height:${q.g}px`}"></i><span class="fe-gd${bad ? ' bad' : ''}" style="left:${horiz ? x0 + q.g / 2 : x0}px;top:${horiz ? y0 : y0 + q.g / 2}px">${cm(q.g)}</span>`; }); }
+    fx.innerHTML = h;
   }
   function nextTableId(pre) {
     const n = FE.tables.reduce((m, t) => { const r = t.id.match(/^([A-Za-z]+)(\d+)$/); return r && r[1] === pre ? Math.max(m, +r[2]) : m; }, 0);
     return pre + (n + 1);
   }
   const zonePre = () => FE.zones.find(z => z.id === FE.zone)?.pre || 'T';
-  function freeSpot(w, h) {
-    const m = FE.gap / 2 + 10;
-    for (let y = m; y + h <= RH - m; y += GRID * 2) for (let x = m; x + w <= RW - m; x += GRID * 2) {
-      const b = { x: x - FE.gap / 2, y: y - FE.gap / 2, w: w + FE.gap, h: h + FE.gap }; if (!zoneT().some(o => overlap(o, b))) return { x, y }; }
+  // a new table goes to the nearest spot with room for its chairs and a walkway (the first one from the top left when it is added with a tap)
+  function freeSpot(w, h, tmp) {
+    if (tmp) { const s = gridSlot(tmp, 0, 0); if (s) return { x: s.x, y: s.y }; say('No spot in this room has room for another table. Make the room bigger or the walkway tighter.'); }
     return { x: snapN((RW - w) / 2), y: snapN((RH - h) / 2) };
   }
-  function addPiece(k, at) {
-    const p = PIECES.find(x => x.k === k); feRemember();
-    const pos = at ? { x: clampN(snapN(at.x - p.w / 2), 0, RW - p.w), y: clampN(snapN(at.y - p.h / 2), 0, RH - p.h) } : freeSpot(p.w, p.h);
+  function addPiece(k, at, free, over) {
+    const p = { ...PIECES.find(x => x.k === k), ...(over || {}) }; feRemember();
+    const tmp = p.decor ? null : { id: '', z: FE.zone, w: p.w, h: p.h, seats: p.seats, round: !!p.round };
+    let pos = at ? { x: clampN(snapN(at.x - p.w / 2), 0, RW - p.w), y: clampN(snapN(at.y - p.h / 2), 0, RH - p.h) } : freeSpot(p.w, p.h, tmp);
+    if (at && tmp && FE.fixed && !free) { const s = bestSlot(tmp, pos.x, pos.y, 700) || gridSlot(tmp, pos.x, pos.y);
+      if (s) pos = { x: s.x, y: s.y }; else say('No spot in this room has room for another table. Make the room bigger or the walkway tighter, or hold ⌥ to place it anyway.'); }
     let item;
     if (p.decor === 'lbl') FE.decor.push(item = { z: FE.zone, k: 'lbl', ...pos, text: 'Label' });
     else if (p.decor) FE.decor.push(item = { z: FE.zone, k: 'wall', ...pos, w: p.w, h: p.h });
@@ -7259,29 +7810,205 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
     FE.sel = item; feRender(); sfx.tap();
     $o('feSc').querySelector('.sel')?.animate([{ opacity: 0, transform: 'scale(.6)' }, { opacity: 1, transform: 'none' }], { duration: 460, easing: SPRING });
   }
-  // Tidy up: keeps the rows you made (tables near the same height are one row, read left to right) and evens out the space: the chosen gap between the tables of a row
-  // and between the rows, each row centred. A row too wide for the room wraps onto a new row.
-  function feTidy() {
+  /* ---- adding a table: 1 plan the room, 2 pick the table type, 3 enter its real size, 4 place it ---- */
+  function palMark() {   // the table types are locked until the zone has a room; the chosen type is lit
+    const pal = $o('fePal'); pal.classList.toggle('no-room', !roomPoly());
+    pal.querySelectorAll('.fe-item[data-p]').forEach(b => b.classList.toggle('on', !!FE.draft && FE.draft.k === b.dataset.p));
+  }
+  function renderSteps() {
+    const el = $o('feSteps'); if (!el) return; el.hidden = !!FE.pen;
+    const room = !!roomPoly(), d = FE.draft, just = Date.now() - FE.placed < 3000;
+    const cur = !room ? 1 : !d ? (just ? 4 : 2) : d.confirmed ? 4 : 3;
+    const defs = [['Plan the room', room], ['Pick a table type', !!d || just], ['Enter its size', (!!d && d.confirmed) || just], ['Place it', just]];
+    el.innerHTML = defs.map(([l, done], i) => `<span class="st${done ? ' done' : ''}${i + 1 === cur ? ' on' : ''}"><i>${done ? '✓' : i + 1}</i>${l}</span>`).join('<em></em>');
+  }
+  function planFirst() {   // a table cannot be added before the room is planned
+    say('Plan the room first: draw it with the pencil or type its size. Then pick a table type.'); sfx.err?.();
+    const pop = [{ transform: 'scale(1)' }, { transform: 'scale(1.05)' }, { transform: 'scale(1)' }];
+    $o('fePal').querySelector('[data-tool="pen"]')?.animate(pop, { duration: 480, iterations: 2 });
+    $o('feIns').querySelector('.fe-stepcard')?.animate(pop, { duration: 480, iterations: 2 });
+  }
+  function selectType(k) {
+    const p = PIECES.find(x => x.k === k); if (!p || p.decor) return;
+    FE.sel = null; FE.draft = { k, name: p.name, sub: p.sub, w: p.w, h: p.round ? p.w : p.h, seats: p.seats, round: !!p.round, confirmed: false };
+    sfx.tap(); feRender();
+    setTimeout(() => { const i = $o('feIns').querySelector('[data-ddim="w"]'); i?.focus(); i?.select(); }, 60);
+  }
+  function cancelDraft() { if (!FE.draft) return; FE.draft = null; feRender(); }
+  function draftInfo() {
+    const d = FE.draft; if (!d) return ''; const b = bayOf({ ...d, x: 0, y: 0 }, 0, 0);
+    return `With its chairs it takes ${Math.round(b.w)} × ${Math.round(b.h)} cm<small>and a ${FE.gap} cm walkway all round. It is placed where that fits.</small>`;
+  }
+  function renderDraft(ins) {
+    const d = FE.draft, num = (f, v) => `<span class="fe-cmw"><input class="fe-num" data-ddim="${f}" type="number" min="30" max="600" step="5" inputmode="numeric" value="${Math.round(v)}" aria-label="${f === 'w' ? (d.round ? 'Diameter' : 'Width') : 'Depth'} in centimetres"><i>cm</i></span>`;
+    ins.innerHTML = `<div class="fe-cap">New table</div><h3>${escH(d.name)}</h3><div class="fe-sub">${escH(d.sub)} · enter its real size, then place it</div>
+      <div class="fe-row" style="margin-top:12px">${d.round ? 'Diameter' : 'Width'}${num('w', d.w)}</div>
+      ${d.round ? '' : `<div class="fe-row">Depth${num('h', d.h)}</div>`}
+      <div class="fe-row">Seats<div class="fe-stp"><button data-dseat="-1" aria-label="Fewer seats">−</button><b id="feDSeats">${d.seats}</b><button data-dseat="1" aria-label="More seats">+</button></div></div>
+      <div class="fe-chk ok" id="feDInfo">${draftInfo()}</div>
+      <div class="fe-btns" style="margin-top:14px"><button class="fe-pill fe-go" data-fa="place">Place on the floor</button><button class="fe-pill" data-fa="cancelnew">Cancel</button></div>
+      <div class="fe-hint">Press Enter, or click the floor where it should go: it settles into the nearest spot with room for its chairs and a walkway. You can also drag the table type onto the floor.</div>`;
+  }
+  function placeDraft(at, free) {
+    const d = FE.draft; if (!d) return;
+    if (!roomPoly()) return planFirst();
+    const w = clampN(Math.round(d.w) || 0, 30, 600), h = d.round ? w : clampN(Math.round(d.h) || 0, 30, 600);
+    if (w < 30) return say('Enter the table size in centimetres first.');
+    FE.draft = null; addPiece(d.k, at, free, { w, h, seats: d.seats, round: d.round });
+    FE.placed = Date.now(); renderSteps(); setTimeout(renderSteps, 3200);
+  }
+  // Arrange automatically: keeps the rows you made (tables near the same height are one row, read left to right) and lays them out to scale. Every table gets the room its chairs
+  // need and the walkway you chose, the rows are centred in the room, and nothing crosses a wall. A row too wide for the room wraps onto a new row.
+  // The free stretches of the room along a horizontal band, pulled in from the walls
+  function spansAt(y0, y1, edge) {
+    const poly = roomPoly(); if (!poly) return [[edge, RW - edge]];
+    const sample = [y0 + 1, y1 - 1]; poly.forEach(p => { if (p[1] > y0 && p[1] < y1) sample.push(p[1] - 1, p[1] + 1); });
+    let acc = null;
+    for (const y of sample) {
+      const xs = []; poly.forEach((a, i) => { const b = poly[(i + 1) % poly.length]; if ((a[1] <= y) !== (b[1] <= y)) xs.push(a[0] + (y - a[1]) / (b[1] - a[1]) * (b[0] - a[0])); });
+      xs.sort((p, q) => p - q); const iv = []; for (let i = 0; i + 1 < xs.length; i += 2) iv.push([xs[i], xs[i + 1]]);
+      acc = acc ? acc.flatMap(([a0, a1]) => iv.map(([b0, b1]) => [Math.max(a0, b0), Math.min(a1, b1)]).filter(([u, v]) => v - u > 0)) : iv;
+      if (!acc.length) return [];
+    }
+    return acc.map(([a, b]) => [a + edge, b - edge]).filter(([a, b]) => b - a > 30);
+  }
+  // the bays of a row, in order, into the free stretches: the tables of each stretch, or null when they do not fit
+  function packRow(row, spans, g) {
+    const out = spans.map(() => []), used = spans.map(() => 0); let s = 0;
+    for (const t of row) { const w = bayOf(t).w;
+      while (s < spans.length && used[s] + (out[s].length ? g : 0) + w > spans[s][1] - spans[s][0]) s++;
+      if (s >= spans.length) return null; used[s] += (out[s].length ? g : 0) + w; out[s].push(t); }
+    return { out, used };
+  }
+  function flowRows(order, brk, honour, y0, bottom, g, edge) {
+    const put = []; let y = y0, i = 0, rows = 0;
+    while (i < order.length) {
+      let row = [], h = 0, pk = null, sp = null;
+      while (i < order.length) {
+        const t = order[i]; if (row.length && honour && brk.has(t)) break;
+        const nh = Math.max(h, bayOf(t).h); if (y + nh > bottom) break;
+        const s2 = spansAt(y, y + nh, edge), trial = row.concat([t]), pk2 = s2.length ? packRow(trial, s2, g) : null;
+        if (!pk2) break; row = trial; h = nh; pk = pk2; sp = s2; i++;
+      }
+      if (!row.length) { if (y + 20 > bottom) break; y += 20; continue; }
+      sp.forEach(([a, b], si) => { const list = pk.out[si]; if (!list.length) return; let x = a + Math.round((b - a - pk.used[si]) / 2);
+        list.forEach(t => { const bb = bayOf(t), [l, u] = seatEdges(t); put.push({ t, x: Math.round(x + l), y: Math.round(y + (h - bb.h) / 2 + u) }); x += bb.w + g; }); });
+      y += h + g; rows++;
+    }
+    return { put, left: order.slice(i), rows, usedH: y - g - y0 };
+  }
+  function feArrange(opts = {}) {
     const zt = zoneT(); if (!zt.length) return say('No tables in this zone yet.');
-    feRemember();
-    const g = FE.gap, M = 30, maxW = RW - 2 * M, byY = [...zt].sort((p, q) => p.y - q.y || p.x - q.x), bands = [];
+    if (!opts.noHist) feRemember();
+    const g = FE.gap, poly = roomPoly(), edge = wallC() + (poly ? 0 : 20), top0 = (poly ? Math.min(...poly.map(p => p[1])) : 0) + edge;
+    let bottom = (poly ? Math.max(...poly.map(p => p[1])) : RH) - edge;
+    const byY = [...zt].sort((p, q) => p.y - q.y || p.x - q.x), bands = [];
     byY.forEach(t => { const b = bands.find(r => Math.abs(r.y - t.y) < 60); if (b) { b.items.push(t); b.y = b.items.reduce((n, o) => n + o.y, 0) / b.items.length; } else bands.push({ y: t.y, items: [t] }); });
     bands.sort((p, q) => p.y - q.y);
-    const rows = [];
-    bands.forEach(bd => { let row = [], used = 0; bd.items.sort((p, q) => p.x - q.x).forEach(t => { const need = (row.length ? g : 0) + t.w;
-      if (row.length && used + need > maxW) { rows.push(row); row = []; used = 0; } used += (row.length ? g : 0) + t.w; row.push(t); }); if (row.length) rows.push(row); });
-    const rowH = rows.map(r => Math.max(...r.map(t => t.h))), sumH = rowH.reduce((a, b) => a + b, 0);
-    // the space between rows shrinks (down to 10) when the rows would not otherwise fit in the room, so nothing ever overlaps
-    const gv = rows.length > 1 && sumH + g * (rows.length - 1) > RH - 2 * M ? Math.max(10, Math.floor((RH - 2 * M - sumH) / (rows.length - 1))) : g, total = sumH + gv * (rows.length - 1);
-    let y = Math.max(M, Math.round((RH - total) / 2));
-    rows.forEach((r, ri) => {
-      const wsum = r.reduce((a, t) => a + t.w, 0) + g * (r.length - 1); let x = Math.round((RW - wsum) / 2);
-      r.forEach(t => { t.x = clampN(x, 0, RW - t.w); t.y = clampN(y + Math.round((rowH[ri] - t.h) / 2), 0, RH - t.h); x += t.w + g; });
-      y += rowH[ri] + gv;
-    });
+    const order = [], brk = new Set(); bands.forEach(b => b.items.sort((p, q) => p.x - q.x).forEach((t, i) => { if (!i) brk.add(t); order.push(t); }));
+    const attempt = honour => { const a = flowRows(order, brk, honour, top0, bottom, g, edge); if (a.left.length) return a;
+      const shift = Math.floor((bottom - top0 - a.usedH) / 2), b = shift > 0 ? flowRows(order, brk, honour, top0 + shift, bottom, g, edge) : a; return b.left.length ? a : b; };
+    let res = attempt(true); if (res.left.length) { const r2 = attempt(false); if (r2.left.length < res.left.length) res = r2; }
+    // no room drawn: the zone's canvas grows downwards until the tables fit
+    const z = zoneObj(); let grown = 0;
+    while (res.left.length && !poly && RH < 1500) { z.rh = RH + 120; RH = z.rh; bottom = RH - edge; grown++; res = attempt(true); if (res.left.length) { const r2 = attempt(false); if (r2.left.length < res.left.length) res = r2; } }
+    res.put.forEach(({ t, x, y }) => { t.x = clampN(x, 0, RW - t.w); t.y = clampN(y, 0, RH - t.h); });
+    // tables that do not fit wait below the room, outside it, so they never sit on top of the others (the canvas grows to show them)
+    if (res.left.length && poly) { let x = 40, y = Math.max(...poly.map(p => p[1])) + 70, rowH = 0;
+      res.left.forEach(t => { if (x + t.w > RW - 40 && x > 40) { x = 40; y += rowH + 30; rowH = 0; } t.x = Math.max(0, Math.min(x, RW - t.w)); t.y = y; x += t.w + 30; rowH = Math.max(rowH, t.h); }); }
+    if (poly) fitRoom(z);
     feRender(); sfx.tap();
     $o('feSc').querySelectorAll('.ft.ed').forEach((el, i) => el.animate([{ opacity: .4, transform: 'scale(.94)' }, { opacity: 1, transform: 'none' }], { duration: 380, delay: i * 10, easing: SPRING }));
-    say(`Tables tidied: ${zt.length} in ${rows.length} row${rows.length > 1 ? 's' : ''}, ${g}px apart${gv < g ? ` (rows ${gv}px apart so everything fits)` : ''}.`);
+    if (opts.quiet) return res;
+    say(res.left.length ? `${res.put.length} of ${zt.length} tables placed with ${g} cm walkways. ${res.left.length} do not fit: make the room bigger, use a tighter walkway or remove some tables.`
+      : `${zt.length} tables arranged in ${res.rows} row${res.rows > 1 ? 's' : ''}, ${g} cm walkways and room for the chairs${grown ? ' (the zone grew to fit them)' : ''}.`);
+    return res;
+  }
+  // Fix spacing: only the tables that are too close, outside the room or touching move, each to the nearest spot with room
+  function feFix() {
+    const bad = zoneT().filter(t => !spotState(t, t.x, t.y).ok); if (!bad.length) return say('Every table already has room to walk.');
+    feRemember(); let moved = 0, stuck = 0;
+    bad.forEach(t => { const s = bestSlot(t, t.x, t.y, 700) || gridSlot(t, t.x, t.y); if (s) { t.x = s.x; t.y = s.y; moved++; } else stuck++; });
+    feRender(); sfx.tap();
+    say(stuck ? `${moved} table${moved === 1 ? '' : 's'} moved. ${stuck} still ${stuck === 1 ? 'has' : 'have'} no spot: the room is too small.` : `${moved} table${moved === 1 ? '' : 's'} moved to a spot with room to walk.`);
+  }
+
+  /* ---- the room: drawn with the pencil or typed, then every side can be given its real length ---- */
+  // the canvas is the room plus a margin; the room, the tables and the walls shift together so nothing moves relative to the room
+  function fitRoom(z) {
+    const xs = z.pts.map(p => p[0]), ys = z.pts.map(p => p[1]), dx = ROOM_M - Math.min(...xs), dy = ROOM_M - Math.min(...ys);
+    if (dx || dy) { z.pts = z.pts.map(([x, y]) => [x + dx, y + dy]); FE.tables.forEach(t => { if (t.z === z.id) { t.x += dx; t.y += dy; } }); FE.decor.forEach(d => { if (d.z === z.id) { d.x += dx; d.y += dy; } }); }
+    // the canvas holds the room and anything still outside it (tables waiting below), so nothing is ever cut off
+    let mx = Math.max(...z.pts.map(p => p[0])) + ROOM_M, my = Math.max(...z.pts.map(p => p[1])) + ROOM_M;
+    FE.tables.forEach(t => { if (t.z === z.id) { t.x = Math.max(0, t.x); t.y = Math.max(0, t.y); mx = Math.max(mx, t.x + t.w + 20); my = Math.max(my, t.y + t.h + 20); } });
+    FE.decor.forEach(d => { if (d.z === z.id && d.w) { d.x = Math.max(0, d.x); d.y = Math.max(0, d.y); mx = Math.max(mx, d.x + d.w + 20); my = Math.max(my, d.y + (d.h || 18) + 20); } });
+    z.rw = Math.round(mx); z.rh = Math.round(my); RW = z.rw; RH = z.rh;
+  }
+  // a side gets a new length: its end corner slides along it, and so does the next corner when the side after it is square to this one (the room stays square)
+  function setEdgeLength(z, i, c) {
+    const p = z.pts, n = p.length, a = p[i], b = p[(i + 1) % n], cc = p[(i + 2) % n];
+    const dx = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dx, dy) || 1, ux = dx / len, uy = dy / len, d = c - len;
+    const perp = Math.abs((cc[0] - b[0]) * ux + (cc[1] - b[1]) * uy) < 1, mv = q => { q[0] = Math.round(q[0] + ux * d); q[1] = Math.round(q[1] + uy * d); };
+    mv(b); if (perp) mv(cc); fitRoom(z);
+  }
+  function setRoomRect(wc, dc) {
+    const z = zoneObj(); wc = clampN(Math.round(wc), 200, 10000); dc = clampN(Math.round(dc), 200, 10000);
+    feRemember(); z.pts = [[ROOM_M, ROOM_M], [ROOM_M + wc, ROOM_M], [ROOM_M + wc, ROOM_M + dc], [ROOM_M, ROOM_M + dc]]; fitRoom(z); feRender();
+    const out = zoneT().filter(t => !spotState(t, t.x, t.y).ok).length; if (out) feArrange({ noHist: true, quiet: true });
+    say(`Room set to ${cm(wc)} × ${cm(dc)} · ${(wc * dc / 1e4).toFixed(1)} m².${out ? ' The tables were arranged inside it.' : ''}`);
+  }
+  const parseLen = s => { const v = parseFloat(String(s).replace(',', '.')); return v > 0 ? Math.round(v >= 50 ? v : v * 100) : 0; };   // metres, or centimetres when it is 50 or more
+  function lenShow(kind, cx, cy, init, extra) {   // cx, cy: a point of the room in cm
+    const box = $o('feLenBox'), inp = $o('feLen'); FE.len = { kind, ...extra };
+    box.style.left = clampN(cx * FE.k, 70, RW * FE.k - 70) + 'px'; box.style.top = clampN(cy * FE.k, 24, RH * FE.k - 24) + 'px';
+    box.hidden = false; inp.classList.remove('bad'); inp.value = init; inp.focus(); if (kind === 'edge') inp.select();
+  }
+  function lenHide() { const L = FE.len; FE.len = null; const b = $o('feLenBox'); if (!b) return; b.hidden = true; if (L && document.activeElement === $o('feLen')) $o('feLen').blur(); }
+  function lenCommit() {
+    const L = FE.len; if (!L) return; const c = parseLen($o('feLen').value);
+    if (!c) { $o('feLen').classList.add('bad'); return; }
+    if (L.kind === 'pen') {
+      const pen = FE.pen, last = pen.pts[pen.pts.length - 1]; let dx = 1, dy = 0;
+      if (pen.cur) { const ex = pen.cur[0] - last[0], ey = pen.cur[1] - last[1], m = Math.hypot(ex, ey); if (m > 1) { dx = ex / m; dy = ey / m; } }
+      pen.pts.push([clampN(Math.round(last[0] + dx * c), 0, RW), clampN(Math.round(last[1] + dy * c), 0, RH)]); lenHide(); penDraw(); sfx.tap();
+    } else { feRemember(); setEdgeLength(zoneObj(), L.i, clampN(c, 30, 10000)); lenHide(); feRender(); sfx.tap(); }
+  }
+  // the pencil: a big drawing area (26 x 15 m) with a metre grid; sides are straight (Shift for any angle), 5 cm steps; the room closes square
+  function penStart() {
+    const z = zoneObj(); lenHide(); FE.sel = null; FE.pen = { pts: [], cur: null, restore: { rw: z.rw, rh: z.rh } };
+    z.rw = 2600; z.rh = 1500; $o('feRoom').classList.add('pen', 'grid'); $o('fePenBar').hidden = false; feRender(); sfx.tap();
+  }
+  function penRestore() { const r = FE.pen?.restore, z = zoneObj(); if (r && z) { if (r.rw) { z.rw = r.rw; z.rh = r.rh; } else { delete z.rw; delete z.rh; } } }
+  function penStop() { penRestore(); FE.pen = null; lenHide(); $o('feRoom').classList.remove('pen', 'grid'); $o('fePenBar').hidden = true; feRender(); }
+  function penPoint(e) {
+    const p = roomPt(e), pen = FE.pen, last = pen.pts[pen.pts.length - 1], first = pen.pts[0];
+    let x = Math.round(p.x / 5) * 5, y = Math.round(p.y / 5) * 5;
+    if (last && !e.shiftKey) { if (Math.abs(x - last[0]) >= Math.abs(y - last[1])) y = last[1]; else x = last[0]; }
+    x = clampN(x, 0, RW); y = clampN(y, 0, RH);
+    pen.closing = !!(first && pen.pts.length >= 3 && Math.hypot(p.x - first[0], p.y - first[1]) < 24 / FE.k);
+    return pen.closing ? [first[0], first[1]] : [x, y];
+  }
+  function penDraw() {
+    const fx = $o('feFx'); if (!fx || !FE.pen) return; const { pts, cur } = FE.pen, all = cur ? pts.concat([cur]) : pts, r = 1 / FE.k;
+    let h = `<svg class="fe-svg" width="${RW}" height="${RH}" viewBox="0 0 ${RW} ${RH}">`;
+    if (all.length > 1) h += `<polyline class="pen" points="${all.map(p => p.join(',')).join(' ')}"/>`;
+    h += pts.map((p, i) => `<circle class="pv${i === 0 ? ' first' : ''}" cx="${p[0]}" cy="${p[1]}" r="${(i === 0 ? 9 : 6) * r}"/>`).join('') + (cur ? `<circle class="pc" cx="${cur[0]}" cy="${cur[1]}" r="${4 * r}"/>` : '') + '</svg>';
+    all.forEach((p, i) => { if (!i) return; const a = all[i - 1], len = Math.hypot(p[0] - a[0], p[1] - a[1]); if (len < 20) return;
+      h += `<span class="fe-dim live" style="left:${(a[0] + p[0]) / 2}px;top:${(a[1] + p[1]) / 2 - 20 * r}px">${cm(len)}</span>`; });
+    fx.innerHTML = h;
+  }
+  function penClose() {
+    const pen = FE.pen; if (!pen) return; let pts = pen.pts.map(p => [...p]);
+    if (pts.length < 3) return say('Click at least three corners, then close the shape.');
+    const a = pts[pts.length - 1], f = pts[0];
+    if (a[0] !== f[0] && a[1] !== f[1]) { const prevH = a[1] === pts[pts.length - 2][1]; pts.push(prevH ? [a[0], f[1]] : [f[0], a[1]]); }   // the last side closes square
+    const src = pts; pts = src.filter((p, i) => { const q = src[(i + src.length - 1) % src.length], r = src[(i + 1) % src.length];
+      return !(p[0] === q[0] && p[1] === q[1]) && (p[0] - q[0]) * (r[1] - p[1]) !== (p[1] - q[1]) * (r[0] - p[0]); });
+    if (pts.length < 3 || polyArea(pts) < 20000) return say('That room is too small. Click the corners again.');
+    const z = zoneObj(); penRestore(); feRemember(); z.pts = pts; FE.pen = null; lenHide(); $o('feRoom').classList.remove('pen', 'grid'); $o('fePenBar').hidden = true;
+    fitRoom(z); feRender();
+    const out = zoneT().filter(t => !spotState(t, t.x, t.y).ok).length; if (out) feArrange({ noHist: true, quiet: true });
+    sfx.tap(); say(`Room drawn: ${(polyArea(z.pts) / 1e4).toFixed(1)} m². Tap a length to type the real one.${out ? ' The tables were arranged inside it.' : ''}`);
   }
   function removeSel() {
     const t = FE.sel; if (!t) return;
@@ -7289,16 +8016,19 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
     feRemember(); FE.tables = FE.tables.filter(x => x !== t); FE.decor = FE.decor.filter(x => x !== t); FE.sel = null; feRender();
   }
   function renderIns() {
+    if (FE.draft && !FE.sel) return renderDraft($o('feIns'));
     const t = FE.sel, ins = $o('feIns'), stp = (f, v) => `<div class="fe-stp"><button data-st="${f}" data-v="-1" aria-label="Less">−</button><b>${v}</b><button data-st="${f}" data-v="1" aria-label="More">+</button></div>`;
     if (t && FE.tables.includes(t)) {
-      const busyT = feBusy(t);
+      const busyT = feBusy(t), stt = spotState(t, t.x, t.y), se = seatEdges(t), seatTxt = se.some(Boolean) ? `${Math.max(...se)} cm of chairs on ${se[0] && se[1] ? 'every side' : se[1] && se[3] ? 'two sides' : 'one side'}` : 'no chairs';
+      const num = (f, v) => `<span class="fe-cmw"><input class="fe-num" data-dim="${f}" type="number" min="30" max="600" step="5" inputmode="numeric" value="${Math.round(v)}" aria-label="${f === 'w' ? 'Width' : 'Depth'} in centimetres"><i>cm</i></span>`;
       ins.innerHTML = `<div class="fe-cap">Selected table</div><h3>${escH(t.id)}</h3><div class="fe-sub">${t.round ? 'Round' : 'Square'} · ${t.seats} seat${t.seats > 1 ? 's' : ''} · ${escH(FE.zones.find(z => z.id === t.z)?.name || '')}</div>
         <div class="fe-row" style="margin-top:12px">Name<input id="feName" value="${escH(t.id)}" maxlength="5" spellcheck="false"></div>
         <div class="fe-row">Seats${stp('seats', t.seats)}</div>
         <div class="fe-row">Shape<div class="fe-seg" id="feShape"><button class="${t.round ? 'on' : ''}" data-sh="1">Round</button><button class="${t.round ? '' : 'on'}" data-sh="0">Square</button></div></div>
-        <div class="fe-row">Width${stp('w', t.w)}</div>
-        <div class="fe-row">Depth${stp('h', t.h)}</div>
+        ${t.round ? `<div class="fe-row">Diameter${num('w', t.w)}</div>` : `<div class="fe-row">Width${num('w', t.w)}</div><div class="fe-row">Depth${num('h', t.h)}</div>`}
         <div class="fe-row">Zone<select id="feZone">${FE.zones.map(z => `<option value="${z.id}" ${z.id === t.z ? 'selected' : ''}>${escH(z.name)}</option>`).join('')}</select></div>
+        <div class="fe-chk ${stt.ok ? 'ok' : 'warn'}">${stt.ok ? 'Room to walk all round' : stt.out ? 'Outside the room' : stt.clash ? 'Touching another table or a wall' : `Closer than ${FE.gap} cm to a neighbour`}<small>${seatTxt} · walkway ${FE.gap} cm</small></div>
+        ${stt.ok ? '' : '<div class="fe-btns" style="margin-top:10px"><button class="fe-pill" data-fa="snap">Move to a right spot</button></div>'}
         <div class="fe-btns"><button class="fe-pill" data-fa="rot">↻ Rotate</button><button class="fe-pill" data-fa="dup">Duplicate</button><button class="fe-pill danger" data-fa="del" ${busyT ? 'disabled' : ''}>Remove</button></div>
         ${busyT ? `<div class="fe-note">This table has an open order. Move or rename it and the order follows; remove it once it's paid.</div>` : ''}`;
     } else if (t) {
@@ -7307,24 +8037,41 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
           : `<div class="fe-row" style="margin-top:12px">Length${stp('w', t.w)}</div><div class="fe-row">Thickness${stp('h', t.h)}</div>`}
         <div class="fe-btns">${t.k === 'wall' ? '<button class="fe-pill" data-fa="rot">↻ Rotate</button>' : ''}<button class="fe-pill" data-fa="dup">Duplicate</button><button class="fe-pill danger" data-fa="del">Remove</button></div>`;
     } else {
-      const zt = zoneT(), z = FE.zones.find(x => x.id === FE.zone), anyBusy = zt.some(feBusy);
-      ins.innerHTML = `<div class="fe-cap">Zone</div><h3>${escH(z?.name || '')}</h3><div class="fe-sub">Drag tables in from the left, or tap one to add it.</div>
+      const zt = zoneT(), z = zoneObj(), anyBusy = zt.some(feBusy), poly = roomPoly(), bad = zt.filter(t => !spotState(t, t.x, t.y).ok);
+      const xs = poly ? poly.map(p => p[0]) : [], ys = poly ? poly.map(p => p[1]) : [];
+      const rect = !!poly && poly.length === 4 && poly.every((p, i) => { const q = poly[(i + 1) % 4]; return p[0] === q[0] || p[1] === q[1]; });
+      const mTxt = v => (v / 100).toFixed(2).replace(/0$/, '');
+      const seg = (id, key, opts, cur) => `<div class="fe-seg" id="${id}">${opts.map(([v, l]) => `<button class="${cur === v ? 'on' : ''}" data-${key}="${v}">${l}</button>`).join('')}</div>`;
+      ins.innerHTML = `<div class="fe-cap">Zone</div><h3>${escH(z?.name || '')}</h3><div class="fe-sub">${poly ? 'Pick a table type on the left, enter its size, then place it.' : 'Plan the room first, then add tables.'}</div>
+        ${poly ? '' : `<div class="fe-stepcard"><b>Step 1 · Plan the room</b>Tables can be added once the room is set. Draw it with the pencil, or type its width and depth below.<div class="fe-btns"><button class="fe-pill fe-go" data-fa="pen">✎ Draw the room</button></div></div>`}
         <div class="fe-stats"><div><b>${zt.length}</b><small>tables</small></div><div><b>${zt.reduce((n, t) => n + t.seats, 0)}</b><small>seats</small></div><div><b>${zt.filter(feBusy).length}</b><small>in service</small></div></div>
         <div class="fe-row" style="margin-top:12px">Zone name<input id="feZName" value="${escH(z?.name || '')}" maxlength="18"></div>
         <div class="fe-row">Table letter<input id="feZPre" value="${escH(z?.pre || '')}" maxlength="2" style="width:80px;text-align:center;text-transform:uppercase"></div>
+        <div class="fe-cap" style="margin-top:14px">Room · real measurements</div>
+        ${poly ? `<div class="fe-sum"><b>${(polyArea(poly) / 1e4).toFixed(1)} m²</b><small>${poly.length} sides · tap a length on the plan to change it</small></div>`
+          : `<div class="fe-hint" style="margin-top:0">No room drawn yet. Draw it with the pencil, or type its size: the plan is then to scale, in centimetres.</div>`}
+        ${!poly || rect ? `<div class="fe-row">Size<span class="fe-dims"><input id="feRW" inputmode="decimal" placeholder="8.40" value="${rect ? mTxt(Math.max(...xs) - Math.min(...xs)) : ''}" aria-label="Room width in metres"><em>×</em><input id="feRD" inputmode="decimal" placeholder="6.00" value="${rect ? mTxt(Math.max(...ys) - Math.min(...ys)) : ''}" aria-label="Room depth in metres"><em>m</em></span></div>` : ''}
+        <div class="fe-btns" style="margin-top:12px"><button class="fe-pill" data-fa="pen">✎ Draw the room</button>${poly ? '<button class="fe-pill" data-fa="noroom">Clear room</button>' : ''}</div>
         <div class="fe-cap" style="margin-top:14px">Layout</div>
-        <div class="fe-row">Space between<div class="fe-seg" id="feGap">${[[20, 'Tight'], [40, 'Normal'], [70, 'Roomy']].map(([v, l]) => `<button class="${FE.gap === v ? 'on' : ''}" data-gap="${v}">${l}</button>`).join('')}</div></div>
-        <div class="fe-row">Snap to<div class="fe-seg" id="feSnap">${[[10, 'Grid 10'], [20, 'Grid 20'], [0, 'Off']].map(([v, l]) => `<button class="${FE.snap === v ? 'on' : ''}" data-snap="${v}">${l}</button>`).join('')}</div></div>
-        <div class="fe-btns"><button class="fe-pill" data-fa="tidy">Tidy up</button><button class="fe-pill" data-fa="renum">Renumber tables</button></div>
-        <div class="fe-hint">Tidy up lines this zone's tables up in neat rows with the space you chose. Tables also click into line with their neighbours as you drag.</div>
+        <div class="fe-row">Walkway${seg('feGap', 'gap', [[60, '60 cm'], [90, '90 cm'], [120, '120 cm']], FE.gap)}</div>
+        <div class="fe-row">Fixed spots${seg('feFix', 'fix', [[1, 'On'], [0, 'Off']], FE.fixed ? 1 : 0)}</div>
+        <div class="fe-row">Chair zones${seg('feBays', 'bays', [[1, 'Show'], [0, 'Hide']], FE.bays ? 1 : 0)}</div>
+        <div class="fe-row">Snap to${seg('feSnap', 'snap', [[10, 'Grid 10'], [20, 'Grid 20'], [0, 'Off']], FE.snap)}</div>
+        <div class="fe-chk ${bad.length ? 'warn' : 'ok'}">${!zt.length ? 'No tables in this zone yet' : bad.length ? `${bad.length} of ${zt.length} tables are too close, touching or outside the room` : `All ${zt.length} tables have room to walk`}<small>Chairs ${SEAT} cm · walkway ${FE.gap} cm · walls ${wallC()} cm</small></div>
+        <div class="fe-btns" style="margin-top:12px"><button class="fe-pill" data-fa="arrange">Arrange automatically</button><button class="fe-pill" data-fa="fix" ${bad.length ? '' : 'disabled'}>Fix spacing</button><button class="fe-pill" data-fa="renum">Renumber tables</button></div>
+        <div class="fe-hint">Tables keep the room their chairs need and a walkway all round. Dragging a table clicks it into the right spot; hold ⌥ to place it freely.</div>
         <div class="fe-btns"><button class="fe-pill danger" data-fa="delzone" ${anyBusy || FE.zones.length < 2 ? 'disabled' : ''}>Delete zone</button></div>
         <div class="fe-btns" style="margin-top:auto"><button class="fe-pill" data-fa="reset">Restore default layout</button></div>`;
     }
   }
   $o('feIns').addEventListener('click', e => {
-    const gp = e.target.closest('[data-gap]'), sn = e.target.closest('[data-snap]');
-    if (gp) { FE.gap = +gp.dataset.gap; fePrefs(); sfx.tap(); renderIns(); return; }
+    const gp = e.target.closest('[data-gap]'), sn = e.target.closest('[data-snap]'), fx = e.target.closest('[data-fix]'), bs = e.target.closest('[data-bays]');
+    if (gp) { FE.gap = +gp.dataset.gap; fePrefs(); sfx.tap(); feRender(); return; }
+    if (fx) { FE.fixed = fx.dataset.fix === '1'; fePrefs(); sfx.tap(); renderIns(); return; }
+    if (bs) { FE.bays = bs.dataset.bays === '1'; fePrefs(); sfx.tap(); feRender(); return; }
     if (sn) { FE.snap = +sn.dataset.snap; fePrefs(); $o('feRoom').style.setProperty('--g', `${(FE.snap || 20) * FE.k}px`); sfx.tap(); renderIns(); return; }
+    const ds = e.target.closest('[data-dseat]');
+    if (ds && FE.draft) { FE.draft.seats = clampN(FE.draft.seats + +ds.dataset.dseat, 1, 20); FE.draft.confirmed = true; $o('feDSeats').textContent = FE.draft.seats; $o('feDInfo').innerHTML = draftInfo(); renderSteps(); sfx.tap(); return; }
     const st = e.target.closest('[data-st]'), sh = e.target.closest('[data-sh]'), fa = e.target.closest('[data-fa]'), t = FE.sel;
     if (st && t) { feRemember(); const f = st.dataset.st, d = +st.dataset.v;
       if (f === 'seats') t.seats = clampN(t.seats + d, 1, 20);
@@ -7339,7 +8086,15 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
     if (a === 'dup' && t) { feRemember(); const c = { ...t, x: clampN(t.x + 30, 0, RW - (t.w || 100)), y: clampN(t.y + 30, 0, RH - (t.h || 20)) };
       if (FE.tables.includes(t)) { delete c.orig; c.id = nextTableId((t.id.match(/^[A-Za-z]+/) || ['T'])[0]); FE.tables.push(c); } else FE.decor.push(c);
       FE.sel = c; feRender(); }
-    if (a === 'tidy') feTidy();
+    if (a === 'place') placeDraft(null);
+    if (a === 'cancelnew') cancelDraft();
+    if (a === 'arrange') feArrange();
+    if (a === 'fix') feFix();
+    if (a === 'pen') penStart();
+    if (a === 'noroom') { const z = zoneObj(); if (z?.pts) { feRemember(); delete z.pts; delete z.rw; delete z.rh; feRender(); say('Room outline cleared. The zone is back to its default size.'); } }
+    if (a === 'snap' && t && FE.tables.includes(t)) { const s = bestSlot(t, t.x, t.y, 700) || gridSlot(t, t.x, t.y);
+      if (!s) say('No spot in this room has room for this table. Make the room bigger or the walkway tighter.');
+      else { feRemember(); t.x = s.x; t.y = s.y; feRender(); } }
     if (a === 'renum') { feRemember(); const pre = zonePre(), zt = zoneT().filter(t => !/^S\d+$/.test(t.id) || pre === 'S'), others = new Set(FE.tables.filter(t => !zt.includes(t)).map(t => t.id));
       zt.sort((p, q) => Math.round(p.y / 60) - Math.round(q.y / 60) || p.x - q.x); let n = 0; zt.forEach(t => { do n++; while (others.has(pre + n)); t.id = pre + n; }); feRender(); say('Tables renumbered row by row.'); }
     if (a === 'delzone') { feRemember(); const id = FE.zone; FE.zones = FE.zones.filter(z => z.id !== id); FE.tables = FE.tables.filter(t => t.z !== id); FE.decor = FE.decor.filter(d => d.z !== id); FE.zone = FE.zones[0].id; FE.sel = null; feRender(); }
@@ -7348,9 +8103,19 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
       feRemember(); FE.zones = def.zones; FE.decor = def.decor; FE.tables = def.tables.map(d => ({ ...d, orig: TABLES.some(t => t.id === d.id) ? d.id : undefined }));
       if (!FE.zones.some(z => z.id === FE.zone)) FE.zone = FE.zones[0].id; FE.sel = null; feRender(); say('Default layout restored. Save to keep it.'); }
   });
-  $o('feIns').addEventListener('change', e => { if (e.target.id === 'feZone' && FE.sel) { feRemember(); FE.sel.z = e.target.value; FE.zone = FE.sel.z; feRender(); } });
+  $o('feIns').addEventListener('change', e => {
+    const el = e.target, t = FE.sel;
+    if (el.id === 'feZone' && t) { feRemember(); t.z = el.value; FE.zone = t.z; feRender(); }
+    // a table's real size: typed in centimetres
+    if (el.dataset.dim && t && FE.tables.includes(t)) { const v = clampN(Math.round(+el.value), 30, 600); if (!(v > 0)) return; feRemember();
+      if (t.round) t.w = t.h = v; else t[el.dataset.dim] = v; t.x = clampN(t.x, 0, Math.max(0, RW - t.w)); t.y = clampN(t.y, 0, Math.max(0, RH - t.h)); feRender(); sfx.tap(); }
+    // the room's size, typed in metres (a number of 50 or more counts as centimetres)
+    if (el.id === 'feRW' || el.id === 'feRD') { const w = parseLen($o('feRW').value), d = parseLen($o('feRD').value); if (w && d) setRoomRect(w, d); }
+  });
   $o('feIns').addEventListener('input', e => {
     const t = FE.sel, el = e.target, once = () => { if (!el.dataset.h) { feRemember(); el.dataset.h = 1; } };
+    // the size of the table being added: typed in centimetres
+    if (el.dataset.ddim && FE.draft) { const v = +el.value; if (v > 0) { FE.draft[el.dataset.ddim] = v; if (FE.draft.round) FE.draft.h = v; } FE.draft.confirmed = true; $o('feDInfo').innerHTML = draftInfo(); renderSteps(); return; }
     if (el.id === 'feName' && t) { const v = el.value.trim().toUpperCase(), taken = FE.tables.some(o => o !== t && o.id === v);
       el.classList.toggle('bad', !v || taken); if (!v || taken) return; once(); t.id = v;
       const b = $o('feSc').querySelector('.sel b'); if (b) b.textContent = v; $o('feIns').querySelector('h3').textContent = v; }
@@ -7359,9 +8124,9 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
     if (el.id === 'feZName' && z) { once(); z.name = el.value || 'Zone'; $o('feIns').querySelector('h3').textContent = z.name; const b = $o('feZones').querySelector('.on'); if (b) b.firstChild.textContent = z.name; }
     if (el.id === 'feZPre' && z) { const v = el.value.replace(/[^a-z]/gi, '').toUpperCase(); if (v) { once(); z.pre = v; } }
   });
-  $o('feZones').addEventListener('click', e => { const b = e.target.closest('button'); if (!b || b.dataset.z === FE.zone) return; FE.zone = b.dataset.z; FE.sel = null; feRender(); sfx.tap();
+  $o('feZones').addEventListener('click', e => { const b = e.target.closest('button'); if (!b || b.dataset.z === FE.zone) return; if (FE.pen) penStop(); lenHide(); FE.draft = null; FE.zone = b.dataset.z; FE.sel = null; feRender(); sfx.tap();
     $o('feSc').querySelectorAll('.ed').forEach((el, i) => el.animate([{ opacity: 0, transform: 'scale(.88)' }, { opacity: 1, transform: 'none' }], { duration: 380, delay: i * 12, easing: SPRING, fill: 'backwards' })); });
-  $o('feAddZone').addEventListener('click', () => { feRemember(); const z = { id: 'z' + Date.now().toString(36), name: 'New zone', pre: 'Z' };
+  $o('feAddZone').addEventListener('click', () => { if (FE.pen) penStop(); feRemember(); const z = { id: 'z' + Date.now().toString(36), name: 'New zone', pre: 'Z' };
     FE.zones.push(z); FE.zone = z.id; FE.sel = null; feRender(); sfx.tap(); setTimeout(() => { const i = $o('feZName'); i?.focus(); i?.select(); }, 60); });
   $o('feUndo').addEventListener('click', feUndo);
   $o('feCancel').addEventListener('click', () => { sfx.tap(); closeFE(); if (FE.dirty) say('Floor plan changes discarded.'); });
@@ -7383,15 +8148,35 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
     return { x: (e.clientX - r.left) / k, y: (e.clientY - r.top) / k, inside: e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom }; }
   let feDrag = null;
   $o('fePal').addEventListener('pointerdown', e => { const b = e.target.closest('.fe-item'); if (!b) return; e.preventDefault();
-    feDrag = { kind: 'new', p: PIECES.find(x => x.k === b.dataset.p), sx: e.clientX, sy: e.clientY, moved: false, ghost: null }; });
+    if (b.dataset.tool === 'pen') { if (FE.pen) penStop(); else penStart(); return; }
+    if (FE.pen) penStop();
+    const piece = PIECES.find(x => x.k === b.dataset.p);
+    if (!piece.decor) {   // a table type: needs the room first; picking it opens its size; dragging it onto the floor places it with that size
+      if (!roomPoly()) return planFirst();
+      if (!FE.draft || FE.draft.k !== piece.k) selectType(piece.k);
+      feDrag = { kind: 'new', tbl: true, p: { ...piece, ...FE.draft }, sx: e.clientX, sy: e.clientY, moved: false, ghost: null }; return; }
+    feDrag = { kind: 'new', p: piece, sx: e.clientX, sy: e.clientY, moved: false, ghost: null }; });
   $o('feSc').addEventListener('pointerdown', e => {
     const el = e.target.closest('.ed'); if (!el) return; e.preventDefault(); e.stopPropagation();
     const item = el.dataset.i != null ? FE.tables[+el.dataset.i] : FE.decor[+el.dataset.d];
     const resize = !!e.target.closest('.rz');
-    if (FE.sel !== item) { FE.sel = item; feRender(); }
+    if (FE.sel !== item) { FE.sel = item; FE.draft = null; feRender(); }
     const p = roomPt(e); feDrag = { kind: resize ? 'size' : 'move', item, ox: p.x - item.x, oy: p.y - item.y, w0: item.w, h0: item.h, px: p.x, py: p.y, moved: false };
   });
-  $o('feRoom').addEventListener('pointerdown', e => { if (!e.target.closest('.ed') && FE.sel) { FE.sel = null; feRender(); } });
+  $o('feRoom').addEventListener('pointerdown', e => {
+    if (e.target.closest('.fe-lenbox') || e.target.closest('.fe-dim')) return;
+    if (FE.pen) { e.preventDefault(); if (FE.len) lenHide(); const pt = penPoint(e), pen = FE.pen, last = pen.pts[pen.pts.length - 1];
+      if (pen.closing) return penClose(); if (last && last[0] === pt[0] && last[1] === pt[1]) return; pen.pts.push(pt); sfx.tap(); penDraw(); return; }
+    if (FE.draft && !e.target.closest('.ed')) { e.preventDefault(); const p = roomPt(e); if (p.inside) placeDraft(p, e.altKey); return; }
+    if (!e.target.closest('.ed') && FE.sel) { FE.sel = null; feRender(); } });
+  $o('feRoom').addEventListener('pointermove', e => { if (!FE.pen) return; FE.pen.cur = penPoint(e); penDraw(); });
+  $o('feRoom').addEventListener('dblclick', () => { if (FE.pen && FE.pen.pts.length >= 3) penClose(); });
+  // a side's length: tap it and type the real one
+  $o('feRoom').addEventListener('click', e => { const d = e.target.closest('.fe-dim[data-e]'); if (!d || FE.pen) return; const z = zoneObj(), p = z?.pts; if (!p) return;
+    const i = +d.dataset.e, a = p[i], b = p[(i + 1) % p.length]; lenShow('edge', +d.dataset.x, +d.dataset.y, (Math.hypot(b[0] - a[0], b[1] - a[1]) / 100).toFixed(2), { i }); });
+  $o('feLen').addEventListener('blur', () => { if (FE.len) setTimeout(lenHide, 120); });
+  $o('fePenDone').addEventListener('click', () => penClose());
+  $o('fePenCancel').addEventListener('click', () => penStop());
   addEventListener('pointermove', e => {
     if (!feDrag) return;
     if (feDrag.kind === 'new') {
@@ -7406,15 +8191,22 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
     const p = roomPt(e), it = feDrag.item;
     if (!feDrag.moved) { if (Math.hypot(p.x - feDrag.px, p.y - feDrag.py) < 3) return; feRemember(); feDrag.moved = true; }
     const el = $o('feSc').querySelector('.sel'); el?.classList.add('drag'); if (FE.snap) $o('feRoom').classList.add('grid');
-    if (feDrag.kind === 'move') { const w = it.w || (el ? el.offsetWidth : 80), h = it.h || 18;
-      let nx = clampN(snapN(p.x - feDrag.ox), 0, RW - w), ny = clampN(snapN(p.y - feDrag.oy), 0, RH - h);
-      if (FE.snap) {   // magnet: line up with a neighbour's edges, or sit exactly the chosen space away from it
-        const near = (v, list) => { let best = null; list.forEach(c => { if (Math.abs(c - v) <= 9 && (best === null || Math.abs(c - v) < Math.abs(best - v))) best = c; }); return best; };
-        const others = zoneT().filter(o => o !== it), xs = [], ys = [];
-        others.forEach(o => { xs.push(o.x, o.x + o.w - w, o.x + o.w + FE.gap, o.x - w - FE.gap); ys.push(o.y, o.y + o.h - h, o.y + o.h + FE.gap, o.y - h - FE.gap); });
-        const mx = near(nx, xs), my = near(ny, ys); if (mx !== null) nx = clampN(mx, 0, RW - w); if (my !== null) ny = clampN(my, 0, RH - h);
+    if (feDrag.kind === 'move') { const w = it.w || (el ? el.offsetWidth : 80), h = it.h || 18, isT = FE.tables.includes(it), wx = p.x - feDrag.ox, wy = p.y - feDrag.oy;
+      let nx = clampN(snapN(wx), 0, RW - w), ny = clampN(snapN(wy), 0, RH - h), lock = false;
+      if (isT && FE.fixed && !e.altKey) {   // fixed spots: the table clicks into the nearest spot that has room for its chairs and a walkway all round
+        const list = slotScan(it, wx, wy, 260), best = list[0];
+        if (best && best.d <= SNAPR) { nx = best.x; ny = best.y; lock = true; }
+        feDrag.fx = { slots: pickSlots(list, it, 4), lock: lock ? best : null };
+      } else {
+        feDrag.fx = { slots: [], lock: null };
+        if (FE.snap) {   // free placement: line up with a neighbour's edges
+          const near = (v, list) => { let best = null; list.forEach(c => { if (Math.abs(c - v) <= 9 && (best === null || Math.abs(c - v) < Math.abs(best - v))) best = c; }); return best; };
+          const xs = [], ys = []; zoneT().filter(o => o !== it).forEach(o => { xs.push(o.x, o.x + o.w - w); ys.push(o.y, o.y + o.h - h); });
+          const mx = near(nx, xs), my = near(ny, ys); if (mx !== null) nx = clampN(mx, 0, RW - w); if (my !== null) ny = clampN(my, 0, RH - h);
+        }
       }
-      it.x = nx; it.y = ny; if (el) { el.style.left = it.x + 'px'; el.style.top = it.y + 'px'; } }
+      it.x = nx; it.y = ny; if (el) { el.style.left = it.x + 'px'; el.style.top = it.y + 'px'; el.classList.toggle('lock', lock); }
+      if (isT) feFx(it); }
     else { const wall = it.k === 'wall';
       it.w = clampN(snapN(feDrag.w0 + p.x - feDrag.px), wall ? 10 : 60, RW - it.x); it.h = clampN(wall ? Math.round(feDrag.h0 + p.y - feDrag.py) : snapN(feDrag.h0 + p.y - feDrag.py), wall ? 4 : 60, RH - it.y);
       if (it.round && !it.k) it.w = it.h = Math.max(it.w, it.h);
@@ -7422,13 +8214,34 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
   });
   addEventListener('pointerup', e => {
     if (!feDrag) return; const d = feDrag; feDrag = null; $o('feRoom').classList.remove('grid');
-    if (d.kind === 'new') { d.ghost?.remove(); $o('feRoom').classList.remove('drop'); if (!d.moved) addPiece(d.p.k); else { const p = roomPt(e); if (p.inside) addPiece(d.p.k, p); } return; }
-    if (d.moved) { feRender(); sfx.tap(); }
+    if (d.kind === 'new') { d.ghost?.remove(); $o('feRoom').classList.remove('drop'); if (d.tbl) { if (d.moved) { const p = roomPt(e); if (p.inside) placeDraft(p, e.altKey); } } else if (!d.moved) addPiece(d.p.k); else { const p = roomPt(e); if (p.inside) addPiece(d.p.k, p, e.altKey); } return; }
+    if (d.moved) {
+      const it = d.item; let from = null, note = '';
+      // dropped where there is no room for its chairs and a walkway: it slides to the nearest right spot (hold ⌥ to keep it there)
+      if (d.kind === 'move' && FE.tables.includes(it) && FE.fixed && !e.altKey && !spotState(it, it.x, it.y).ok) {
+        const s = bestSlot(it, it.x, it.y, 900) || gridSlot(it, it.x, it.y);
+        if (s) { from = { x: it.x, y: it.y }; it.x = s.x; it.y = s.y; note = `${it.id} moved to the nearest spot with room to walk.`; }
+        else note = `No spot in this room has room for ${it.id}. Make the room bigger or the walkway tighter.`; }
+      feRender(); sfx.tap(); if (note) say(note);
+      if (from) $o('feSc').querySelector('.sel')?.animate([{ transform: `translate(${from.x - it.x}px, ${from.y - it.y}px)` }, { transform: 'none' }], { duration: 320, easing: SPRING });
+    }
   });
   addEventListener('keydown', e => {
     if (!FE.on) return; const typing = /INPUT|SELECT/.test(document.activeElement?.tagName);
     e.stopImmediatePropagation();
-    if (e.key === 'Escape') { if (typing) document.activeElement.blur(); else if (FE.sel) { FE.sel = null; feRender(); } else $o('feCancel').click(); return; }
+    // the length field (a side of the room): Enter sets it, Esc closes it
+    if (document.activeElement === $o('feLen')) { if (e.key === 'Enter') { e.preventDefault(); lenCommit(); } else if (e.key === 'Escape') { e.preventDefault(); lenHide(); } return; }
+    // a chosen table type: Enter in a size field places it
+    if (FE.draft && document.activeElement?.dataset?.ddim && e.key === 'Enter') { e.preventDefault(); placeDraft(null); return; }
+    // the pencil: digits start typing the length of the side being drawn; Enter closes the room; Backspace takes the last corner back; Esc cancels
+    if (FE.pen && !typing) {
+      if (e.key === 'Escape') { penStop(); return; }
+      if (e.key === 'Enter') { e.preventDefault(); penClose(); return; }
+      if (e.key === 'Backspace') { e.preventDefault(); FE.pen.pts.pop(); penDraw(); return; }
+      if (/^[0-9.,]$/.test(e.key) && FE.pen.pts.length) { e.preventDefault(); const l = FE.pen.pts[FE.pen.pts.length - 1], c = FE.pen.cur || [l[0] + 100, l[1]]; lenShow('pen', (l[0] + c[0]) / 2, (l[1] + c[1]) / 2, e.key); return; }
+      return;
+    }
+    if (e.key === 'Escape') { if (typing) document.activeElement.blur(); else if (FE.draft) cancelDraft(); else if (FE.sel) { FE.sel = null; feRender(); } else $o('feCancel').click(); return; }
     if (typing) return;
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); return feUndo(); }
     const t = FE.sel; if (!t) return;
@@ -8205,7 +9018,7 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
     'Printer connected': ['Imprimante connectée', 'الطابعة متصلة'], 'Printer disconnected': ['Imprimante déconnectée', 'الطابعة غير متصلة'],
     'Terms': ['Conditions', 'الشروط'], 'Privacy': ['Confidentialité', 'الخصوصية'], '© 2026 All rights reserved': ['© 2026 Tous droits réservés', '© 2026 جميع الحقوق محفوظة'],
     // app shell / order type
-    'Back': ['Retour', 'رجوع'], 'Order': ['Commande', 'الطلب'], 'Tables': ['Tables', 'الطاولات'], 'Choose a': ['Choisissez une', 'اختر'], 'table': ['table', 'طاولة'], 'Move': ['Déplacer', 'انقل'], 'to…': ['vers…', 'إلى…'], 'Orders list': ['Commandes', 'قائمة الطلبات'],
+    'Back': ['Retour', 'رجوع'], 'Sizes': ['Dimensions', 'الأبعاد'], 'Order': ['Commande', 'الطلب'], 'Tables': ['Tables', 'الطاولات'], 'Choose a': ['Choisissez une', 'اختر'], 'table': ['table', 'طاولة'], 'Move': ['Déplacer', 'انقل'], 'to…': ['vers…', 'إلى…'], 'Orders list': ['Commandes', 'قائمة الطلبات'],
     'Pending': ['En attente', 'قيد الانتظار'], 'Clients': ['Clients', 'العملاء'], 'Delivery': ['Livraison', 'التوصيل'],
     'Which type of order do you want to handle?': ['Quel type de commande voulez-vous traiter ?', 'ما نوع الطلب الذي تريد معالجته؟'], 'Which type of': ['Quel type de', 'ما نوع'], 'order': ['commande', 'الطلب'], 'do you want to handle?': ['voulez-vous traiter ?', 'الذي تريد معالجته؟'],
     'Glovo': ['Glovo', 'Glovo'], "We'll deliver to the address you specify": ['Livraison à l’adresse indiquée', 'سنوصل إلى العنوان الذي تحدده'],
@@ -8382,6 +9195,7 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
     put(document.querySelector('#guests .gbar'), document.querySelector('#guests .on'), 0, true);
     put(document.querySelector('#spMode .pill'), document.querySelector('#spMode button.on'), 4, true);
     put(document.querySelector('#pmSeg .pill'), document.querySelector('#pmSeg button.on'), 6, true);
+    put(document.querySelector('#flZones .zpill'), document.querySelector('#flZones button.on'), 0, true);
   }
   function setLang(l) {
     LANG = l;
