@@ -1,0 +1,97 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:#000}canvas{display:block}</style></head><body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<script>
+// Procedural night restaurant interior, Caisse Manager palette. Seeded so it renders the same every time.
+let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+const c = document.getElementById('c'), x = c.getContext('2d'); const W = 1920, H = 1080;
+const glow = (cx, cy, r, col, a) => { const g = x.createRadialGradient(cx, cy, 0, cx, cy, r); g.addColorStop(0, `rgba(${col},${a})`); g.addColorStop(1, `rgba(${col},0)`); x.fillStyle = g; x.fillRect(cx - r, cy - r, r * 2, r * 2) };
+// Room: back wall, ceiling, floor in perspective
+const VPx = W * 0.55, VPy = H * 0.46;
+let g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#0b0606'); g.addColorStop(0.45, '#160a0a'); g.addColorStop(1, '#050303'); x.fillStyle = g; x.fillRect(0, 0, W, H);
+// back wall rectangle
+const bw = { l: 360, r: 1560, t: 170, b: 640 };
+g = x.createLinearGradient(0, bw.t, 0, bw.b); g.addColorStop(0, '#1d0d0d'); g.addColorStop(1, '#2a1110'); x.fillStyle = g; x.fillRect(bw.l, bw.t, bw.r - bw.l, bw.b - bw.t);
+// side walls
+x.fillStyle = '#0e0707'; x.beginPath(); x.moveTo(0, 0); x.lineTo(bw.l, bw.t); x.lineTo(bw.l, bw.b); x.lineTo(0, H); x.fill();
+x.fillStyle = '#120808'; x.beginPath(); x.moveTo(W, 0); x.lineTo(bw.r, bw.t); x.lineTo(bw.r, bw.b); x.lineTo(W, H); x.fill();
+// floor with reflections
+g = x.createLinearGradient(0, bw.b, 0, H); g.addColorStop(0, '#1a0b0a'); g.addColorStop(1, '#070404'); x.fillStyle = g;
+x.beginPath(); x.moveTo(bw.l, bw.b); x.lineTo(bw.r, bw.b); x.lineTo(W, H); x.lineTo(0, H); x.fill();
+x.strokeStyle = 'rgba(255,255,255,0.035)'; x.lineWidth = 1;
+for (let i = -12; i <= 12; i++) { x.beginPath(); x.moveTo(VPx + i * 50, bw.b); x.lineTo(VPx + i * 260, H); x.stroke() }
+for (let k = 1; k < 9; k++) { const y = bw.b + (H - bw.b) * Math.pow(k / 9, 1.8); x.beginPath(); x.moveTo(0, y); x.lineTo(W, y); x.stroke() }
+// ceiling slats
+x.strokeStyle = 'rgba(255,255,255,0.04)';
+for (let i = 0; i < 16; i++) { const t = i / 16; x.beginPath(); x.moveTo(bw.l + (bw.r - bw.l) * t, bw.t); x.lineTo(-400 + (W + 800) * t, 0); x.stroke() }
+// red neon strips on the left wall (vertical lines in perspective)
+x.globalCompositeOperation = 'lighter';
+for (let i = 0; i < 5; i++) {
+  const xa = 90 + i * 34, ta = 40 + i * 14, ba = H - 120 - i * 40;
+  x.shadowColor = 'rgba(255,30,40,1)'; x.shadowBlur = 30; x.strokeStyle = 'rgba(255,40,50,0.95)'; x.lineWidth = 5;
+  x.beginPath(); x.moveTo(xa, ta); x.lineTo(xa + 20, ba); x.stroke();
+}
+x.shadowBlur = 0;
+// menu boards on the back wall
+const boards = [[470, 210, 300, 150], [800, 205, 330, 160], [1160, 210, 300, 150]];
+for (const [bx, by, bwid, bh] of boards) {
+  glow(bx + bwid / 2, by + bh / 2, 320, '255,60,50', 0.35);
+  x.fillStyle = '#2b0606'; x.fillRect(bx, by, bwid, bh);
+  for (let r = 0; r < 3; r++) for (let q = 0; q < 4; q++) {
+    const px = bx + 12 + q * (bwid - 24) / 4, py = by + 12 + r * (bh - 24) / 3, pw = (bwid - 24) / 4 - 8, ph = (bh - 24) / 3 - 8;
+    const hot = rnd(); x.fillStyle = hot > 0.6 ? `rgba(255,${120 + rnd() * 80 | 0},60,0.9)` : hot > 0.3 ? 'rgba(227,27,30,0.9)' : 'rgba(255,220,180,0.75)';
+    x.fillRect(px, py, pw, ph);
+  }
+  x.fillStyle = 'rgba(255,255,255,0.9)'; x.fillRect(bx + 14, by - 18, bwid * 0.4, 8);
+}
+// big red brand wall on the right
+glow(1700, 420, 420, '227,27,30', 0.35);
+x.fillStyle = 'rgba(227,27,30,0.85)';
+const words = [[1600, 120, 260, 70], [1600, 220, 300, 70], [1600, 420, 240, 70], [1600, 520, 280, 70], [1600, 720, 260, 70]];
+for (const [wx, wy, ww, wh] of words) x.fillRect(wx, wy, ww, wh);
+x.fillStyle = 'rgba(255,255,255,0.85)'; x.fillRect(1600, 320, 230, 70);
+// pendant lamps with warm cones
+for (const [lx, ly] of [[620, 120], [960, 140], [1300, 120], [1480, 90], [420, 90]]) {
+  x.strokeStyle = 'rgba(255,255,255,0.15)'; x.lineWidth = 2; x.beginPath(); x.moveTo(lx, 0); x.lineTo(lx, ly); x.stroke();
+  const cone = x.createLinearGradient(0, ly, 0, ly + 520); cone.addColorStop(0, 'rgba(255,190,120,0.22)'); cone.addColorStop(1, 'rgba(255,190,120,0)');
+  x.fillStyle = cone; x.beginPath(); x.moveTo(lx - 18, ly); x.lineTo(lx + 18, ly); x.lineTo(lx + 210, ly + 520); x.lineTo(lx - 210, ly + 520); x.fill();
+  glow(lx, ly + 8, 90, '255,190,120', 0.9);
+  x.fillStyle = '#ffd9a8'; x.beginPath(); x.ellipse(lx, ly + 6, 26, 12, 0, 0, Math.PI * 2); x.fill();
+}
+x.globalCompositeOperation = 'source-over';
+// counter
+g = x.createLinearGradient(0, 560, 0, 720); g.addColorStop(0, '#2a1513'); g.addColorStop(1, '#0d0707'); x.fillStyle = g;
+x.beginPath(); x.moveTo(330, 600); x.lineTo(1580, 600); x.lineTo(1580, 740); x.lineTo(330, 740); x.fill();
+x.globalCompositeOperation = 'lighter'; x.shadowColor = 'rgba(255,40,50,1)'; x.shadowBlur = 24; x.strokeStyle = 'rgba(255,50,60,0.9)'; x.lineWidth = 4;
+x.beginPath(); x.moveTo(330, 602); x.lineTo(1580, 602); x.stroke(); x.shadowBlur = 0;
+// kiosks: white bodies with glowing screens
+for (const [kx, s] of [[560, 1], [780, 1.05], [1040, 1.12], [1330, 1.22]]) {
+  const kw = 120 * s, kh = 330 * s, ky = 760 - kh * 0.25;
+  x.globalCompositeOperation = 'source-over';
+  x.fillStyle = 'rgba(210,205,205,0.55)'; x.fillRect(kx, ky - kh * 0.75, kw, kh);
+  x.fillStyle = '#111'; x.fillRect(kx + 10 * s, ky - kh * 0.75 + 14 * s, kw - 20 * s, kh * 0.6);
+  x.globalCompositeOperation = 'lighter';
+  const sg = x.createLinearGradient(0, ky - kh * 0.75, 0, ky); sg.addColorStop(0, 'rgba(255,90,70,0.55)'); sg.addColorStop(1, 'rgba(60,120,255,0.25)');
+  x.fillStyle = sg; x.fillRect(kx + 14 * s, ky - kh * 0.75 + 18 * s, kw - 28 * s, kh * 0.6 - 8 * s);
+  x.fillStyle = 'rgba(255,70,40,0.9)'; x.fillRect(kx + kw * 0.3, ky - kh * 0.75 + kh * 0.5, kw * 0.4, 10 * s);
+  glow(kx + kw / 2, ky - kh * 0.4, 200 * s, '255,120,110', 0.18);
+  // floor reflection
+  const rg = x.createLinearGradient(0, ky + kh * 0.25, 0, ky + kh * 0.25 + 160 * s); rg.addColorStop(0, 'rgba(255,255,255,0.12)'); rg.addColorStop(1, 'rgba(255,255,255,0)');
+  x.fillStyle = rg; x.fillRect(kx, ky + kh * 0.25, kw, 160 * s);
+}
+// warm floor glow + red edge light
+glow(W * 0.5, H + 60, 800, '224,45,60', 0.3);
+glow(80, H - 40, 300, '255,40,40', 0.4);
+// bokeh specks
+for (let i = 0; i < 70; i++) {
+  const bx = rnd() * W, by = rnd() * H * 0.8, r = 4 + rnd() * 26, warm = rnd() > 0.4;
+  glow(bx, by, r, warm ? '255,180,110' : '255,60,60', 0.08 + rnd() * 0.18);
+}
+x.globalCompositeOperation = 'source-over';
+// vignette
+g = x.createRadialGradient(W * 0.55, H * 0.45, H * 0.2, W * 0.55, H * 0.45, H * 1.05); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,0.75)'); x.fillStyle = g; x.fillRect(0, 0, W, H);
+// film grain
+const id = x.getImageData(0, 0, W, H), d = id.data;
+for (let i = 0; i < d.length; i += 4) { const n = (rnd() - 0.5) * 14; d[i] += n; d[i + 1] += n; d[i + 2] += n }
+x.putImageData(id, 0, 0);
+document.title = 'done';
+</script></body></html>

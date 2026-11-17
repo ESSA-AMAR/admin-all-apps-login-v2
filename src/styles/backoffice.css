@@ -1,0 +1,409 @@
+/*
+ * The Back Office sidebar, in the POS v3 look (glass panel, ice tint on hover, sharp red box on the item you are in).
+ * Loaded after pos-v3-system.css and uses its tokens: --gl-fill-soft, --gl-blur, --gl-field-edge, --gl-ink, --ice-hi, --spring, --rise.
+ *
+ * Layout: a floating panel under the top bar, 264px wide, or a 64px rail. The screens shift right to make room (they start at --bo-w + 32px).
+ */
+
+.app.has-bo {
+  --bo-w: 264px;
+  --bo-top: 104px;
+}
+.app.has-bo.bo-rail {
+  --bo-w: 64px;
+}
+.app.has-bo .stage-inner:not(.app-host) {
+  left: calc(var(--bo-w) + 32px);
+  transition: left 0.4s var(--rise);
+}
+
+/* ───────── the panel ───────── */
+.bo-side {
+  position: fixed;
+  z-index: 15;
+  top: var(--bo-top, 104px);
+  left: 16px;
+  bottom: 16px;
+  width: var(--bo-w, 264px);
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--gl-fill-soft);
+  -webkit-backdrop-filter: var(--gl-blur);
+  backdrop-filter: var(--gl-blur);
+  box-shadow: var(--gl-field-edge), 0 24px 48px -24px rgba(0, 0, 0, 0.6);
+  transition: width 0.4s var(--rise);
+}
+.bo-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  height: 56px;
+  padding: 0 8px 0 16px;
+  box-shadow: inset 0 -1px 0 rgba(var(--ice-hi), 0.08);
+}
+.bo-side.rail .bo-head {
+  justify-content: center;
+  padding: 0;
+}
+.bo-title {
+  font: 800 15px/1 var(--font-display);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gl-ink);
+}
+.bo-toggle {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  color: var(--gl-ink);
+  transition: background 0.2s, transform 0.15s var(--spring);
+}
+.bo-toggle:hover {
+  background: var(--gl-fill-soft);
+}
+.bo-toggle:active {
+  transform: scale(0.94);
+}
+
+.bo-nav {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px 0 16px;
+  scrollbar-width: none;
+}
+.bo-nav::-webkit-scrollbar {
+  display: none;
+}
+.bo-sec + .bo-sec {
+  margin-top: 8px;
+}
+.bo-sec-t {
+  margin: 0;
+  padding: 16px 16px 8px;
+  font: 600 12px/16px var(--font-sans, 'Roboto', sans-serif);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--gl-ink) 50%, transparent);
+}
+.bo-sec-rule {
+  display: block;
+  height: 1px;
+  margin: 8px 16px;
+  background: rgba(var(--ice-hi), 0.1);
+}
+
+/* ───────── a group row ───────── */
+.bo-g {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  color: color-mix(in srgb, var(--gl-ink) 78%, transparent);
+  font: 600 15px/1 var(--font-sans, 'Roboto', sans-serif);
+  text-align: left;
+  transition: background 0.2s, color 0.2s;
+}
+.bo-side.rail .bo-g {
+  justify-content: center;
+  padding: 0;
+}
+.bo-g:hover {
+  background: var(--gl-fill-soft);
+  color: var(--gl-ink);
+}
+.bo-g.open,
+.bo-g.fly {
+  color: var(--gl-ink);
+}
+/* the group that holds the lit item: a thin red bar and a red icon */
+.bo-g.has {
+  color: var(--gl-ink);
+}
+.bo-g.has .bo-g-ic {
+  color: var(--hl-red);
+}
+.bo-g.has::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: var(--hl-red);
+}
+.bo-g-ic {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+}
+.bo-g-l {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bo-g > svg:not(.bo-caret) {
+  flex: none;
+  opacity: 0.6;
+}
+.bo-caret {
+  flex: none;
+  opacity: 0.6;
+  transition: transform 0.25s var(--spring);
+}
+.bo-g.open .bo-caret {
+  transform: rotate(180deg);
+}
+.bo-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--hl-red);
+  box-shadow: 0 0 0 3px rgba(255, 46, 59, 0.2);
+}
+.bo-g-ic .bo-dot {
+  position: absolute;
+  top: -2px;
+  right: -3px;
+}
+
+/* ───────── the items of a group ───────── */
+.bo-items {
+  padding: 0 0 8px;
+}
+.bo-i {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 16px 0 52px;
+  color: color-mix(in srgb, var(--gl-ink) 70%, transparent);
+  font: 500 14px/1.2 var(--font-sans, 'Roboto', sans-serif);
+  text-align: left;
+  border-radius: 0;
+  transition: background 0.2s, color 0.2s;
+}
+.bo-i:hover {
+  background: var(--gl-fill-soft);
+  color: var(--gl-ink);
+}
+.bo-i:active {
+  background: rgba(224, 45, 60, 0.22);
+}
+.bo-i-l {
+  flex: 1;
+  min-width: 0;
+}
+/* the item you are in: the red box, sharp, as in the POS v3 menu */
+.bo-i.on,
+.bo-i.on:hover {
+  color: #fff;
+  font-weight: 600;
+  background: linear-gradient(90deg, rgba(227, 27, 30, 0.78), rgba(255, 74, 79, 0.55));
+}
+.bo-i.soon:not(.on) .bo-i-l {
+  opacity: 0.7;
+}
+.bo-soon {
+  flex: none;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font: 600 11px/14px var(--font-sans, 'Roboto', sans-serif);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--gl-ink) 60%, transparent);
+  box-shadow: inset 0 0 0 1px rgba(var(--ice-hi), 0.18);
+}
+.bo-i.on .bo-soon {
+  color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+.bo-i > svg {
+  flex: none;
+  opacity: 0.6;
+}
+
+/* counters: grey = a plain total, red = something to handle, violet = changes waiting in the draft */
+.bo-pill {
+  flex: none;
+  min-width: 22px;
+  padding: 0 7px;
+  border-radius: 999px;
+  font: 600 12px/20px 'Roboto Mono', ui-monospace, monospace;
+  text-align: center;
+  color: color-mix(in srgb, var(--gl-ink) 70%, transparent);
+  box-shadow: inset 0 0 0 1px rgba(var(--ice-hi), 0.16);
+}
+.bo-pill.warn {
+  color: #fff;
+  background: #e02d3c;
+  box-shadow: none;
+}
+.bo-pill.draft {
+  color: #fff;
+  background: #7b57c8;
+  box-shadow: none;
+}
+.bo-i.on .bo-pill:not(.warn):not(.draft) {
+  color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
+/* ───────── the fly-out of the collapsed rail ───────── */
+.bo-fly {
+  position: fixed;
+  z-index: 16;
+  left: calc(16px + 64px + 8px);
+  width: 264px;
+  padding: 8px 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--gl-fill-soft);
+  -webkit-backdrop-filter: var(--gl-blur);
+  backdrop-filter: var(--gl-blur);
+  box-shadow: var(--gl-field-edge), 0 24px 48px -16px rgba(0, 0, 0, 0.7);
+  animation: bo-fly-in 0.22s var(--rise);
+}
+@keyframes bo-fly-in {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+}
+.bo-fly-h {
+  padding: 8px 16px 12px;
+  box-shadow: inset 0 -1px 0 rgba(var(--ice-hi), 0.08);
+  margin-bottom: 4px;
+}
+.bo-fly-h small {
+  display: block;
+  font: 600 12px/16px var(--font-sans, 'Roboto', sans-serif);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--gl-ink) 50%, transparent);
+}
+.bo-fly-h b {
+  display: block;
+  margin-top: 2px;
+  font: 800 17px/22px var(--font-display);
+  letter-spacing: -0.01em;
+  color: var(--gl-ink);
+}
+.bo-fly .bo-i {
+  padding-left: 16px;
+}
+
+/* ───────── the concept page ───────── */
+.bo-page {
+  max-width: 880px;
+  padding: 104px 32px 48px 16px;
+}
+.bo-page .step-title {
+  margin-top: 8px;
+}
+.bo-page-desc {
+  max-width: 640px;
+  margin: 16px 0 0;
+  font-size: 18px;
+  line-height: 28px;
+  color: color-mix(in srgb, var(--gl-ink) 70%, transparent);
+}
+.bo-page-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+  padding: 0 16px;
+  height: 44px;
+  width: fit-content;
+  border-radius: 8px;
+  color: var(--gl-ink);
+  font: 600 15px/1 var(--font-sans, 'Roboto', sans-serif);
+  background: var(--gl-fill-soft);
+  box-shadow: var(--gl-field-edge);
+}
+.bo-page-status small {
+  margin-left: 8px;
+  font: 400 13px/1 var(--font-sans, 'Roboto', sans-serif);
+  color: color-mix(in srgb, var(--gl-ink) 55%, transparent);
+}
+.bo-page-h {
+  margin: 48px 0 12px;
+  font: 600 12px/16px var(--font-sans, 'Roboto', sans-serif);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--gl-ink) 50%, transparent);
+}
+.bo-page-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 24px;
+}
+.bo-page-list button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 0 16px;
+  border-radius: 0;
+  text-align: left;
+  color: var(--gl-ink);
+  box-shadow: inset 0 -1px 0 rgba(var(--ice-hi), 0.1);
+  transition: background 0.2s;
+}
+.bo-page-list button:hover {
+  background: var(--gl-fill-soft);
+}
+.bo-page-list button.on {
+  background: linear-gradient(90deg, rgba(227, 27, 30, 0.78), rgba(255, 74, 79, 0.55));
+  color: #fff;
+}
+.bo-page-name {
+  font: 600 16px/1.2 var(--font-sans, 'Roboto', sans-serif);
+}
+.bo-page-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.bo-page-meta em {
+  font: 600 11px/14px var(--font-sans, 'Roboto', sans-serif);
+  font-style: normal;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, currentColor 60%, transparent);
+}
+.bo-page-meta em.live {
+  color: #12b76a;
+}
+.bo-page-list button.on .bo-page-meta em {
+  color: rgba(255, 255, 255, 0.8);
+}
+@media (max-width: 900px) {
+  .bo-page-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -1,0 +1,376 @@
+/* Caisse Manager website design system v1.2: copied verbatim from the skill assets/tokens.css (fonts are loaded in index.html). */
+/* Caisse Manager website design system — generated from Figma "micro-design-system" (v1.2, 14 Oct 2026) */
+
+:root {
+  /* Primitives */
+  --color-ink: #111418;
+  --color-ink-soft: #3d434b;
+  --color-ink-mute: #8a9099;
+  --color-paper: #ffffff;
+  --color-canvas: #fbfbfc;
+  --color-fog: #f4f4f6;
+  --color-night: #0b0d10;
+  --color-night-soft: #14171c;
+  --color-black: #000000;
+  --color-brand: #e31e24;
+  --color-brand-hover: #c4171c;
+  --color-brand-soft: #ff8a8d;
+  --color-positive: #0f8a4a;
+  --color-positive-strong: #0b6e3a;
+  --color-positive-tint: #eaf7ef;
+  --color-glass: #10131a;
+  --color-shade: #080a0e;
+  --color-steel: #80838a;
+  --color-blush: #ffe3e4;
+  --color-rose: #ffd2d4;
+  --color-red-600: #e40014;
+  --color-red-700: #bf000f;
+  --color-emerald-400: #00d294;
+  --color-amber-800: #953d00;
+  --color-amber-50: #fffbeb;
+  --color-amber-200: #fee685;
+  --color-ink-a-2-5: rgba(17,20,24,0.024);
+  --color-ink-a-5: rgba(17,20,24,0.051);
+  --color-ink-a-6: rgba(17,20,24,0.059);
+  --color-ink-a-8: rgba(17,20,24,0.078);
+  --color-ink-a-10: rgba(17,20,24,0.102);
+  --color-ink-a-14: rgba(17,20,24,0.141);
+  --color-ink-a-15: rgba(17,20,24,0.149);
+  --color-ink-a-16: rgba(17,20,24,0.161);
+  --color-ink-a-50: rgba(17,20,24,0.502);
+  --color-ink-a-85: rgba(17,20,24,0.851);
+  --color-ink-mute-a-60: rgba(138,144,153,0.6);
+  --color-ink-mute-a-70: rgba(138,144,153,0.698);
+  --color-ink-mute-a-80: rgba(138,144,153,0.8);
+  --color-ink-mute-a-90: rgba(138,144,153,0.898);
+  --color-paper-a-4: rgba(255,255,255,0.043);
+  --color-paper-a-6: rgba(255,255,255,0.059);
+  --color-paper-a-7: rgba(255,255,255,0.071);
+  --color-paper-a-8: rgba(255,255,255,0.078);
+  --color-paper-a-10: rgba(255,255,255,0.102);
+  --color-paper-a-12: rgba(255,255,255,0.122);
+  --color-paper-a-18: rgba(255,255,255,0.18);
+  --color-paper-a-20: rgba(255,255,255,0.2);
+  --color-paper-a-25: rgba(255,255,255,0.251);
+  --color-paper-a-30: rgba(255,255,255,0.302);
+  --color-paper-a-35: rgba(255,255,255,0.349);
+  --color-paper-a-40: rgba(255,255,255,0.4);
+  --color-paper-a-42: rgba(255,255,255,0.42);
+  --color-paper-a-45: rgba(255,255,255,0.451);
+  --color-paper-a-50: rgba(255,255,255,0.502);
+  --color-paper-a-55: rgba(255,255,255,0.549);
+  --color-paper-a-60: rgba(255,255,255,0.6);
+  --color-paper-a-65: rgba(255,255,255,0.651);
+  --color-paper-a-70: rgba(255,255,255,0.698);
+  --color-paper-a-75: rgba(255,255,255,0.749);
+  --color-paper-a-80: rgba(255,255,255,0.8);
+  --color-paper-a-85: rgba(255,255,255,0.851);
+  --color-paper-a-90: rgba(255,255,255,0.898);
+  --color-paper-a-95: rgba(255,255,255,0.949);
+  --color-black-a-60: rgba(0,0,0,0.6);
+  --color-black-a-65: rgba(0,0,0,0.651);
+  --color-black-a-80: rgba(0,0,0,0.8);
+  --color-night-a-75: rgba(11,13,16,0.749);
+  --color-brand-a-10: rgba(227,30,36,0.102);
+  --color-brand-a-18: rgba(227,30,36,0.18);
+  --color-brand-a-25: rgba(227,30,36,0.251);
+  --color-brand-a-30: rgba(227,30,36,0.302);
+  --color-brand-a-60: rgba(227,30,36,0.6);
+  --color-shade-a-10: rgba(8,10,14,0.102);
+  --color-shade-a-25: rgba(8,10,14,0.251);
+  --color-shade-a-55: rgba(8,10,14,0.549);
+  --color-shade-a-65: rgba(8,10,14,0.651);
+  --color-shade-a-75: rgba(8,10,14,0.749);
+  --color-shade-a-88: rgba(8,10,14,0.878);
+  --color-glass-a-88: rgba(16,19,26,0.878);
+  --color-glass-a-96: rgba(16,19,26,0.961);
+  --color-steel-a-14: rgba(128,131,138,0.141);
+  --color-red-300-a-80: rgba(255,163,163,0.8);
+  --color-red-50-a-40: rgba(254,242,242,0.4);
+  --color-red-50-a-60: rgba(254,242,242,0.6);
+  --color-red-200-a-80: rgba(255,202,202,0.8);
+
+  /* Semantic colors */
+  --surface-page: var(--color-paper);
+  --surface-canvas: var(--color-canvas);
+  --surface-fog: var(--color-fog);
+  --surface-night: var(--color-night);
+  --surface-night-soft: var(--color-night-soft);
+  --surface-black: var(--color-black);
+  --surface-inverse: var(--color-ink);
+  --surface-glass-light: var(--color-paper-a-70);
+  --surface-glass-dark: var(--color-steel-a-14);
+  --surface-glass-modal: var(--color-glass-a-88);
+  --surface-glass-modal-mobile: var(--color-glass-a-96);
+  --surface-chip-dark: var(--color-paper-a-10);
+  --surface-chip-dark-strong: var(--color-paper-a-12);
+  --surface-subtle-light: var(--color-ink-a-5);
+  --surface-subtle-light-strong: var(--color-ink-a-6);
+  --surface-subtle-dark: var(--color-paper-a-6);
+  --surface-subtle-dark-strong: var(--color-paper-a-8);
+  --surface-field: var(--color-paper-a-4);
+  --surface-field-focus: var(--color-paper-a-7);
+  --surface-brand-tint: var(--color-brand-a-18);
+  --surface-pill-light: var(--color-paper-a-80);
+  --surface-tile: var(--color-ink-a-2-5);
+  --surface-dot-dark: var(--color-paper-a-25);
+  --surface-error-field: var(--color-red-50-a-40);
+  --surface-error-banner: var(--color-red-50-a-60);
+  --surface-warning: var(--color-amber-50);
+  --overlay-hero-dim: var(--color-black-a-60);
+  --overlay-modal-backdrop: var(--color-night-a-75);
+  --overlay-mobile-nav: var(--color-paper-a-95);
+  --text-primary: var(--color-ink);
+  --text-secondary: var(--color-ink-soft);
+  --text-muted: var(--color-ink-mute);
+  --text-muted-80: var(--color-ink-mute-a-80);
+  --text-muted-disabled: var(--color-ink-mute-a-70);
+  --text-muted-faint: var(--color-ink-mute-a-60);
+  --text-nav: var(--color-ink-a-85);
+  --text-inactive: var(--color-ink-a-50);
+  --text-on-dark: var(--color-paper);
+  --text-on-dark-90: var(--color-paper-a-90);
+  --text-on-dark-85: var(--color-paper-a-85);
+  --text-on-dark-80: var(--color-paper-a-80);
+  --text-on-dark-75: var(--color-paper-a-75);
+  --text-on-dark-70: var(--color-paper-a-70);
+  --text-on-dark-65: var(--color-paper-a-65);
+  --text-on-dark-60: var(--color-paper-a-60);
+  --text-on-dark-55: var(--color-paper-a-55);
+  --text-on-dark-50: var(--color-paper-a-50);
+  --text-on-dark-45: var(--color-paper-a-45);
+  --text-on-dark-40: var(--color-paper-a-40);
+  --text-on-dark-35: var(--color-paper-a-35);
+  --text-on-dark-30: var(--color-paper-a-30);
+  --text-brand: var(--color-brand);
+  --text-brand-on-dark: var(--color-brand-soft);
+  --text-positive: var(--color-positive);
+  --text-error: var(--color-red-600);
+  --text-error-strong: var(--color-red-700);
+  --text-warning: var(--color-amber-800);
+  --text-wordmark-ghost: var(--color-paper-a-7);
+  --border-hairline: var(--color-ink-a-8);
+  --border-hairline-strong: var(--color-ink-a-16);
+  --border-light-current: var(--color-ink-a-16);
+  --border-on-dark: var(--color-paper-a-10);
+  --border-on-dark-strong: var(--color-paper-a-20);
+  --border-on-dark-current: var(--color-paper-a-25);
+  --border-field-focus: var(--color-paper-a-42);
+  --border-brand: var(--color-brand);
+  --border-brand-60: var(--color-brand-a-60);
+  --border-error: var(--color-red-300-a-80);
+  --border-error-banner: var(--color-red-200-a-80);
+  --border-warning: var(--color-amber-200);
+  --action-primary: var(--color-ink);
+  --action-primary-hover: var(--color-ink-soft);
+  --action-inverse: var(--color-paper);
+  --action-inverse-hover: var(--color-fog);
+  --action-brand: var(--color-brand);
+  --action-brand-hover: var(--color-brand-hover);
+  --action-ghost-dark-hover: var(--color-paper-a-10);
+  --feedback-positive: var(--color-positive);
+  --feedback-error: var(--color-brand);
+  --feedback-online: var(--color-emerald-400);
+  --icon-on-dark: var(--color-paper);
+  --icon-on-light: var(--color-ink);
+  --icon-muted-dark: var(--color-paper-a-45);
+  --effect-shadow-ink: var(--color-ink-a-14);
+  --effect-highlight: var(--color-paper-a-25);
+
+  /* Spacing (4px base) */
+  --space-0: 0px;
+  --space-0-5: 2px;
+  --space-1: 4px;
+  --space-1-5: 6px;
+  --space-2: 8px;
+  --space-2-5: 10px;
+  --space-3: 12px;
+  --space-3-5: 14px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-9: 36px;
+  --space-10: 40px;
+  --space-11: 44px;
+  --space-12: 48px;
+  --space-14: 56px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-28: 112px;
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-3xl: 28px;
+  --radius-pill: 9999px;
+
+  /* Layout (desktop defaults) */
+  --grid-columns: 12; --grid-gutter: 24px; --grid-margin: 40px;
+  --container-shell: 1200px; --container-shell-wide: 1440px;
+  --header-height: 44px; --section-padding-y: 96px; --pricing-padding-y: 112px; --mobile-nav-height: 0px;
+
+  /* Motion */
+  --duration-150: 150ms;
+  --duration-200: 200ms;
+  --duration-220: 220ms;
+  --duration-300: 300ms;
+  --duration-500: 500ms;
+  --duration-700: 700ms;
+  --duration-800: 800ms;
+  --duration-900: 900ms;
+  --duration-marquee: 50000ms;
+  --duration-rim-spin: 7000ms;
+  --duration-glass-sweep: 5500ms;
+  --ease-brand: cubic-bezier(.22,1,.36,1);
+  --ease-out-expo: cubic-bezier(.16,1,.3,1);
+  --ease-standard: cubic-bezier(.4,0,.2,1);
+  --ease-out: cubic-bezier(0,0,.2,1);
+  --ease-exit: cubic-bezier(.4,0,1,1);
+  --ease-sweep: cubic-bezier(.45,0,.2,1);
+  --ease-linear: linear;
+
+  /* Effects */
+  --shadow-pro-card: 0 40px 80px -40px rgba(17,20,24,.7);
+  --shadow-plan-card-hover: 0 24px 50px -30px rgba(17,20,24,.35);
+  --shadow-tile-hover: 0 14px 30px -16px rgba(17,20,24,.35);
+  --shadow-toggle-knob: 0 1px 3px rgba(17,20,24,.12), 0 0 0 .5px rgba(17,20,24,.06);
+  --shadow-billing-toggle: 0 1px 3px rgba(0,0,0,.06);
+  --shadow-glass-card: inset 0 1px 0 rgba(255,255,255,.9), 0 16px 36px -22px rgba(17,20,24,.22);
+  --shadow-dropdown-dark: 0 24px 60px rgba(0,0,0,.6);
+  --shadow-glass-modal: inset 0 1px 0 rgba(255,255,255,.14), inset 0 -1px 0 rgba(255,255,255,.03), 0 32px 80px -24px rgba(0,0,0,.7);
+  --ring-light: 0 0 0 2px #fff, 0 0 0 4px rgba(17,20,24,.3);
+  --ring-dark: 0 0 0 2px rgba(255,255,255,.6);
+  --ring-brand: 0 0 0 4px rgba(227,30,36,.25);
+
+  --font-sans: "Roboto", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@media (max-width: 1023px) { :root { --grid-columns: 8; --grid-margin: 24px; } }
+@media (max-width: 767px)  { :root { --grid-columns: 4; --grid-gutter: 16px; --section-padding-y: 64px; --pricing-padding-y: 80px; --mobile-nav-height: 56px; } }
+
+/* Text style utility classes (desktop values; mobile overrides below) */
+.t-display-hero { font-family: var(--font-sans); font-weight: 600; font-size: 72px; line-height: 1.05; letter-spacing: -0.022em; }
+.t-display-hero-mono { font-family: var(--font-mono); font-weight: 600; font-size: 72px; line-height: 1.05; letter-spacing: -0.022em; }
+.t-display-showcase { font-family: var(--font-sans); font-weight: 700; font-size: 108px; line-height: 0.95; letter-spacing: -0.035em; text-transform: uppercase; }
+.t-display-page-h1 { font-family: var(--font-sans); font-weight: 600; font-size: 62px; line-height: 1.05; letter-spacing: -0.022em; }
+.t-display-wordmark { font-family: var(--font-sans); font-weight: 800; font-size: 145.6px; line-height: 1; letter-spacing: 0; }
+.t-heading-section-caps { font-family: var(--font-sans); font-weight: 700; font-size: 46px; line-height: 1.06; letter-spacing: -0.022em; text-transform: uppercase; }
+.t-heading-section { font-family: var(--font-sans); font-weight: 700; font-size: 46px; line-height: 1.06; letter-spacing: -0.025em; }
+.t-heading-cta { font-family: var(--font-sans); font-weight: 600; font-size: 40px; line-height: 1.12; letter-spacing: -0.018em; }
+.t-heading-h3 { font-family: var(--font-sans); font-weight: 600; font-size: 21px; line-height: 1.25; letter-spacing: -0.012em; }
+.t-heading-h3-regular { font-family: var(--font-sans); font-weight: 400; font-size: 21px; line-height: 1.25; letter-spacing: -0.008em; }
+.t-heading-eyebrow { font-family: var(--font-sans); font-weight: 600; font-size: 20px; line-height: 1.5; letter-spacing: 0.02em; text-transform: uppercase; }
+.t-heading-solution { font-family: var(--font-sans); font-weight: 700; font-size: 26px; line-height: 1.15; letter-spacing: -0.018em; }
+.t-heading-modal { font-family: var(--font-sans); font-weight: 700; font-size: 30px; line-height: 1.12; letter-spacing: -0.022em; }
+.t-heading-plan { font-family: var(--font-sans); font-weight: 600; font-size: 20px; line-height: 1.25; letter-spacing: -0.012em; }
+.t-heading-menu-item { font-family: var(--font-sans); font-weight: 600; font-size: 22px; line-height: 1.5; letter-spacing: -0.012em; }
+.t-heading-legal-h2 { font-family: var(--font-sans); font-weight: 600; font-size: 21px; line-height: 1.3; letter-spacing: -0.012em; }
+.t-heading-auth { font-family: var(--font-sans); font-weight: 600; font-size: 40px; line-height: 1.12; letter-spacing: -0.022em; }
+.t-heading-auth-aside { font-family: var(--font-sans); font-weight: 600; font-size: 40px; line-height: 1.18; letter-spacing: -0.022em; }
+.t-heading-empty-state { font-family: var(--font-sans); font-weight: 600; font-size: 20px; line-height: 1.5; letter-spacing: -0.005em; }
+.t-label-card-title { font-family: var(--font-sans); font-weight: 700; font-size: 14.5px; line-height: 1.2; letter-spacing: -0.01em; }
+.t-label-chip-title { font-family: var(--font-sans); font-weight: 600; font-size: 22px; line-height: 1.25; letter-spacing: -0.01em; }
+.t-label-plan-name { font-family: var(--font-sans); font-weight: 600; font-size: 15px; line-height: 22px; letter-spacing: 0; }
+.t-label-plan-save { font-family: var(--font-sans); font-weight: 600; font-size: 13.5px; line-height: 24px; letter-spacing: 0; }
+.t-body-lead { font-family: var(--font-sans); font-weight: 400; font-size: 16px; line-height: 1.6; letter-spacing: 0; }
+.t-body-default { font-family: var(--font-sans); font-weight: 400; font-size: 15px; line-height: 1.6; letter-spacing: 0; }
+.t-body-description { font-family: var(--font-sans); font-weight: 400; font-size: 15px; line-height: 1.55; letter-spacing: 0; }
+.t-body-showcase { font-family: var(--font-sans); font-weight: 400; font-size: 17px; line-height: 1.55; letter-spacing: 0; }
+.t-body-small { font-family: var(--font-sans); font-weight: 400; font-size: 14px; line-height: 1.55; letter-spacing: 0; }
+.t-body-feature { font-family: var(--font-sans); font-weight: 400; font-size: 14px; line-height: 1.4; letter-spacing: 0; }
+.t-body-note { font-family: var(--font-sans); font-weight: 400; font-size: 14px; line-height: 1.5; letter-spacing: 0; }
+.t-body-plan-tagline { font-family: var(--font-sans); font-weight: 400; font-size: 14.5px; line-height: 1.45; letter-spacing: 0; }
+.t-body-list { font-family: var(--font-sans); font-weight: 400; font-size: 13.5px; line-height: 1.5; letter-spacing: 0; }
+.t-body-list-medium { font-family: var(--font-sans); font-weight: 500; font-size: 13.5px; line-height: 1.5; letter-spacing: 0; }
+.t-body-input { font-family: var(--font-sans); font-weight: 400; font-size: 14.5px; line-height: 1.5; letter-spacing: 0; }
+.t-body-auth-input { font-family: var(--font-sans); font-weight: 400; font-size: 14px; line-height: 1.5; letter-spacing: -0.005em; }
+.t-body-menu-link { font-family: var(--font-sans); font-weight: 500; font-size: 16px; line-height: 1.5; letter-spacing: -0.005em; }
+.t-body-aside { font-family: var(--font-sans); font-weight: 400; font-size: 14px; line-height: 1.6; letter-spacing: 0; }
+.t-body-legal-lead { font-family: var(--font-sans); font-weight: 400; font-size: 19px; line-height: 1.5; letter-spacing: 0; }
+.t-body-legal { font-family: var(--font-sans); font-weight: 400; font-size: 16px; line-height: 1.65; letter-spacing: 0; }
+.t-body-legal-list { font-family: var(--font-sans); font-weight: 400; font-size: 14.5px; line-height: 1.6; letter-spacing: 0; }
+.t-caption-13 { font-family: var(--font-sans); font-weight: 400; font-size: 13px; line-height: 1.5; letter-spacing: 0; }
+.t-caption-13-medium { font-family: var(--font-sans); font-weight: 500; font-size: 13px; line-height: 1.5; letter-spacing: 0; }
+.t-caption-13-relaxed { font-family: var(--font-sans); font-weight: 400; font-size: 13px; line-height: 1.6; letter-spacing: 0; }
+.t-caption-12-5 { font-family: var(--font-sans); font-weight: 400; font-size: 12.5px; line-height: 1.55; letter-spacing: 0; }
+.t-caption-12 { font-family: var(--font-sans); font-weight: 400; font-size: 12px; line-height: 1.5; letter-spacing: 0; }
+.t-caption-12-medium { font-family: var(--font-sans); font-weight: 500; font-size: 12px; line-height: 1.5; letter-spacing: 0; }
+.t-caption-12-relaxed { font-family: var(--font-sans); font-weight: 400; font-size: 12px; line-height: 1.55; letter-spacing: 0; }
+.t-micro-11-5-medium { font-family: var(--font-sans); font-weight: 500; font-size: 11.5px; line-height: 1.5; letter-spacing: 0; }
+.t-micro-field-label { font-family: var(--font-sans); font-weight: 500; font-size: 11.5px; line-height: 1.5; letter-spacing: 0.1em; text-transform: uppercase; }
+.t-micro-lang { font-family: var(--font-sans); font-weight: 500; font-size: 11.5px; line-height: 1.5; letter-spacing: 0.04em; }
+.t-micro-eyebrow { font-family: var(--font-sans); font-weight: 500; font-size: 11px; line-height: 1.5; letter-spacing: 0.14em; text-transform: uppercase; }
+.t-micro-eyebrow-wide { font-family: var(--font-sans); font-weight: 500; font-size: 11px; line-height: 1.5; letter-spacing: 0.16em; text-transform: uppercase; }
+.t-micro-eyebrow-legal { font-family: var(--font-sans); font-weight: 500; font-size: 11px; line-height: 1.5; letter-spacing: 0.18em; text-transform: uppercase; }
+.t-micro-rail-title { font-family: var(--font-sans); font-weight: 600; font-size: 11px; line-height: 1.5; letter-spacing: 0.18em; text-transform: uppercase; }
+.t-micro-badge { font-family: var(--font-sans); font-weight: 600; font-size: 11px; line-height: 1.5; letter-spacing: 0.1em; text-transform: uppercase; }
+.t-micro-badge-solid { font-family: var(--font-sans); font-weight: 600; font-size: 11.5px; line-height: 1.47; letter-spacing: 0; }
+.t-micro-tab { font-family: var(--font-sans); font-weight: 500; font-size: 10.5px; line-height: 1.5; letter-spacing: 0.01em; }
+.t-micro-optional { font-family: var(--font-sans); font-weight: 400; font-size: 10px; line-height: 1.5; letter-spacing: 0; }
+.t-micro-tile { font-family: var(--font-sans); font-weight: 400; font-size: 11.5px; line-height: 1.25; letter-spacing: 0; }
+.t-micro-date { font-family: var(--font-sans); font-weight: 400; font-size: 12px; line-height: 1.5; letter-spacing: 0.14em; text-transform: uppercase; }
+.t-micro-auth-eyebrow { font-family: var(--font-sans); font-weight: 500; font-size: 10.5px; line-height: 1.5; letter-spacing: 0.18em; text-transform: uppercase; }
+.t-micro-auth-label { font-family: var(--font-sans); font-weight: 500; font-size: 10.5px; line-height: 1.5; letter-spacing: 0.16em; text-transform: uppercase; }
+.t-micro-hint { font-family: var(--font-sans); font-weight: 400; font-size: 11px; line-height: 1.5; letter-spacing: 0; }
+.t-micro-hint-strong { font-family: var(--font-sans); font-weight: 500; font-size: 11px; line-height: 1.5; letter-spacing: 0; }
+.t-micro-consent { font-family: var(--font-sans); font-weight: 400; font-size: 11.5px; line-height: 1.55; letter-spacing: 0; }
+.t-micro-trust { font-family: var(--font-sans); font-weight: 400; font-size: 11.5px; line-height: 1.5; letter-spacing: 0; }
+.t-button-large { font-family: var(--font-sans); font-weight: 500; font-size: 15px; line-height: 1.5; letter-spacing: 0; }
+.t-button-large-strong { font-family: var(--font-sans); font-weight: 600; font-size: 15px; line-height: 1.5; letter-spacing: 0; }
+.t-button-modal { font-family: var(--font-sans); font-weight: 500; font-size: 14.5px; line-height: 1.5; letter-spacing: 0; }
+.t-button-medium { font-family: var(--font-sans); font-weight: 500; font-size: 14px; line-height: 1.5; letter-spacing: 0; }
+.t-button-small-strong { font-family: var(--font-sans); font-weight: 600; font-size: 13px; line-height: 1.5; letter-spacing: 0; }
+.t-button-chip { font-family: var(--font-sans); font-weight: 500; font-size: 15px; line-height: 1.5; letter-spacing: 0; }
+.t-mono-price { font-family: var(--font-mono); font-weight: 600; font-size: 62px; line-height: 1; letter-spacing: -0.045em; }
+.t-mono-price-free { font-family: var(--font-mono); font-weight: 600; font-size: 56px; line-height: 1; letter-spacing: -0.04em; }
+.t-mono-stat { font-family: var(--font-mono); font-weight: 600; font-size: 40px; line-height: 1; letter-spacing: -0.04em; }
+.t-mono-stat-small { font-family: var(--font-mono); font-weight: 600; font-size: 28px; line-height: 1; letter-spacing: -0.03em; }
+.t-mono-plan-label { font-family: var(--font-mono); font-weight: 600; font-size: 12px; line-height: 1.5; letter-spacing: 0.14em; text-transform: uppercase; }
+.t-mono-unit { font-family: var(--font-mono); font-weight: 500; font-size: 12px; line-height: 1.5; letter-spacing: 0.08em; text-transform: uppercase; }
+.t-mono-counter { font-family: var(--font-mono); font-weight: 400; font-size: 13px; line-height: 1.5; letter-spacing: 0; }
+.t-mono-12 { font-family: var(--font-mono); font-weight: 400; font-size: 12px; line-height: 1.5; letter-spacing: 0; }
+.t-mono-12-medium { font-family: var(--font-mono); font-weight: 500; font-size: 12px; line-height: 1.5; letter-spacing: 0; }
+.t-mono-11-5 { font-family: var(--font-mono); font-weight: 400; font-size: 11.5px; line-height: 1.5; letter-spacing: 0; }
+.t-mono-11-5-semibold { font-family: var(--font-mono); font-weight: 600; font-size: 11.5px; line-height: 1.5; letter-spacing: 0; }
+.t-mono-11 { font-family: var(--font-mono); font-weight: 400; font-size: 11px; line-height: 1.5; letter-spacing: 0; }
+.t-mono-11-medium { font-family: var(--font-mono); font-weight: 500; font-size: 11px; line-height: 1.5; letter-spacing: 0; }
+.t-mono-11-semibold { font-family: var(--font-mono); font-weight: 600; font-size: 11px; line-height: 1.47; letter-spacing: 0; }
+@media (max-width: 1023px) {
+  .t-display-hero { font-size: 42px; }
+  .t-display-hero-mono { font-size: 42px; }
+  .t-display-showcase { font-size: 57.6px; }
+  .t-display-page-h1 { font-size: 40px; }
+  .t-display-wordmark { font-size: 93.6px; }
+  .t-heading-section-caps { font-size: 29.2px; }
+  .t-heading-section { font-size: 29.2px; }
+  .t-label-chip-title { font-size: 20px; }
+  .t-heading-cta { font-size: 26px; }
+  .t-heading-h3 { font-size: 18px; }
+  .t-heading-h3-regular { font-size: 18px; }
+  .t-heading-eyebrow { font-size: 16px; }
+  .t-heading-solution { font-size: 22px; }
+  .t-heading-modal { font-size: 26px; }
+  .t-heading-legal-h2 { font-size: 18px; }
+  .t-heading-auth { font-size: 26px; }
+  .t-label-card-title { font-size: 13px; }
+  .t-body-legal-lead { font-size: 17px; }
+  .t-body-legal { font-size: 15px; }
+  .t-mono-price { font-size: 48px; }
+  .t-mono-price-free { font-size: 44px; }
+}
+@media (max-width: 767px) {
+  .t-display-hero { font-size: 36px; }
+  .t-display-hero-mono { font-size: 36px; }
+  .t-display-showcase { font-size: 40px; }
+  .t-display-page-h1 { font-size: 36px; }
+  .t-display-wordmark { font-size: 44.46px; }
+  .t-heading-section-caps { font-size: 28px; }
+  .t-heading-section { font-size: 28px; }
+}

@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kitchen Display</title>
+<link rel="icon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;800&family=Roboto+Mono:wght@400;500;700&family=Inter+Tight:wght@800;900&display=swap" rel="stylesheet">
+<style>
+  :root { --hl-grey: #5a5a5c; --hl-red: #ff2e3b; --ok: #12b76a; --warn: #f5a524; --late: #ff4d5a; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: #000; overflow: hidden; }
+  body { font-family: 'Roboto', system-ui, sans-serif; color: #fafafa; -webkit-font-smoothing: antialiased; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  button:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+  .mi { display: inline-block; flex: none; width: 20px; height: 20px; background: currentColor;
+    -webkit-mask: var(--ic) center / contain no-repeat; mask: var(--ic) center / contain no-repeat; }
+  .mono { font-family: 'Roboto Mono', monospace; }
+
+  /* the same 1920×1080 artboard and backdrop as the POS */
+  #stage { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; overflow: hidden; transform-origin: 0 0; background: #000; }
+  .orbs { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+  .orb { position: absolute; border-radius: 50%; filter: blur(80px); }
+  .orb-1 { width: 880px; height: 880px; left: -190px; top: -270px; background: radial-gradient(circle, rgba(227,27,30,.45), rgba(227,27,30,0) 68%); animation: orb-a 38s ease-in-out infinite alternate; }
+  .orb-2 { width: 1000px; height: 1000px; right: -310px; bottom: -380px; background: radial-gradient(circle, rgba(140,12,24,.55), rgba(140,12,24,0) 68%); animation: orb-b 46s ease-in-out infinite alternate; }
+  .orb-3 { width: 650px; height: 650px; right: 150px; top: -115px; background: radial-gradient(circle, rgba(170,180,200,.16), rgba(170,180,200,0) 68%); }
+  @keyframes orb-a { to { transform: translate3d(420px, 195px, 0) scale(1.15); } }
+  @keyframes orb-b { to { transform: translate3d(-500px, -150px, 0) scale(.9); } }
+  .dots { position: absolute; inset: 0; pointer-events: none; background-image: radial-gradient(rgba(250,250,250,.07) 1px, transparent 1.2px); background-size: 28px 28px;
+    -webkit-mask-image: radial-gradient(75% 65% at 50% 40%, #000, transparent); mask-image: radial-gradient(75% 65% at 50% 40%, #000, transparent); }
+
+  /* header */
+  .k-head { position: absolute; left: 28px; right: 28px; top: 0; height: 120px; display: flex; align-items: center; gap: 28px; }
+  .k-head::after { content: ""; position: absolute; left: -28px; right: -28px; bottom: 0; height: 1px; background: rgba(255,255,255,.1); }
+  .k-logo img { height: 40px; display: block; }
+  .k-title { font: 800 40px/44px 'Inter Tight', sans-serif; text-transform: uppercase; letter-spacing: -.035em; word-spacing: .08em; color: var(--hl-grey); white-space: nowrap; }
+  .k-title em { font-style: normal; color: var(--hl-red); text-shadow: 0 0 30px rgba(255,46,59,.25); }
+  .seg { display: flex; gap: 4px; padding: 4px; border-radius: 8px;
+    background: linear-gradient(150deg, rgba(255,255,255,.12) 0%, rgba(255,255,255,.045) 42%, rgba(255,255,255,.02) 100%);
+    -webkit-backdrop-filter: blur(30px) saturate(1.7); backdrop-filter: blur(30px) saturate(1.7);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.2), inset 0 0 0 1px rgba(255,255,255,.07), 0 18px 40px -12px rgba(0,0,0,.55); }
+  .seg button { height: 48px; padding: 0 18px; border-radius: 8px; display: flex; align-items: center; gap: 9px; font-size: 17px; font-weight: 600; color: rgba(250,250,250,.6); transition: background .25s, color .25s; }
+  .seg button small { font: 500 13px 'Roboto Mono', monospace; color: rgba(250,250,250,.45); }
+  .seg button:hover { color: #fff; }
+  .seg button.on { color: #fff; background: linear-gradient(180deg, rgba(255,255,255,.2), rgba(255,255,255,.08));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.3), inset 0 0 0 1px rgba(255,255,255,.1), 0 6px 14px -6px rgba(0,0,0,.6); }
+  .seg button.on small { color: rgba(250,250,250,.8); }
+  .k-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+  .k-stat { font-size: 15px; color: rgba(250,250,250,.55); white-space: nowrap; }
+  .k-stat b { font: 600 15px 'Roboto Mono', monospace; color: rgba(250,250,250,.9); }
+  .k-clock { font: 500 34px 'Roboto Mono', monospace; letter-spacing: -.5px; color: #fafafa; min-width: 110px; text-align: right; }
+  .k-link { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: rgba(250,250,250,.5); white-space: nowrap; }
+  .k-link i { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+  .k-link.off i { background: #94a3b8; box-shadow: none; }
+
+  /* glass buttons, as in the POS: clear for secondary, red glass with a lit rim for the main action */
+  .btn { position: relative; overflow: hidden; isolation: isolate; height: 48px; padding: 0 18px; border-radius: 8px; flex: none;
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px; font-size: 16px; font-weight: 600; color: #fafafa;
+    background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.035) 52%, rgba(255,255,255,.07));
+    -webkit-backdrop-filter: blur(20px) saturate(1.6); backdrop-filter: blur(20px) saturate(1.6);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.16), inset 0 1.5px 0 rgba(255,255,255,.3), 0 10px 22px -14px rgba(0,0,0,.6);
+    transition: background .3s, box-shadow .3s, transform .15s, opacity .2s; }
+  .btn::before { content: ""; position: absolute; inset: 2px 2px 50% 2px; z-index: -1; pointer-events: none; border-radius: 6px 6px 3px 3px;
+    background: linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,0)); }
+  .btn:hover { transform: translateY(-1px); background: linear-gradient(180deg, rgba(255,255,255,.17), rgba(255,255,255,.05) 52%, rgba(255,255,255,.1)); }
+  .btn:active { transform: translateY(1px) scale(.985); }
+  .btn:disabled { opacity: .35; pointer-events: none; }
+  .btn .mi { width: 20px; height: 20px; }
+  .btn.icon { width: 48px; padding: 0; }
+  .btn.red { color: #fff; text-shadow: 0 0 8px rgba(255,46,59,.5), 0 1px 1px rgba(90,0,8,.4);
+    background: linear-gradient(180deg, rgba(255,70,82,.46) 0%, rgba(255,46,59,.24) 52%, rgba(255,46,59,.36) 100%);
+    -webkit-backdrop-filter: blur(20px) saturate(1.9) brightness(1.1); backdrop-filter: blur(20px) saturate(1.9) brightness(1.1);
+    box-shadow: inset 0 0 0 1.5px rgba(255,46,59,.95), inset 0 1.5px 0 rgba(255,215,219,.75), inset 0 0 24px rgba(255,46,59,.38),
+      inset 0 -16px 20px -10px rgba(255,46,59,.55), 0 0 18px -8px rgba(255,46,59,.35), 0 10px 22px -14px rgba(255,46,59,.4); }
+  .btn.red::before { border-radius: 6px 6px 14px 14px / 6px 6px 6px 6px; background: linear-gradient(180deg, rgba(255,255,255,.3), rgba(255,255,255,.04)); }
+  .btn.red:hover { background: linear-gradient(180deg, rgba(255,80,92,.52) 0%, rgba(255,46,59,.26) 52%, rgba(255,46,59,.4) 100%); }
+  .btn.green { color: #eafff3; text-shadow: 0 0 8px rgba(18,183,106,.5);
+    background: linear-gradient(180deg, rgba(40,210,130,.42) 0%, rgba(18,183,106,.2) 52%, rgba(18,183,106,.32) 100%);
+    box-shadow: inset 0 0 0 1.5px rgba(18,183,106,.9), inset 0 1.5px 0 rgba(200,255,225,.6), inset 0 0 22px rgba(18,183,106,.3), 0 10px 22px -14px rgba(18,183,106,.45); }
+
+  /* body: the all-day list, the tickets, the pass */
+  .k-body { position: absolute; left: 28px; right: 28px; top: 144px; bottom: 28px; display: flex; gap: 28px; }
+  .lane-h { flex: none; display: flex; align-items: center; gap: 10px; padding: 0 4px 14px; font-size: 16px; font-weight: 600; box-shadow: inset 0 -1px 0 rgba(255,255,255,.1); }
+  .lane-h i { width: 10px; height: 10px; border-radius: 50%; background: var(--c, #94a3b8); box-shadow: 0 0 10px var(--c, #94a3b8); }
+  .lane-h em { font-style: normal; font-weight: 400; font-size: 13px; color: rgba(250,250,250,.45); }
+  .lane-h small { margin-left: auto; font: 600 14px 'Roboto Mono', monospace; color: rgba(250,250,250,.7); }
+  .allday { width: 250px; flex: none; display: flex; flex-direction: column; min-height: 0; }
+  .allday ul { list-style: none; overflow-y: auto; scrollbar-width: thin; padding-top: 6px; }
+  .allday li { display: flex; align-items: baseline; gap: 12px; padding: 10px 4px; font-size: 16px; color: rgba(250,250,250,.8); box-shadow: inset 0 -1px 0 rgba(255,255,255,.05); }
+  .allday li b { width: 34px; flex: none; font: 700 20px 'Roboto Mono', monospace; color: #fafafa; }
+  .allday li span { flex: 1; min-width: 0; }
+  .allday .none { padding: 18px 4px; font-size: 14px; color: rgba(250,250,250,.4); }
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; min-height: 0; }
+  .grid { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; padding: 16px 2px 6px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-content: start; align-items: start; gap: 18px; }
+  .pass { width: 360px; flex: none; display: flex; flex-direction: column; min-height: 0; --c: var(--ok); }
+  .pass .list { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; padding: 16px 2px 6px; display: flex; flex-direction: column; gap: 14px; }
+  .empty { grid-column: 1 / -1; padding: 140px 20px; text-align: center; font-size: 17px; color: rgba(250,250,250,.45); }
+  .empty b { display: block; margin-bottom: 8px; font: 800 30px 'Inter Tight', sans-serif; text-transform: uppercase; letter-spacing: -.03em; color: var(--hl-grey); }
+  .empty b em { font-style: normal; color: var(--hl-red); }
+
+  /* a ticket: one frosted pane, the age as a lit strip on top (green, amber, red) */
+  .kt { --age: var(--ok); position: relative; overflow: hidden; isolation: isolate; border-radius: 10px; display: flex; flex-direction: column;
+    background: linear-gradient(150deg, rgba(255,255,255,.12) 0%, rgba(255,255,255,.045) 42%, rgba(255,255,255,.02) 100%);
+    -webkit-backdrop-filter: blur(30px) saturate(1.7); backdrop-filter: blur(30px) saturate(1.7);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.2), inset 0 0 0 1px rgba(255,255,255,.07), inset 0 -16px 30px rgba(0,0,0,.18), 0 18px 40px -12px rgba(0,0,0,.55); }
+  .kt::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: var(--age); box-shadow: 0 0 18px var(--age); }
+  .kt.amber { --age: var(--warn); } .kt.late { --age: var(--late); }
+  .kt.late { box-shadow: inset 0 1px 0 rgba(255,255,255,.2), inset 0 0 0 1.5px rgba(255,77,90,.5), inset 0 -16px 30px rgba(0,0,0,.18), 0 18px 40px -12px rgba(0,0,0,.55); animation: late 2s ease-in-out infinite; }
+  @keyframes late { 50% { box-shadow: inset 0 1px 0 rgba(255,255,255,.2), inset 0 0 0 1.5px rgba(255,77,90,.2), 0 0 30px -8px rgba(255,77,90,.5); } }
+  .kt.fresh { animation: drop .6s cubic-bezier(.3,1.35,.45,1); }
+  @keyframes drop { from { opacity: 0; transform: translateY(-24px) scale(.96); } }
+  .kt-h { display: flex; align-items: flex-start; gap: 12px; padding: 20px 20px 12px; }
+  .kt-h > div { flex: 1; min-width: 0; }
+  .kt-h h3 { font: 800 28px/30px 'Inter Tight', sans-serif; text-transform: uppercase; letter-spacing: -.03em; color: #fafafa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .kt-h small { display: block; margin-top: 5px; font-size: 14px; color: rgba(250,250,250,.5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .kt-h .tm { font: 700 28px 'Roboto Mono', monospace; letter-spacing: -.5px; color: var(--age); }
+  .kt-tags { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 20px 12px; }
+  .tag { --c: #94a3b8; display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: 6px; font-size: 13px; font-weight: 600; white-space: nowrap; color: var(--c);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--c) 22%, transparent), color-mix(in srgb, var(--c) 10%, transparent));
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 30%, transparent), inset 0 1px 0 rgba(255,255,255,.12); }
+  .tag i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 6px currentColor; }
+  .tag.glovo { --c: #ffc244; } .tag.blue { --c: #4c8dff; } .tag.amber { --c: var(--warn); } .tag.green { --c: var(--ok); } .tag.red { --c: var(--late); }
+  .kt ul { list-style: none; padding: 4px 0 6px; }
+  .kt li { display: flex; align-items: flex-start; gap: 14px; padding: 11px 20px; cursor: pointer; box-shadow: inset 0 1px 0 rgba(255,255,255,.05); transition: background .15s, opacity .2s; }
+  .kt li:hover { background: rgba(255,255,255,.04); }
+  .kt li .q { width: 34px; flex: none; font: 700 22px/26px 'Roboto Mono', monospace; color: #fafafa; }
+  .kt li .n { flex: 1; min-width: 0; font-size: 19px; line-height: 26px; font-weight: 500; }
+  .kt li .n small { display: block; font-size: 15px; line-height: 20px; font-weight: 600; }
+  .kt li .n small.m-red { color: #ff6b75; } .kt li .n small.m-green { color: #34d399; } .kt li .n small:not([class]) { color: rgba(250,250,250,.55); }
+  .kt li .st { margin-top: 3px; font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: rgba(250,250,250,.4); }
+  .kt li.done { opacity: .38; }
+  .kt li.done .n { text-decoration: line-through; text-decoration-thickness: 2px; }
+  .kt li.done .q::before { content: "✓ "; color: var(--ok); font-size: 16px; }
+  .kt li.other { display: none; }
+  .kt-f { display: flex; gap: 10px; padding: 12px 20px 20px; margin-top: auto; }
+  .kt-f .btn { flex: 1; height: 56px; font-size: 17px; }
+
+  /* the pass: tickets waiting for a runner, compact */
+  .kr { position: relative; overflow: hidden; isolation: isolate; border-radius: 10px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px;
+    background: linear-gradient(150deg, rgba(18,183,106,.18) 0%, rgba(18,183,106,.05) 45%, rgba(255,255,255,.02) 100%);
+    -webkit-backdrop-filter: blur(30px) saturate(1.7); backdrop-filter: blur(30px) saturate(1.7);
+    box-shadow: inset 0 1px 0 rgba(200,255,225,.25), inset 0 0 0 1px rgba(18,183,106,.35), 0 14px 30px -12px rgba(0,0,0,.55); }
+  .kr .top { display: flex; align-items: baseline; gap: 10px; }
+  .kr h4 { flex: 1; min-width: 0; font: 800 22px/26px 'Inter Tight', sans-serif; text-transform: uppercase; letter-spacing: -.03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .kr .top b { font: 600 16px 'Roboto Mono', monospace; color: #6ee7b7; }
+  .kr p { font-size: 14px; line-height: 1.5; color: rgba(250,250,250,.65); }
+  .kr .btn { height: 48px; }
+  .pass .none { padding: 30px 6px; font-size: 14px; color: rgba(250,250,250,.4); }
+
+  /* start screen: a tap unlocks the sound (browsers need one) */
+  .gate { position: absolute; inset: 0; z-index: 50; display: grid; place-items: center; background: rgba(0,0,0,.55); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); }
+  .gate[hidden] { display: none; }
+  .gate-card { width: 620px; padding: 40px; border-radius: 16px; display: flex; flex-direction: column; align-items: center; gap: 18px; text-align: center;
+    background: linear-gradient(150deg, rgba(255,255,255,.14) 0%, rgba(255,255,255,.05) 42%, rgba(255,255,255,.025) 100%), rgba(20,20,22,.6);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.26), inset 0 0 0 1px rgba(255,255,255,.1), 0 40px 80px -20px rgba(0,0,0,.8); }
+  .gate-card img { height: 48px; }
+  .gate-card h1 { font: 800 46px/50px 'Inter Tight', sans-serif; text-transform: uppercase; letter-spacing: -.035em; color: var(--hl-grey); }
+  .gate-card h1 em { font-style: normal; color: var(--hl-red); }
+  .gate-card p { font-size: 17px; line-height: 1.5; color: rgba(250,250,250,.65); }
+  .gate-card .btn { width: 100%; height: 64px; font-size: 19px; margin-top: 8px; }
+
+  .toast { position: absolute; left: 50%; bottom: 40px; z-index: 60; transform: translateX(-50%); padding: 14px 22px; border-radius: 10px; font-size: 18px; white-space: nowrap;
+    background: linear-gradient(150deg, rgba(255,255,255,.16), rgba(255,255,255,.06)), rgba(20,20,22,.7); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.26), inset 0 0 0 1px rgba(255,255,255,.12), 0 20px 40px -12px rgba(0,0,0,.7); transition: opacity .3s, transform .3s; }
+  .toast[hidden] { display: block; opacity: 0; transform: translate(-50%, 20px); pointer-events: none; }
+</style>
+<script src="/kds/link.js"></script>
+</head>
+<body>
+<div id="stage">
+  <div class="orbs" aria-hidden="true"><i class="orb orb-1"></i><i class="orb orb-2"></i><i class="orb orb-3"></i></div>
+  <div class="dots" aria-hidden="true"></div>
+
+  <header class="k-head">
+    <span class="k-logo"><img src="/pos/assets/logo.svg" alt="Caisse Manager"></span>
+    <h1 class="k-title">Kitchen <em>display</em></h1>
+    <nav class="seg" id="stations" aria-label="Station"></nav>
+    <div class="k-right">
+      <span class="k-stat" id="stat"></span>
+      <span class="k-link" id="link" title="Live link with the POS"><i></i>POS linked</span>
+      <button class="btn" id="recall" title="Bring back the last ticket sent to the pass"><i class="mi" style="--ic:url(/pos/assets/dine/undo.svg)"></i>Recall</button>
+      <button class="btn icon" id="sound" aria-label="Sound on" title="Sound"><i class="mi" style="--ic:url(/pos/assets/dr-sound.svg)"></i></button>
+      <button class="btn icon" id="full" aria-label="Full screen" title="Full screen"><i class="mi" style="--ic:url(/pos/assets/dine/squares.svg)"></i></button>
+      <b class="k-clock" id="clock">00:00</b>
+    </div>
+  </header>
+
+  <div class="k-body">
+    <aside class="allday" aria-label="All day">
+      <div class="lane-h"><i style="--c:#4c8dff"></i>All day<em>to cook</em><small id="adN">0</small></div>
+      <ul id="allday"></ul>
+    </aside>
+    <main class="main">
+      <div class="lane-h"><i style="--c:var(--warn)"></i>On the line<em>oldest first</em><small id="lineN">0</small></div>
+      <div class="grid" id="grid"></div>
+    </main>
+    <aside class="pass" aria-label="Pass">
+      <div class="lane-h"><i></i>The pass<em>ready for a runner</em><small id="passN">0</small></div>
+      <div class="list" id="pass"></div>
+    </aside>
+  </div>
+
+  <div class="gate" id="gate">
+    <div class="gate-card">
+      <img src="/pos/assets/logo.svg" alt="">
+      <h1>Kitchen <em>display</em></h1>
+      <p>Tickets sent from the POS appear here as soon as the waiter taps Send. Tap a dish when it is done, Bump the ticket when it is on the pass.</p>
+      <button class="btn red" id="start">Start the kitchen</button>
+    </div>
+  </div>
+  <div class="toast" id="toast" hidden></div>
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id), stage = $('stage');
+  const fit = () => { stage.style.transform = `scale(${Math.min(innerWidth / 1920, innerHeight / 1080)}) translate(-50%, -50%)`; };
+  addEventListener('resize', fit); fit();
+  const esc = v => String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  const mic = n => `<i class="mi" style="--ic:url(/pos/assets/${n}.svg)"></i>`;
+  const KIND = { dine: ['Dine in', 'type-dine'], take: ['Takeaway', 'type-take'], glovo: ['Glovo', 'type-glovo'] };
+  const ST = Object.fromEntries(KDS.STATIONS);
+  const S = { station: 'all', sound: true, fresh: new Set() };
+  try { S.station = localStorage.getItem('cm-kds-station') || 'all'; S.sound = localStorage.getItem('cm-kds-sound') !== 'off'; } catch (e) {}
+
+  /* sound: a two-note bell for a new ticket, a lower one for a recall */
+  let ac = null;
+  const tone = (f, d, t = 'triangle', v = .05, at = 0) => { if (!ac || !S.sound) return; const o = ac.createOscillator(), g = ac.createGain(), s = ac.currentTime + at;
+    o.type = t; o.frequency.value = f; g.gain.setValueAtTime(v, s); g.gain.exponentialRampToValueAtTime(.0001, s + d); o.connect(g).connect(ac.destination); o.start(s); o.stop(s + d); };
+  const bell = () => { tone(1046, .25); tone(1568, .4, 'triangle', .05, .14); };
+  let toastT;
+  const say = m => { const t = $('toast'); t.textContent = m; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 3200); };
+
+  const age = t => Math.max(0, Math.floor((Date.now() - t.at) / 1000));
+  const mmss = s => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+  const ageCls = t => { const m = age(t) / 60; return m >= 15 ? 'late' : m >= 8 ? 'amber' : ''; };
+  const mine = it => S.station === 'all' || it.station === S.station;
+  const where = t => t.where;
+
+  function render() {
+    const L = KDS.load(), line = L.filter(t => t.status === 'new' || t.status === 'cooking').sort((a, b) => a.at - b.at);
+    const pass = L.filter(t => t.status === 'ready').sort((a, b) => a.readyAt - b.readyAt);
+    // stations with something left to cook
+    const left = st => line.reduce((n, t) => n + t.items.filter(i => !i.done && (st === 'all' || i.station === st)).reduce((a, i) => a + i.qty, 0), 0);
+    $('stations').innerHTML = [['all', 'All'], ...KDS.STATIONS].map(([k, n]) => `<button class="${k === S.station ? 'on' : ''}" data-st="${k}">${n}<small>${left(k)}</small></button>`).join('');
+    const shown = line.filter(t => t.items.some(mine));
+    $('grid').innerHTML = shown.map(t => {
+      const k = KIND[t.kind] || KIND.dine, done = t.items.filter(i => i.done).length;
+      return `<article class="kt ${ageCls(t)} ${S.fresh.has(t.id) ? 'fresh' : ''}" data-id="${t.id}">
+        <div class="kt-h"><div><h3>${esc(where(t))}</h3><small>#${t.no} · ${esc(t.course)}${t.covers > 1 ? ` · ${t.covers} guests` : ''}${t.name ? ' · ' + esc(t.name) : ''} · ${esc(t.by || '')}</small></div><b class="tm" data-at="${t.at}">${mmss(age(t))}</b></div>
+        <div class="kt-tags"><span class="tag ${t.kind === 'glovo' ? 'glovo' : ''}">${k[0]}</span>${t.status === 'new' ? '<span class="tag blue"><i></i>New</span>' : `<span class="tag amber"><i></i>Cooking ${done}/${t.items.length}</span>`}${t.rush ? '<span class="tag red"><i></i>Rush</span>' : ''}${t.recalled ? '<span class="tag red">Recalled</span>' : ''}</div>
+        <ul>${t.items.map((i, n) => `<li class="${i.done ? 'done' : ''} ${mine(i) ? '' : 'other'}" data-i="${n}"><span class="q">${i.qty}</span>
+          <span class="n">${esc(i.name)}${(i.mods || []).map(([m, c]) => `<small${c ? ` class="${c}"` : ''}>${esc(m)}</small>`).join('')}</span><span class="st">${ST[i.station] || ''}</span></li>`).join('')}</ul>
+        <div class="kt-f">${t.status === 'new' ? `<button class="btn" data-a="start">${mic('nav-pending')}Start</button>` : ''}
+          <button class="btn red" data-a="bump">${mic('dine/check')}${S.station === 'all' || t.items.every(i => mine(i) || i.done) ? 'Bump to pass' : `Bump ${ST[S.station]}`}</button></div></article>`;
+    }).join('') || `<div class="empty"><b>Nothing on the <em>line</em></b>${line.length ? `No dish for ${ST[S.station]} right now.` : 'Tickets sent from the POS land here.'}</div>`;
+    $('pass').innerHTML = pass.map(t => `<div class="kr" data-id="${t.id}"><div class="top"><h4>${esc(where(t))}</h4><b data-ready="${t.readyAt}">${mmss(Math.floor((Date.now() - t.readyAt) / 1000))}</b></div>
+        <p>${esc(t.course)} · ${t.items.map(i => `${i.qty}× ${esc(i.name)}`).join(', ')}</p><button class="btn green" data-a="serve">${mic('dine/check')}Picked up</button></div>`).join('')
+      || '<div class="none">Nothing waiting. Bumped tickets wait here for a runner.</div>';
+    // all day: every dish still to cook, totalled across the line
+    const all = {};
+    line.forEach(t => t.items.forEach(i => { if (!i.done && mine(i)) all[i.name] = (all[i.name] || 0) + i.qty; }));
+    const rows = Object.entries(all).sort((a, b) => b[1] - a[1]);
+    $('allday').innerHTML = rows.map(([n, q]) => `<li><b>${q}</b><span>${esc(n)}</span></li>`).join('') || '<li class="none">All cooked.</li>';
+    $('adN').textContent = rows.reduce((a, r) => a + r[1], 0); $('lineN').textContent = shown.length; $('passN').textContent = pass.length;
+    const avg = line.length ? Math.round(line.reduce((a, t) => a + age(t), 0) / line.length) : 0;
+    $('stat').innerHTML = `<b>${line.length}</b> on the line · average <b>${mmss(avg)}</b>`;
+    $('recall').disabled = !L.some(t => t.status === 'ready' || t.status === 'served');
+    S.fresh.clear();
+  }
+  // every second: clocks and the age colour only, so taps are never lost to a redraw
+  function tick() {
+    const d = new Date(); $('clock').textContent = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    document.querySelectorAll('.kt').forEach(el => { const at = +el.querySelector('.tm').dataset.at, s = Math.floor((Date.now() - at) / 1000), m = s / 60;
+      el.querySelector('.tm').textContent = mmss(s); el.classList.toggle('amber', m >= 8 && m < 15); el.classList.toggle('late', m >= 15); });
+    document.querySelectorAll('.kr [data-ready]').forEach(b => { b.textContent = mmss(Math.floor((Date.now() - +b.dataset.ready) / 1000)); });
+  }
+  setInterval(tick, 1000);
+
+  // the other side wrote: redraw, ring for a new ticket
+  KDS.on((list, why, me) => {
+    if (!me && why === 'new') { const t = list[list.length - 1]; if (t) { S.fresh.add(t.id); bell(); say(`New ticket: ${t.where} · ${t.course}`); } }
+    render();
+  });
+
+  $('stations').addEventListener('click', e => { const b = e.target.closest('[data-st]'); if (!b) return; S.station = b.dataset.st; try { localStorage.setItem('cm-kds-station', S.station); } catch (er) {} render(); });
+  $('grid').addEventListener('click', e => {
+    const card = e.target.closest('.kt'); if (!card) return;
+    const id = card.dataset.id, li = e.target.closest('li'), a = e.target.closest('[data-a]')?.dataset.a;
+    KDS.edit(L => {
+      const t = L.find(x => x.id === id); if (!t) return;
+      if (li) { const it = t.items[+li.dataset.i]; it.done = !it.done; }
+      if (a === 'start') { t.status = 'cooking'; t.startedAt = Date.now(); }
+      if (a === 'bump') t.items.forEach(i => { if (mine(i)) i.done = true; });
+      if (li || a === 'bump') { if (t.status === 'new') { t.status = 'cooking'; t.startedAt = Date.now(); }
+        if (t.items.every(i => i.done)) { t.status = 'ready'; t.readyAt = Date.now(); delete t.recalled; tone(660, .12); tone(990, .2, 'triangle', .05, .1); say(`${t.where} · ${t.course} is on the pass.`); } }
+    }, a === 'bump' || li ? 'bump' : a || 'sync');
+  });
+  $('pass').addEventListener('click', e => {
+    const b = e.target.closest('[data-a="serve"]'); if (!b) return;
+    const id = b.closest('.kr').dataset.id;
+    KDS.edit(L => { const t = L.find(x => x.id === id); if (t) { t.status = 'served'; t.servedAt = Date.now(); } }, 'serve');
+  });
+  $('recall').addEventListener('click', () => {
+    KDS.edit(L => {
+      const t = L.filter(x => x.status === 'ready' || x.status === 'served').sort((a, b) => (b.servedAt || b.readyAt) - (a.servedAt || a.readyAt))[0]; if (!t) return;
+      t.status = 'cooking'; t.recalled = true; t.items.forEach(i => i.done = false); delete t.readyAt; delete t.servedAt;
+      tone(520, .2); say(`${t.where} · ${t.course} recalled to the line.`);
+    }, 'recall');
+  });
+  $('sound').addEventListener('click', () => { S.sound = !S.sound; try { localStorage.setItem('cm-kds-sound', S.sound ? 'on' : 'off'); } catch (e) {}
+    $('sound').innerHTML = mic(S.sound ? 'dr-sound' : 'dr-mute'); $('sound').setAttribute('aria-label', S.sound ? 'Sound on' : 'Sound off'); if (S.sound) bell(); });
+  $('sound').innerHTML = mic(S.sound ? 'dr-sound' : 'dr-mute');
+  $('full').addEventListener('click', () => { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.(); });
+  $('start').addEventListener('click', () => { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} bell(); $('gate').hidden = true; });
+  if (!('BroadcastChannel' in window)) $('link').classList.add('off');
+  render(); tick();
+})();
+</script>
+</body>
+</html>

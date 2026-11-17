@@ -1,0 +1,661 @@
+/*
+ * POS v3 design system, applied to the Command Center (v2). Loaded last: it overrides pos-theme.css and pos-login.css.
+ * Ported from public/pos-v3/index.html; the names match the POS v3 stylesheet (--gl-*, --ice-*, --spring, --rise, --hl-*).
+ *
+ *  - Roboto for text, Roboto Mono for figures, Inter Tight 800 (all caps, tight) for headlines: grey words, one red word.
+ *  - Surfaces are glass: an ice-tinted fill over a strong blur, a bright edge on the top, a long soft shadow. No hard borders.
+ *  - Buttons: ice glass for the normal ones, lit red glass for the one main action. 8px corners on every control and card.
+ *  - Ice blue is the light (glass, hover, focus ring); red is the brand and the chosen state.
+ *  - Motion: spring and rise curves, a small press (scale .96), nothing that blocks.
+ *  - Dark is the POS. Light keeps the same shapes on white glass.
+ *
+ * Every override carries ':root:root' so it outranks the earlier theme files without !important.
+ */
+
+/* ───────────────────────── 1. Tokens ───────────────────────── */
+:root,
+:root[data-theme='dark'],
+:root[data-theme='light'] {
+  --ice: #8fcdff;
+  --ice-rgb: 143, 205, 255;
+  --ice-hi: 205, 232, 255;
+  --ice-deep: #4fa3f7;
+  --ice-deep-rgb: 79, 163, 247;
+
+  --spring: cubic-bezier(0.3, 1.35, 0.45, 1);
+  --pos-spring: cubic-bezier(0.3, 1.35, 0.45, 1);
+  --rise: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --pos-red: #e02d3c;
+  --hl-red: #ff2e3b;
+  --accent2: var(--ice); /* live data, gauges, telemetry: the POS v3 ice blue (deeper on white) */
+  --r: 8px;
+
+  --font-display: 'Inter Tight', 'IBM Plex Sans Arabic', 'Roboto', sans-serif;
+  --cm-font-mono: 'Roboto Mono', ui-monospace, Menlo, monospace;
+  --font-mono: 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* every control and card: 8px (avatars and dots stay round) */
+  --radius-sm: 8px;
+  --radius-md: 8px;
+  --radius-lg: 8px;
+  --radius-xl: 8px;
+  --radius-2xl: 8px;
+  --radius-3xl: 8px;
+  --radius-pill: 8px;
+  --radius: 8px;
+  --cm-radius-sm: 8px;
+  --cm-radius-md: 8px;
+  --cm-radius-lg: 8px;
+  --cm-radius-xl: 8px;
+}
+
+/* dark: the POS v3 glass (ice blue). The command banner and the sign-in screen stay dark in the light theme too, so they take these as well. */
+:root[data-theme='dark'],
+:root[data-theme='light'] .command-card,
+:root[data-theme='light'] .lo {
+  --hl-grey: #fafafa; /* the headline words: white; one word is red */
+  --hl-ink: #fafafa;
+
+  --gl-fill: linear-gradient(140deg, rgba(var(--ice-hi), 0.3) 0%, rgba(var(--ice-rgb), 0.1) 46%, rgba(var(--ice-hi), 0.18) 100%);
+  --gl-fill-hi: linear-gradient(140deg, rgba(var(--ice-hi), 0.4) 0%, rgba(var(--ice-rgb), 0.15) 46%, rgba(var(--ice-hi), 0.26) 100%);
+  --gl-fill-soft: linear-gradient(140deg, rgba(var(--ice-hi), 0.22) 0%, rgba(var(--ice-rgb), 0.07) 46%, rgba(var(--ice-hi), 0.14) 100%);
+  --gl-edge: inset 0 1px 0 rgba(255, 255, 255, 0.55), inset 0 0 0 1px rgba(var(--ice-hi), 0.36), inset 0 -14px 22px -12px rgba(var(--ice-rgb), 0.3);
+  --gl-edge-hi: inset 0 1px 0 rgba(255, 255, 255, 0.72), inset 0 0 0 1px rgba(var(--ice-hi), 0.52), inset 0 -14px 22px -12px rgba(var(--ice-rgb), 0.4);
+  --gl-drop: 0 10px 26px -10px rgba(0, 0, 0, 0.5), 0 0 22px -10px rgba(var(--ice-rgb), 0.3);
+  --gl-blur: blur(26px) saturate(1.55);
+
+  /* cards: the frosted station-card glass */
+  --gl-card: linear-gradient(150deg, rgba(var(--ice-rgb), 0.14) 0%, rgba(255, 255, 255, 0.05) 42%, rgba(255, 255, 255, 0.025) 100%);
+  --gl-card-hi: linear-gradient(150deg, rgba(var(--ice-rgb), 0.2) 0%, rgba(255, 255, 255, 0.08) 40%, rgba(255, 255, 255, 0.04) 100%);
+  --gl-card-edge: inset 0 1px 0 rgba(var(--ice-hi), 0.24), inset 0 0 0 1px rgba(var(--ice-hi), 0.08), inset 0 -16px 30px rgba(0, 0, 0, 0.2), 0 18px 40px rgba(0, 0, 0, 0.5);
+  --gl-card-edge-hi: inset 0 1px 0 rgba(var(--ice-hi), 0.4), inset 0 0 0 1px rgba(var(--ice-hi), 0.16), inset 0 -16px 30px rgba(0, 0, 0, 0.18), 0 22px 46px rgba(0, 0, 0, 0.55);
+  --gl-card-blur: blur(34px) saturate(1.7);
+  --gl-sheet: linear-gradient(165deg, rgba(var(--ice-rgb), 0.12), rgba(var(--ice-rgb), 0.03) 40%, rgba(var(--ice-rgb), 0) 70%), rgba(6, 10, 16, 0.86);
+  --gl-sheet-edge: inset 0 1px 0 rgba(var(--ice-hi), 0.28), inset 0 0 0 1px rgba(var(--ice-hi), 0.14), 0 0 60px -22px rgba(var(--ice-rgb), 0.4), 0 30px 60px -24px rgba(0, 0, 0, 0.7);
+  --gl-field-edge: inset 0 1px 0 rgba(255, 255, 255, 0.45), inset 0 0 0 1px rgba(var(--ice-hi), 0.28), 0 8px 22px -12px rgba(0, 0, 0, 0.5);
+  --gl-focus: 0 0 0 1.5px rgba(var(--ice-rgb), 0.55), 0 0 30px -8px rgba(var(--ice-rgb), 0.45);
+  --gl-ink: #fff;
+
+  /* the variables the earlier theme files read */
+  --pos-card: var(--gl-card);
+  --pos-card-line: rgba(var(--ice-hi), 0.08);
+  --pos-card-line-hover: rgba(var(--ice-hi), 0.28);
+  --pos-glass-btn: var(--gl-fill);
+  --pos-glass-btn-hover: var(--gl-fill-hi);
+  --pos-glass-btn-line: transparent;
+  --pos-icon-btn: var(--gl-fill-soft);
+  --pos-icon-btn-line: transparent;
+  --pos-chip: rgba(var(--ice-hi), 0.07);
+  --pos-field: rgba(var(--ice-hi), 0.08);
+  --pos-field-focus: var(--ice);
+  --pos-scrim: rgba(2, 4, 8, 0.6);
+  --pos-toast: rgba(6, 10, 16, 0.92);
+  --pos-toast-line: rgba(var(--ice-rgb), 0.3);
+  --glass: var(--gl-card);
+}
+
+/* light: white glass, the same shapes */
+:root[data-theme='light'] {
+  --accent2: var(--ice-deep);
+  --hl-grey: #0b1220; /* the headline words: ink on white; one word is red */
+  --hl-ink: #0b1220;
+
+  --gl-fill: linear-gradient(140deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.58));
+  --gl-fill-hi: linear-gradient(140deg, #ffffff, rgba(255, 255, 255, 0.82));
+  --gl-fill-soft: linear-gradient(140deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.46));
+  --gl-edge: inset 0 1px 0 #fff, inset 0 0 0 1px rgba(var(--ice-deep-rgb), 0.22), inset 0 -10px 18px -12px rgba(var(--ice-deep-rgb), 0.2);
+  --gl-edge-hi: inset 0 1px 0 #fff, inset 0 0 0 1px rgba(var(--ice-deep-rgb), 0.36), inset 0 -10px 18px -12px rgba(var(--ice-deep-rgb), 0.28);
+  --gl-drop: 0 10px 24px -12px rgba(30, 60, 100, 0.3);
+  --gl-blur: blur(26px) saturate(1.5);
+
+  --gl-card: linear-gradient(150deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.56));
+  --gl-card-hi: linear-gradient(150deg, #ffffff, rgba(255, 255, 255, 0.78));
+  --gl-card-edge: inset 0 1px 0 #fff, inset 0 0 0 1px rgba(var(--ice-deep-rgb), 0.14), 0 18px 40px -18px rgba(30, 60, 100, 0.32);
+  --gl-card-edge-hi: inset 0 1px 0 #fff, inset 0 0 0 1px rgba(var(--ice-deep-rgb), 0.26), 0 24px 48px -18px rgba(30, 60, 100, 0.4);
+  --gl-card-blur: blur(34px) saturate(1.6);
+  --gl-sheet: linear-gradient(165deg, rgba(255, 255, 255, 0.96), rgba(244, 248, 253, 0.9));
+  --gl-sheet-edge: inset 0 1px 0 #fff, inset 0 0 0 1px rgba(var(--ice-deep-rgb), 0.16), 0 30px 60px -24px rgba(30, 60, 100, 0.4);
+  --gl-field-edge: inset 0 1px 0 #fff, inset 0 0 0 1px rgba(var(--ice-deep-rgb), 0.24), 0 8px 20px -12px rgba(30, 60, 100, 0.3);
+  --gl-focus: 0 0 0 2px rgba(var(--ice-deep-rgb), 0.6), 0 0 26px -8px rgba(var(--ice-deep-rgb), 0.5);
+  --gl-ink: #0b1220;
+
+  --pos-card: var(--gl-card);
+  --pos-card-line: transparent;
+  --pos-card-line-hover: transparent;
+  --pos-glass-btn: var(--gl-fill);
+  --pos-glass-btn-hover: var(--gl-fill-hi);
+  --pos-icon-btn: var(--gl-fill-soft);
+  --pos-chip: rgba(var(--ice-deep-rgb), 0.08);
+  --pos-field: rgba(255, 255, 255, 0.6);
+  --pos-field-focus: var(--ice-deep);
+  --pos-shadow: var(--gl-drop);
+  --pos-shadow-hover: 0 16px 34px -14px rgba(30, 60, 100, 0.4);
+  --glass: var(--gl-card);
+}
+
+/* ───────────────────────── 2. Headlines: all caps, tight, white words with one red word ───────────────────────── */
+:root:root :is(.step-title, .lo-story h1, .dash-title h1, .geo-heading .step-title, .lp-head .step-title, .screen.pick .step-title) {
+  font-family: var(--font-display);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.035em;
+  word-spacing: 0.08em;
+  color: var(--hl-grey);
+}
+:root:root .lo-story h1 {
+  font-size: clamp(34px, 3.5vw, 54px);
+}
+:root:root :is(.step-title, .lo-story h1) :is(em, .lo-word:last-child, .lo-word:is(em)) {
+  font-style: normal;
+  font-weight: 800;
+  color: var(--hl-red);
+  text-shadow: 0 0 40px rgba(255, 46, 59, 0.25);
+}
+:root:root :is(.lo-story h1) .lo-word {
+  color: inherit;
+}
+:root:root .dash-title h1 {
+  color: var(--hl-ink);
+}
+/* panel titles: the same face, smaller */
+:root:root :is(.lo-panel h2, .lo-form-head h2, .lo-dialog h2, .lo-roles-head h2, .picker-head h2, .handoff-card h2, .modal h2, .lp-section-head h3) {
+  font-family: var(--font-display);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.03em;
+}
+
+/* ───────────────────────── 3. Surfaces: frosted glass cards ───────────────────────── */
+:root:root :is(.holding-card, .brand-card, .app-card, .kpi, .ind-kpi, .pair-card, .handoff-card, .geo-panel, .tile, .picker-item, .app-tile, .scope-pill, .lo-panel, .login-panel, .health-cell, .device) {
+  border: 1px solid transparent;
+  border-radius: var(--r);
+  background: var(--gl-card);
+  -webkit-backdrop-filter: var(--gl-card-blur);
+  backdrop-filter: var(--gl-card-blur);
+  box-shadow: var(--gl-card-edge);
+  transition:
+    transform 0.35s var(--spring),
+    translate 0.35s var(--spring),
+    background 0.3s,
+    box-shadow 0.3s,
+    opacity 0.4s;
+}
+:root:root :is(.holding-card, .brand-card, .app-card:not(.locked), .app-tile, .picker-item, .scope-pill):hover {
+  background: var(--gl-card-hi);
+  box-shadow: var(--gl-card-edge-hi);
+}
+/* the command banner: its photo stays; it takes the glass edge and the 8px corner */
+:root:root .command-card {
+  border: 1px solid transparent;
+  border-radius: var(--r);
+  box-shadow: inset 0 1px 0 rgba(var(--ice-hi), 0.28), inset 0 0 0 1px rgba(var(--ice-hi), 0.14), 0 30px 60px -24px rgba(0, 0, 0, 0.6);
+}
+/* sheets: dialogs, menus, toasts, popovers */
+:root:root :is(.modal, .lo-dialog, .user-menu, .picker, .crumb-pop, .toast, .geo-tip) {
+  border: 1px solid transparent;
+  border-radius: var(--r);
+  background: var(--gl-sheet);
+  -webkit-backdrop-filter: var(--gl-card-blur);
+  backdrop-filter: var(--gl-card-blur);
+  box-shadow: var(--gl-sheet-edge);
+}
+:root:root :is(.modal-scrim, .lo-scrim) {
+  background: var(--pos-scrim);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+/* ───────────────────────── 4. Buttons ───────────────────────── */
+/* the main action: lit red glass (POS v3 "Log in" / "Pay") */
+:root:root :is(.btn-primary, .lo .lo-cta, .lo-cta) {
+  position: relative;
+  border-radius: var(--r) !important;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid transparent;
+  border-radius: var(--r);
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-shadow: 0 0 8px rgba(255, 46, 59, 0.5), 0 1px 1px rgba(90, 0, 8, 0.4);
+  background: linear-gradient(180deg, rgba(255, 70, 82, 0.48) 0%, rgba(255, 46, 59, 0.26) 52%, rgba(255, 46, 59, 0.38) 100%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.9) brightness(1.1);
+  backdrop-filter: blur(20px) saturate(1.9) brightness(1.1);
+  box-shadow:
+    inset 0 0 0 1.5px rgba(255, 46, 59, 0.95),
+    inset 0 1.5px 0 rgba(255, 215, 219, 0.75),
+    inset 0 0 24px rgba(255, 46, 59, 0.38),
+    inset 0 -16px 20px -10px rgba(255, 46, 59, 0.55),
+    0 0 18px -8px rgba(255, 46, 59, 0.35),
+    0 10px 22px -14px rgba(255, 46, 59, 0.4);
+  transition:
+    transform 0.15s var(--spring),
+    background 0.25s,
+    box-shadow 0.25s,
+    opacity 0.2s;
+}
+:root:root :is(.btn-primary, .lo-cta)::before {
+  content: '';
+  position: absolute;
+  inset: 2px 2px 50% 2px;
+  z-index: -1;
+  border-radius: 6px 6px 14px 14px / 6px;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(var(--ice-rgb), 0.3), rgba(255, 255, 255, 0.04));
+}
+:root:root :is(.btn-primary, .lo-cta):hover:not(:disabled) {
+  background: linear-gradient(180deg, rgba(255, 84, 96, 0.58) 0%, rgba(255, 46, 59, 0.32) 52%, rgba(255, 46, 59, 0.46) 100%) !important;
+  transform: none;
+}
+:root:root :is(.btn-primary, .lo-cta):active:not(:disabled) {
+  transform: translateY(1px) scale(0.985);
+  box-shadow:
+    inset 0 0 0 1.5px rgba(255, 46, 59, 0.9),
+    inset 0 3px 10px rgba(120, 0, 12, 0.45),
+    inset 0 0 18px rgba(255, 46, 59, 0.3),
+    0 0 12px -8px rgba(255, 46, 59, 0.35);
+}
+:root:root :is(.btn-primary, .lo-cta):disabled {
+  opacity: 0.55;
+}
+:root[data-theme='light']:root :is(.btn-primary, .lo-cta):not(.lo *) {
+  text-shadow: none;
+  background: linear-gradient(150deg, #ff5966, #e0102a 60%, #b70a1f) !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 10px 24px -12px rgba(224, 16, 42, 0.6);
+}
+:root[data-theme='light']:root :is(.btn-primary, .lo-cta):not(.lo *):hover:not(:disabled) {
+  background: linear-gradient(150deg, #ff6b77, #ea1a33 60%, #c20c22) !important;
+}
+:root[data-theme='light']:root :is(.btn-primary, .lo-cta):not(.lo *)::before {
+  display: none;
+}
+
+/* the others: ice glass */
+:root:root :is(.btn-ghost, .btn-secondary, .lo-ghost, .lo .lo-ghost, .modal-x, .lo-x, .lo .lo-x, .lo-reveal, .lo .lo-reveal) {
+  border: 1px solid transparent;
+  border-radius: var(--r) !important;
+  color: var(--gl-ink);
+  background: var(--gl-fill);
+  -webkit-backdrop-filter: var(--gl-blur);
+  backdrop-filter: var(--gl-blur);
+  box-shadow: var(--gl-edge), var(--gl-drop);
+  transition:
+    transform 0.15s var(--spring),
+    background 0.25s,
+    box-shadow 0.25s;
+}
+:root:root :is(.btn-ghost, .btn-secondary, .lo-ghost, .modal-x, .lo-x, .lo-reveal):hover:not(:disabled) {
+  background: var(--gl-fill-hi);
+  box-shadow: var(--gl-edge-hi), var(--gl-drop);
+}
+:root:root :is(.btn-ghost, .btn-secondary, .lo-ghost, .modal-x, .lo-x, .lo-reveal):active:not(:disabled) {
+  transform: scale(0.96);
+}
+:root:root .btn-ghost.danger:hover:not(:disabled) {
+  color: #fff;
+  background: linear-gradient(180deg, rgba(255, 70, 82, 0.4), rgba(255, 46, 59, 0.22));
+  box-shadow: inset 0 0 0 1.5px rgba(255, 46, 59, 0.8), inset 0 1.5px 0 rgba(255, 215, 219, 0.6), 0 0 18px -8px rgba(255, 46, 59, 0.5);
+}
+/* text-only actions stay plain, with an ice hover */
+:root:root :is(.lo-link, .lo .lo-link, .lo-text-btn, .lo-demo, .lo .lo-demo) {
+  transition: color 0.2s, opacity 0.2s;
+}
+:root:root :is(.lo-link, .lo-text-btn, .lo-demo):hover {
+  color: var(--ice);
+}
+:root[data-theme='light']:root :is(.lo-link, .lo-text-btn, .lo-demo):hover {
+  color: var(--ice-deep);
+}
+
+/* ───────────────────────── 5. Fields and search: soft glass, ice focus ───────────────────────── */
+:root:root :is(.field input, .lo-float input, .lo .lo-float input, .search, .lp-search, .picker .search, .pair-input) {
+  border: 0;
+  border-radius: var(--r);
+  background: var(--gl-fill-soft);
+  -webkit-backdrop-filter: var(--gl-blur);
+  backdrop-filter: var(--gl-blur);
+  box-shadow: var(--gl-field-edge);
+  transition:
+    box-shadow 0.25s,
+    background 0.25s;
+}
+:root:root :is(.field input:focus, .lo-float input:focus, .lo .lo-float input:focus, .search:focus-within, .lp-search:focus-within, .pair-input:focus-within) {
+  background: var(--gl-fill-soft);
+  box-shadow: var(--gl-focus);
+}
+:root:root :is(.search input, .lp-search input) {
+  background: none;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+:root:root :is(.field-line) {
+  display: none;
+}
+
+/* ───────────────────────── 6. Switches: a glass track, the chosen one lit ───────────────────────── */
+:root:root :is(.lp-cats, .hud .mode-toggle, .mode-toggle, .method-toggle) {
+  border: 0;
+  border-radius: var(--r);
+  background: var(--gl-fill-soft);
+  -webkit-backdrop-filter: var(--gl-blur);
+  backdrop-filter: var(--gl-blur);
+  box-shadow: var(--gl-field-edge);
+}
+:root:root :is(.lp-cats button, .lp-cats .cat-pill, .method-toggle button) {
+  border-radius: var(--r);
+  transition:
+    background 0.25s,
+    color 0.2s,
+    box-shadow 0.25s,
+    transform 0.15s var(--spring);
+}
+:root:root :is(.lp-cats button.on, .method-toggle button.on) {
+  background: var(--gl-fill-hi);
+  box-shadow: var(--gl-edge-hi), 0 6px 14px -6px rgba(0, 0, 0, 0.5);
+  color: var(--gl-ink);
+}
+:root:root :is(.lp-cats button, .method-toggle button):active {
+  transform: scale(0.96);
+}
+/* the top bar's Apps / Explore / Consolidated: the chosen one is a red tint, like the POS section bar */
+:root:root .hud .mode-toggle {
+  background: none;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+:root:root .hud .mode-toggle button {
+  border-radius: var(--r);
+  transition:
+    background 0.3s,
+    color 0.25s,
+    transform 0.15s var(--spring);
+}
+:root:root .hud .mode-toggle button.on {
+  background: rgba(224, 45, 60, 0.14);
+  box-shadow: none;
+}
+:root:root .hud .mode-toggle button:active {
+  transform: scale(0.94);
+}
+
+/* ───────────────────────── 7. Focus: the ice ring ───────────────────────── */
+:root:root :focus-visible,
+:root:root .lo button:focus-visible,
+:root:root .lo input:focus-visible {
+  outline: 3px solid var(--ice);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+:root[data-theme='light']:root :focus-visible {
+  outline-color: var(--ice-deep);
+}
+:root:root :is(.field input, .lo-float input, .search input, .lp-search input):focus-visible {
+  outline: none;
+}
+
+/* ───────────────────────── 8. Backdrop: the ice dots ───────────────────────── */
+:root:root .bg-dots {
+  background-image: radial-gradient(rgba(var(--ice-hi), 0.1) 1px, transparent 1.2px);
+}
+:root[data-theme='light']:root .bg-dots {
+  background-image: radial-gradient(rgba(var(--ice-deep-rgb), 0.12) 1px, transparent 1.2px);
+}
+
+/* ───────────────────────── 10. The avatar (POS v3 `.me`): portrait in a squircle, red ring, ice glow ───────────────────────── */
+:root:root :is(.hud .avatar, .shell-user .avatar, .dr-me .avatar) {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid #ff7476;
+  border-radius: 30%;
+  background: #000;
+  color: #fafafa;
+  font-size: 15px;
+  font-weight: 800;
+  box-shadow: 0 0 0 4px rgba(var(--ice-rgb), 0.14), 0 0 24px rgba(var(--ice-rgb), 0.28);
+  transition:
+    transform 0.15s var(--spring),
+    box-shadow 0.25s;
+}
+@supports (corner-shape: squircle) {
+  :root:root :is(.hud .avatar, .shell-user .avatar, .dr-me .avatar) {
+    border-radius: 50%;
+    corner-shape: squircle;
+  }
+}
+:root:root .avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+:root:root .user-btn:hover .avatar {
+  box-shadow: 0 0 0 4px rgba(var(--ice-rgb), 0.24), 0 0 32px rgba(var(--ice-rgb), 0.42);
+}
+:root:root .user-btn:active .avatar {
+  transform: scale(0.92);
+}
+:root[data-theme='light']:root :is(.hud .avatar, .shell-user .avatar) {
+  border-color: #ff4a57;
+  background: #fff;
+  color: #0b1220;
+  box-shadow: 0 0 0 4px rgba(var(--ice-deep-rgb), 0.16), 0 0 22px rgba(var(--ice-deep-rgb), 0.3);
+}
+/* the profile menu head (POS v3 `.dr-me`): a bigger avatar with a soft ring, the name and the role */
+:root:root .user-menu .dr-me {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 4px 0 16px;
+}
+:root:root .user-menu .dr-me .avatar {
+  width: 76px;
+  height: 76px;
+  border: 0;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.12);
+}
+:root[data-theme='light']:root .user-menu .dr-me .avatar {
+  box-shadow: 0 0 0 4px rgba(11, 18, 32, 0.08);
+}
+:root:root .user-menu .dr-me b {
+  display: block;
+  font-size: 21px;
+  font-weight: 700;
+}
+:root:root .user-menu .dr-me small {
+  display: block;
+  margin-top: 6px;
+  font-size: 15px;
+  color: var(--t-text-3);
+}
+
+/* ───────────────────────── 11. The ice blue: a cool light in the corner, a red-to-ice hairline under the top bar ───────────────────────── */
+/* (figma-theme.css paints a photo on this layer with inset:-8% and a darkening filter: both are reset here) */
+:root:root .bg::before {
+  content: '';
+  position: absolute;
+  inset: auto;
+  right: -9vmax;
+  top: -15vmax;
+  width: 62vmax;
+  height: 48vmax;
+  filter: none;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(
+    closest-side,
+    rgba(118, 192, 255, 0.3) 0%,
+    rgba(118, 192, 255, 0.25) 18%,
+    rgba(118, 192, 255, 0.175) 36%,
+    rgba(118, 192, 255, 0.085) 56%,
+    rgba(118, 192, 255, 0.025) 78%,
+    rgba(118, 192, 255, 0) 100%
+  );
+  animation: ice-breath 14s ease-in-out infinite alternate;
+}
+:root:root .bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  filter: none;
+  pointer-events: none;
+  background:
+    radial-gradient(60vmax 44vmax at 92% 100%, rgba(var(--ice-deep-rgb), 0.16), rgba(var(--ice-deep-rgb), 0.06) 50%, rgba(var(--ice-deep-rgb), 0) 100%),
+    radial-gradient(48vmax 36vmax at 2% 104%, rgba(var(--ice-rgb), 0.06), rgba(var(--ice-rgb), 0) 100%);
+  animation: ice-breath 14s ease-in-out infinite alternate;
+}
+@keyframes ice-breath {
+  from {
+    opacity: 0.65;
+    transform: scale(1);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(-24px, -18px, 0) scale(1.05);
+  }
+}
+:root[data-theme='light']:root .bg::before {
+  background: radial-gradient(
+    closest-side,
+    rgba(var(--ice-deep-rgb), 0.28) 0%,
+    rgba(var(--ice-deep-rgb), 0.19) 30%,
+    rgba(var(--ice-deep-rgb), 0.08) 60%,
+    rgba(var(--ice-deep-rgb), 0) 100%
+  );
+}
+:root[data-theme='light']:root .bg::after {
+  opacity: 0.6;
+}
+/* the sign-in screen is dark-only: it keeps the dark ice light whatever theme is saved */
+:root:root:has(.lo) .bg::before {
+  background: radial-gradient(
+    closest-side,
+    rgba(118, 192, 255, 0.3) 0%,
+    rgba(118, 192, 255, 0.25) 18%,
+    rgba(118, 192, 255, 0.175) 36%,
+    rgba(118, 192, 255, 0.085) 56%,
+    rgba(118, 192, 255, 0.025) 78%,
+    rgba(118, 192, 255, 0) 100%
+  );
+}
+:root:root .hud::before {
+  border-bottom-color: transparent;
+}
+:root:root .hud::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(224, 45, 60, 0), rgba(224, 45, 60, 0.5) 14%, rgba(var(--ice-hi), 0.12) 45%, rgba(var(--ice-rgb), 0.5) 88%, rgba(var(--ice-rgb), 0));
+}
+:root[data-theme='light']:root .hud::after {
+  background: linear-gradient(90deg, rgba(224, 45, 60, 0), rgba(224, 45, 60, 0.4) 14%, rgba(var(--ice-deep-rgb), 0.1) 45%, rgba(var(--ice-deep-rgb), 0.4) 88%, rgba(var(--ice-deep-rgb), 0));
+}
+/* cards catch the ice light when you point at them */
+:root[data-theme='dark']:root :is(.holding-card, .brand-card, .app-card:not(.locked), .app-tile, .picker-item):hover {
+  box-shadow: var(--gl-card-edge-hi), 0 0 34px -12px rgba(var(--ice-rgb), 0.4);
+}
+
+/* ───────────────────────── 12. Motion ───────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  :root:root :is(.bg::before, .bg::after) {
+    animation: none;
+  }
+  :root:root :is(.btn-primary, .lo-cta, .btn-ghost, .btn-secondary, .lo-ghost, .holding-card, .brand-card, .app-card, .app-tile, .picker-item, .scope-pill) {
+    transition: none;
+  }
+}
+
+/* ───────────────────────── 12. Components, as they are in POS v3 now ─────────────────────────
+   - The red box that marks the chosen item has sharp corners (the POS v3 menu): the top bar tabs and the breadcrumb switcher.
+   - A list is rows: sharp, a hairline between them, an ice tint on hover, a red box while pressed. Row text is a size up (names 16px, small lines 13px), 8px-grid padding, 48px+ to tap.
+   - The one main action of a screen is the lit red button (Open dashboard, See full details); the other buttons stay glass. */
+:root:root .hud .mode-toggle button,
+:root:root .hud .mode-toggle button.on,
+:root:root .hud .mode-toggle .mode-pill {
+  border-radius: 0;
+}
+:root:root .hud .mode-toggle button.on {
+  background: rgba(224, 45, 60, 0.16);
+}
+:root:root .crumb-pop ul button,
+:root:root .crumb-pop ul button.on {
+  border-radius: 0 !important;
+}
+:root:root .crumb-pop ul button {
+  min-height: 48px;
+  padding: 0 16px;
+}
+:root:root .crumb-pop ul button:hover {
+  background: var(--gl-fill-soft);
+}
+:root:root .crumb-pop ul button.on {
+  background: linear-gradient(90deg, rgba(227, 27, 30, 0.78), rgba(255, 74, 79, 0.55));
+  color: #fff;
+}
+:root:root .crumb-pop ul button.on :is(b, small, svg) {
+  color: #fff;
+}
+:root:root .geo-item {
+  min-height: 64px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: inset 0 -1px 0 rgba(var(--ice-hi), 0.07);
+}
+:root:root .geo-item.hover,
+:root:root .geo-item:hover {
+  transform: none;
+  border: 0;
+  background: var(--gl-fill-soft);
+}
+:root:root .geo-item:active {
+  background: rgba(224, 45, 60, 0.2);
+}
+:root:root .geo-item .gi-main b {
+  font-size: 18px;
+}
+:root:root .geo-item .gi-rev b {
+  font-size: 17px;
+}
+:root:root .lo .lo-roles-list button {
+  min-height: 56px;
+  padding: 0 16px;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: none;
+  box-shadow: inset 0 -1px 0 rgba(var(--ice-hi), 0.1);
+}
+:root:root .lo .lo-roles-list button:hover,
+:root:root .lo .lo-roles-list button:focus-visible {
+  background: var(--gl-fill-soft);
+}
+:root:root .lo .lo-roles-list button:active {
+  background: rgba(224, 45, 60, 0.22);
+}
+:root:root .lo-role-text b {
+  font-size: 16px;
+}
+:root:root .lo-role-text small {
+  font-size: 13px;
+}
+:root:root .pulse > .btn-primary {
+  flex: none;
+  width: auto;
+  min-width: 190px;
+  padding: 0 24px;
+}
