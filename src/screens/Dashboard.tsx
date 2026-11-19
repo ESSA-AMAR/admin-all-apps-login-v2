@@ -1,13 +1,24 @@
 import {
   ArrowsClockwise,
+  ArrowUUpLeft,
   CashRegister,
   ChartBar,
+  ChartLineUp,
+  ChatCircleText,
+  CheckCircle,
   CookingPot,
   DeviceTablet,
+  Globe,
   Heart,
+  Lightning,
   Package,
+  Prohibit,
+  Receipt,
   ShoppingCart,
+  Star,
+  Trophy,
   UsersThree,
+  Vault,
   CaretRight,
   WarningCircle,
   type Icon,
@@ -17,9 +28,43 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { CountUp, DecodeText, ease } from '../components/ui'
 import { cityById, industryById } from '../data/mock'
 import type { Store } from '../data/types'
+import { benchmark, feedback, salesInsights, suggestActions, type DashTab, type Range } from '../lib/insights'
 import { businessDay, consolidate, eur, randomTicket, storeKpis } from '../lib/kpis'
 import { LEVEL_LABEL, storesLabel, type Breakdown } from '../lib/scope'
 import type { ScopeLevel } from '../state'
+import { Assistant } from './dash/Assistant'
+import { BenchmarkTab } from './dash/BenchmarkTab'
+import { FeedbackTab } from './dash/FeedbackTab'
+import { ActionsTile, LiveOrdersTile } from './dash/live'
+import { useLiveOrders } from './dash/live-orders'
+import { SalesTab } from './dash/SalesTab'
+
+const TABS: { id: DashTab; label: string; Glyph: Icon }[] = [
+  { id: 'today', label: 'Today', Glyph: Lightning },
+  { id: 'sales', label: 'Sales', Glyph: ChartLineUp },
+  { id: 'bench', label: 'Benchmark', Glyph: Trophy },
+  { id: 'feedback', label: 'Feedback', Glyph: ChatCircleText },
+]
+const TAB_KEY = 'cm-dash-tab'
+const readTab = (): DashTab => {
+  try {
+    const t = localStorage.getItem(TAB_KEY)
+    return TABS.some((x) => x.id === t) ? (t as DashTab) : 'today'
+  } catch {
+    return 'today'
+  }
+}
+
+type StreamKind = 'sale' | 'online' | 'refund' | 'review' | 'soldout' | 'till'
+interface StreamEvent {
+  id: string
+  kind: StreamKind
+  at: Date
+  title: string
+  sub: string
+  amount?: number
+}
+const STREAM_ICON: Record<StreamKind, Icon> = { sale: Receipt, online: Globe, refund: ArrowUUpLeft, review: Star, soldout: Prohibit, till: Vault }
 
 const APPS: { id: string; name: string; desc: string; Glyph: Icon }[] = [
   { id: 'pos', name: 'POS', desc: 'Point of sale', Glyph: CashRegister },
@@ -281,26 +326,81 @@ export function Dashboard({ scope, stores, breakdowns, onDrill, onSwitch }: Prop
   const storeDetail = useMemo(() => (store ? storeKpis(store) : null), [store])
   const industries = useMemo(() => new Set(stores.map((s) => s.industry)), [stores])
   const [live, setLive] = useState({ revenue: base.revenueToday, tx: base.transactions })
-  const [feed, setFeed] = useState(() => seedFeed(stores))
+  const [feed, setFeed] = useState(() => seedFeed(stores, isStore))
   const [clock, setClock] = useState(new Date())
   const [launched, setLaunched] = useState<string | null>(null)
+  const [tab, setTabState] = useState<DashTab>(readTab)
+  const [salesRange, setSalesRange] = useState<Range>(30)
+  const [fbRange, setFbRange] = useState<Range>(7)
+  const [note, setNote] = useState<string | null>(null)
+  const orders = useLiveOrders(stores)
+  const setTab = (t: DashTab) => {
+    setTabState(t)
+    try {
+      localStorage.setItem(TAB_KEY, t)
+    } catch {
+      /* storage can be blocked; the tab just won't be remembered */
+    }
+  }
 
+  // What the tabs, the actions and the assistant share: 30 days of sales, the benchmark, 7 days of feedback.
+  const sales30 = useMemo(() => salesInsights(stores, 30), [stores])
+  const bench = useMemo(() => benchmark(stores), [stores])
+  const fb7 = useMemo(() => feedback(stores, 7), [stores])
+  const lateCount = orders.stats.late
+  const lateWhere = orders.stats.worst?.where ?? ''
+  const lateAtWorst = orders.stats.worst?.count ?? 0
+  const actions = useMemo(
+    () => suggestActions({ stores, base, sales: sales30, bench, fb: fb7, late: lateCount ? { count: lateCount, where: lateWhere, atWorst: lateAtWorst } : null }),
+    [stores, base, sales30, bench, fb7, lateCount, lateWhere, lateAtWorst],
+  )
+  const dangerCount = bench.filter((b) => b.zone === 'danger').length
+
+  useEffect(() => {
+    if (!note) return
+    const t = setTimeout(() => setNote(null), 2600)
+    return () => clearTimeout(t)
+  }, [note])
+
+  // The live stream: mostly payments, with online orders, refunds, reviews, sold-out items and closed tills in between.
   useEffect(() => {
     const live = stores.filter((s) => s.status !== 'offline')
     if (!live.length) return
     let id: number
-    // More stores in scope → more tickets per second.
+    // More stores in scope → more events per second.
     const pace = Math.max(450, 3600 / Math.sqrt(live.length))
     const tick = () => {
       const s = live[Math.floor(Math.random() * live.length)]
-      const t = { ...randomTicket(s), store: s.name }
-      setFeed((f) => [t, ...f].slice(0, 7))
-      setLive((l) => ({ revenue: l.revenue + t.amount, tx: l.tx + 1 }))
+      const t = randomTicket(s)
+      const roll = Math.random()
+      const where = isStore ? '' : `${s.name} · `
+      let e: StreamEvent
+      if (roll < 0.7) {
+        e = { id: t.id, kind: 'sale', at: t.at, title: `${t.qty}× ${t.item}`, sub: isStore ? `#${t.id} · ${t.terminal} · ${t.method}` : `${s.name} · ${t.method}`, amount: t.amount }
+        setLive((l) => ({ revenue: l.revenue + t.amount, tx: l.tx + 1 }))
+      } else if (roll < 0.8) {
+        const src = s.industry === 'hospitality' ? ['Website', 'Mobile app', 'Glovo', 'Uber Eats'] : ['Website', 'Mobile app', 'Click & collect']
+        const amount = t.amount * 1.3
+        e = { id: t.id, kind: 'online', at: t.at, title: `Online order · ${src[Math.floor(Math.random() * src.length)]}`, sub: `${where}${t.qty}× ${t.item}`, amount }
+        setLive((l) => ({ revenue: l.revenue + amount, tx: l.tx + 1 }))
+      } else if (roll < 0.85) {
+        e = { id: t.id, kind: 'refund', at: t.at, title: `Refund · ${t.item}`, sub: `${where}by the manager`, amount: -t.amount }
+        setLive((l) => ({ ...l, revenue: l.revenue - t.amount }))
+      } else if (roll < 0.92) {
+        const stars = Math.random() < 0.75 ? 5 - Math.floor(Math.random() * 2) : 1 + Math.floor(Math.random() * 3)
+        e = { id: t.id, kind: 'review', at: t.at, title: `New ${stars}★ review`, sub: `${where}${['Receipt QR', 'Google', 'Website', 'Delivery app'][Math.floor(Math.random() * 4)]}` }
+      } else if (roll < 0.96) {
+        e = { id: t.id, kind: 'soldout', at: t.at, title: `${t.item} sold out`, sub: `${where}hidden from the POS and the kiosk` }
+      } else {
+        const v = Math.random() < 0.8 ? Math.random() * 4 - 2 : -(5 + Math.random() * 30)
+        e = { id: t.id, kind: 'till', at: t.at, title: `Till closed · ${Math.abs(v) <= 5 ? 'balanced' : 'short'}`, sub: `${where}${t.terminal}`, amount: v }
+      }
+      setFeed((f) => [e, ...f].slice(0, 7))
       id = window.setTimeout(tick, pace * (0.6 + Math.random() * 0.8))
     }
     id = window.setTimeout(tick, 1500)
     return () => window.clearTimeout(id)
-  }, [stores])
+  }, [stores, isStore])
 
   useEffect(() => {
     const id = window.setInterval(() => setClock(new Date()), 1000)
@@ -432,6 +532,29 @@ export function Dashboard({ scope, stores, breakdowns, onDrill, onSwitch }: Prop
         </div>
       </motion.section>
 
+      <motion.nav className="dt-tabs" role="tablist" aria-label="First page" {...card(2)}>
+        {TABS.map((t) => {
+          const badge = t.id === 'bench' ? dangerCount : t.id === 'feedback' ? fb7.unansweredNegative : t.id === 'today' ? orders.stats.late : 0
+          return (
+            <button key={t.id} role="tab" aria-selected={tab === t.id} className={tab === t.id ? 'on' : ''} onClick={() => setTab(t.id)}>
+              <t.Glyph size={18} weight={tab === t.id ? 'fill' : 'regular'} aria-hidden />
+              {t.label}
+              {badge > 0 && (
+                <span className="dt-badge" aria-label={`${badge} to handle`}>
+                  {badge > 99 ? '99+' : badge}
+                </span>
+              )}
+            </button>
+          )
+        })}
+      </motion.nav>
+
+      {tab === 'sales' && <SalesTab stores={stores} range={salesRange} onRange={setSalesRange} />}
+      {tab === 'bench' && <BenchmarkTab stores={stores} />}
+      {tab === 'feedback' && <FeedbackTab stores={stores} range={fbRange} onRange={setFbRange} onSay={setNote} />}
+
+      {tab === 'today' && (
+      <>
       <div className="kpi-row">
         {kpis.map((k, i) => (
           <motion.div key={k.label} className="kpi" {...card(2 + i)}>
@@ -482,6 +605,14 @@ export function Dashboard({ scope, stores, breakdowns, onDrill, onSwitch }: Prop
             <span className="label dim">{isStore ? 'Store' : 'Consolidated'}</span>
           </div>
           <Gauge value={live.revenue} target={base.target} />
+        </motion.section>
+
+        <motion.section className="panel tile span-8 dt-orders-tile" {...card(8)}>
+          <LiveOrdersTile orders={orders.orders} now={orders.now} stats={orders.stats} single={isStore} />
+        </motion.section>
+
+        <motion.section className="panel tile span-4" {...card(8)}>
+          <ActionsTile actions={actions} onTab={setTab} />
         </motion.section>
 
         {breakdowns[0] && <BreakdownTile b={breakdowns[0]} index={0} onDrill={breakdowns[0].drill ? (key) => onDrill(breakdowns[0], key) : undefined} />}
@@ -537,30 +668,36 @@ export function Dashboard({ scope, stores, breakdowns, onDrill, onSwitch }: Prop
 
         <motion.section className="panel tile span-4 feed-tile" {...card(9)}>
           <div className="tile-head">
-            <h3>Live transactions</h3>
+            <h3>Live stream</h3>
             <span className="label live-tag">
               <i className="dot live" /> {store?.status === 'offline' ? 'OFFLINE' : 'STREAMING'}
             </span>
           </div>
           <ul className="feed">
             <AnimatePresence initial={false}>
-              {feed.map((t) => (
-                <motion.li
-                  key={t.id}
-                  layout
-                  initial={{ opacity: 0, x: -20, backgroundColor: 'rgba(255,255,255,0.12)' }}
-                  animate={{ opacity: 1, x: 0, backgroundColor: 'rgba(255,255,255,0)' }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.6 }}
-                >
-                  <span className="label dim">{t.at.toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
-                  <span className="feed-item">
-                    {t.qty}× {t.item}
-                    <small className="label dim">{isStore ? `#${t.id} · ${t.terminal} · ${t.method}` : `${t.store} · ${t.method}`}</small>
-                  </span>
-                  <b>{eur(t.amount, 2)}</b>
-                </motion.li>
-              ))}
+              {feed.map((t) => {
+                const Glyph = STREAM_ICON[t.kind]
+                return (
+                  <motion.li
+                    key={t.id}
+                    layout
+                    initial={{ opacity: 0, x: -20, backgroundColor: 'rgba(255,255,255,0.12)' }}
+                    animate={{ opacity: 1, x: 0, backgroundColor: 'rgba(255,255,255,0)' }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.6 }}
+                    className={`ev-${t.kind}`}
+                  >
+                    <span className="label dim">{t.at.toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+                    <span className="feed-item">
+                      <span className="feed-title">
+                        <Glyph size={14} weight={t.kind === 'sale' ? 'regular' : 'fill'} className="feed-ico" aria-hidden /> {t.title}
+                      </span>
+                      <small className="label dim">{t.sub}</small>
+                    </span>
+                    <b className={t.amount !== undefined && t.amount < 0 ? 'neg' : ''}>{t.amount === undefined ? '' : `${t.amount < 0 ? '−' : ''}${eur(Math.abs(t.amount), 2)}`}</b>
+                  </motion.li>
+                )
+              })}
             </AnimatePresence>
           </ul>
         </motion.section>
@@ -648,10 +785,23 @@ export function Dashboard({ scope, stores, breakdowns, onDrill, onSwitch }: Prop
           </motion.section>
         )}
       </div>
+      </>
+      )}
+
+      <Assistant
+        ctx={{ scopeName: scope.name, single: isStore, base, liveRevenue: live.revenue, liveTx: live.tx, live: orders.stats, sales: sales30, bench, fb: fb7, actions }}
+        onTab={setTab}
+      />
 
       <AnimatePresence>
+        {note && (
+          <motion.div key="note" className="toast" role="status" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}>
+            <CheckCircle size={18} weight="fill" aria-hidden />
+            <span>{note}</span>
+          </motion.div>
+        )}
         {launched && (
-          <motion.div className="toast" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}>
+          <motion.div key="launch" className="toast" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}>
             <span className="spinner" />
             <span>
               Launching <b>{APPS.find((a) => a.id === launched)?.name}</b> for {scope.name}…
@@ -664,11 +814,19 @@ export function Dashboard({ scope, stores, breakdowns, onDrill, onSwitch }: Prop
   )
 }
 
-function seedFeed(stores: Store[]) {
+function seedFeed(stores: Store[], isStore: boolean): StreamEvent[] {
   const pool = stores.filter((s) => s.status !== 'offline')
   if (!pool.length) return []
   return Array.from({ length: 5 }, (_, i) => {
     const s = pool[i % pool.length]
-    return { ...randomTicket(s), store: s.name, at: new Date(Date.now() - (i + 1) * 47000) }
+    const t = randomTicket(s)
+    return {
+      id: t.id,
+      kind: 'sale' as const,
+      at: new Date(Date.now() - (i + 1) * 47000),
+      title: `${t.qty}× ${t.item}`,
+      sub: isStore ? `#${t.id} · ${t.terminal} · ${t.method}` : `${s.name} · ${t.method}`,
+      amount: t.amount,
+    }
   })
 }

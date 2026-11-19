@@ -39,7 +39,7 @@ export interface StoreKpis {
 }
 
 /** Business-hour shape per industry (0–1 weight by hour). */
-const SHAPE: Record<IndustryId, (h: number) => number> = {
+export const SHAPE: Record<IndustryId, (h: number) => number> = {
   it: (h) => (h < 9 || h > 20 ? 0 : 0.4 + 0.6 * Math.exp(-((h - 15) ** 2) / 14)),
   hospitality: (h) =>
     h < 7 ? 0 : 0.15 + 0.85 * Math.exp(-((h - 12.8) ** 2) / 2.2) + 1.0 * Math.exp(-((h - 20) ** 2) / 3),

@@ -9,6 +9,7 @@ import './styles/pos-login.css'
 import './styles/pos-v3-system.css'
 import './styles/backoffice.css'
 import './styles/bo-screens.css'
+import './styles/dash-tabs.css'
 import App from './App.tsx'
 
 createRoot(document.getElementById('root')!).render(
