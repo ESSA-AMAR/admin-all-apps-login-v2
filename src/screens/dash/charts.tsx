@@ -1,10 +1,58 @@
 /** Small charts and controls shared by the first page's tabs. Colours come from the theme, so Dark and Light both work. */
-import { Star, StarHalf } from '@phosphor-icons/react'
+import { CalendarBlank, Star, StarHalf } from '@phosphor-icons/react'
 import { motion } from 'framer-motion'
 import { ease } from '../../components/ui'
 import { eur } from '../../lib/kpis'
-import { DAYS, type Zone } from '../../lib/insights'
+import { DAYS, isoDay, MAX_DAYS_BACK, PRESETS, windowLabel, windowOf, type Period, type Zone } from '../../lib/insights'
 import { num, pts, signed } from './format'
+
+/** The period of a tab: the last 7, 30 or 90 days, or Custom with a From and a To date (whole days, up to yesterday). */
+export function PeriodPicker({ value, onChange }: { value: Period; onChange: (p: Period) => void }) {
+  const w = windowOf(value)
+  return (
+    <div className="dt-period">
+      <div className="dt-seg" role="group" aria-label="Period">
+        {PRESETS.map((d) => (
+          <button key={d} className={value.kind === 'last' && value.days === d ? 'on' : ''} aria-pressed={value.kind === 'last' && value.days === d} onClick={() => onChange({ kind: 'last', days: d })}>
+            {d} days
+          </button>
+        ))}
+        <button
+          className={value.kind === 'custom' ? 'on' : ''}
+          aria-pressed={value.kind === 'custom'}
+          onClick={() => value.kind !== 'custom' && onChange({ kind: 'custom', from: isoDay(w.start), to: isoDay(w.end) })}
+        >
+          <CalendarBlank size={15} aria-hidden /> Custom
+        </button>
+      </div>
+      {value.kind === 'custom' && (
+        <div className="dt-dates">
+          <label>
+            <span>From</span>
+            <input
+              type="date"
+              className="dt-date"
+              value={value.from}
+              min={isoDay(MAX_DAYS_BACK)}
+              max={value.to}
+              onChange={(e) => e.target.value && onChange({ ...value, from: e.target.value })}
+            />
+          </label>
+          <label>
+            <span>To</span>
+            <input type="date" className="dt-date" value={value.to} min={value.from} max={isoDay(1)} onChange={(e) => e.target.value && onChange({ ...value, to: e.target.value })} />
+          </label>
+          <span className="dt-dates-len">
+            {w.len} {w.len === 1 ? 'day' : 'days'}
+          </span>
+        </div>
+      )}
+      <span className="sr-only" aria-live="polite">
+        {windowLabel(w)}
+      </span>
+    </div>
+  )
+}
 
 /** Growth with an arrow; red when it goes the wrong way. Never colour alone: the sign and the arrow carry it too. */
 export function Trend({ v, unit = '%', lowerIsBetter, d = 1 }: { v: number; unit?: '%' | 'pts'; lowerIsBetter?: boolean; d?: number }) {
@@ -41,7 +89,8 @@ export function DayBars({ days }: { days: { date: Date; revenue: number }[] }) {
   const bw = (W - P.l - P.r) / days.length
   const top3 = new Set([...days].sort((a, b) => b.revenue - a.revenue).slice(0, 3).map((d) => d.date.getTime()))
   const y = (v: number) => H - P.b - (v / max) * (H - P.t - P.b)
-  const every = days.length <= 7 ? 1 : days.length <= 30 ? 5 : 15
+  // About seven date labels, whatever the length of the period.
+  const every = days.length <= 7 ? 1 : Math.ceil(days.length / 7)
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="chart dt-days" preserveAspectRatio="none" role="img" aria-label="Sales per day">
       {[0, 0.5, 1].map((t) => (

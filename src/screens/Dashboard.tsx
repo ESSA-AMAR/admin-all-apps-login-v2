@@ -24,11 +24,11 @@ import {
   type Icon,
 } from '@phosphor-icons/react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { CountUp, DecodeText, ease } from '../components/ui'
 import { cityById, industryById } from '../data/mock'
 import type { Store } from '../data/types'
-import { benchmark, feedback, salesInsights, suggestActions, type DashTab, type Range } from '../lib/insights'
+import { benchmark, feedback, salesInsights, suggestActions, type Channel, type DashTab, type Period } from '../lib/insights'
 import { businessDay, consolidate, eur, randomTicket, storeKpis } from '../lib/kpis'
 import { LEVEL_LABEL, storesLabel, type Breakdown } from '../lib/scope'
 import type { ScopeLevel } from '../state'
@@ -330,12 +330,16 @@ export function Dashboard({ scope, stores, breakdowns, onDrill, onSwitch }: Prop
   const [clock, setClock] = useState(new Date())
   const [launched, setLaunched] = useState<string | null>(null)
   const [tab, setTabState] = useState<DashTab>(readTab)
-  const [salesRange, setSalesRange] = useState<Range>(30)
-  const [fbRange, setFbRange] = useState<Range>(7)
+  const [salesPeriod, setSalesPeriod] = useState<Period>({ kind: 'last', days: 30 })
+  const [salesChannel, setSalesChannel] = useState<Channel>('all')
+  const [fbPeriod, setFbPeriod] = useState<Period>({ kind: 'last', days: 7 })
   const [note, setNote] = useState<string | null>(null)
   const orders = useLiveOrders(stores)
+  const dashRef = useRef<HTMLDivElement>(null)
   const setTab = (t: DashTab) => {
     setTabState(t)
+    // A new tab starts at its top, wherever the page was scrolled to.
+    dashRef.current?.closest('.stage-inner')?.scrollTo({ top: 0, behavior: 'smooth' })
     try {
       localStorage.setItem(TAB_KEY, t)
     } catch {
@@ -344,9 +348,9 @@ export function Dashboard({ scope, stores, breakdowns, onDrill, onSwitch }: Prop
   }
 
   // What the tabs, the actions and the assistant share: 30 days of sales, the benchmark, 7 days of feedback.
-  const sales30 = useMemo(() => salesInsights(stores, 30), [stores])
+  const sales30 = useMemo(() => salesInsights(stores, { start: 30, end: 1, len: 30 }), [stores])
   const bench = useMemo(() => benchmark(stores), [stores])
-  const fb7 = useMemo(() => feedback(stores, 7), [stores])
+  const fb7 = useMemo(() => feedback(stores, { start: 7, end: 1, len: 7 }), [stores])
   const lateCount = orders.stats.late
   const lateWhere = orders.stats.worst?.where ?? ''
   const lateAtWorst = orders.stats.worst?.count ?? 0
@@ -472,7 +476,7 @@ export function Dashboard({ scope, stores, breakdowns, onDrill, onSwitch }: Prop
   const countries = new Set(stores.map((s) => s.countryId)).size
 
   return (
-    <div className="dash">
+    <div className="dash" ref={dashRef}>
       <motion.header className="dash-head" {...card(0)}>
         <div className="dash-title">
           <span className="dash-icon">{scope.icon}</span>
@@ -510,6 +514,23 @@ export function Dashboard({ scope, stores, breakdowns, onDrill, onSwitch }: Prop
         </div>
       </motion.header>
 
+      <motion.nav className="dt-tabs" role="tablist" aria-label="First page" {...card(1)}>
+        {TABS.map((t) => {
+          const badge = t.id === 'bench' ? dangerCount : t.id === 'feedback' ? fb7.unansweredNegative : t.id === 'today' ? orders.stats.late : 0
+          return (
+            <button key={t.id} role="tab" aria-selected={tab === t.id} className={tab === t.id ? 'on' : ''} onClick={() => setTab(t.id)}>
+              <t.Glyph size={18} weight={tab === t.id ? 'fill' : 'regular'} aria-hidden />
+              {t.label}
+              {badge > 0 && (
+                <span className="dt-badge" aria-label={`${badge} to handle`}>
+                  {badge > 99 ? '99+' : badge}
+                </span>
+              )}
+            </button>
+          )
+        })}
+      </motion.nav>
+
       <motion.section className="apps-dock" {...card(1)}>
         <span className="label dim dock-label">ECOSYSTEM APPS</span>
         <div className="apps">
@@ -532,26 +553,9 @@ export function Dashboard({ scope, stores, breakdowns, onDrill, onSwitch }: Prop
         </div>
       </motion.section>
 
-      <motion.nav className="dt-tabs" role="tablist" aria-label="First page" {...card(2)}>
-        {TABS.map((t) => {
-          const badge = t.id === 'bench' ? dangerCount : t.id === 'feedback' ? fb7.unansweredNegative : t.id === 'today' ? orders.stats.late : 0
-          return (
-            <button key={t.id} role="tab" aria-selected={tab === t.id} className={tab === t.id ? 'on' : ''} onClick={() => setTab(t.id)}>
-              <t.Glyph size={18} weight={tab === t.id ? 'fill' : 'regular'} aria-hidden />
-              {t.label}
-              {badge > 0 && (
-                <span className="dt-badge" aria-label={`${badge} to handle`}>
-                  {badge > 99 ? '99+' : badge}
-                </span>
-              )}
-            </button>
-          )
-        })}
-      </motion.nav>
-
-      {tab === 'sales' && <SalesTab stores={stores} range={salesRange} onRange={setSalesRange} />}
+      {tab === 'sales' && <SalesTab stores={stores} period={salesPeriod} onPeriod={setSalesPeriod} channel={salesChannel} onChannel={setSalesChannel} />}
       {tab === 'bench' && <BenchmarkTab stores={stores} />}
-      {tab === 'feedback' && <FeedbackTab stores={stores} range={fbRange} onRange={setFbRange} onSay={setNote} />}
+      {tab === 'feedback' && <FeedbackTab stores={stores} period={fbPeriod} onPeriod={setFbPeriod} onSay={setNote} />}
 
       {tab === 'today' && (
       <>

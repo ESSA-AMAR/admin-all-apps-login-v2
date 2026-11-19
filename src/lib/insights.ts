@@ -8,12 +8,54 @@ import type { IndustryId, Store } from '../data/types'
 import { SHAPE, storeKpis, type ScopeKpis } from './kpis'
 import { between, hashString, rng } from './random'
 
-export type Range = 7 | 30 | 90
-export const RANGES: Range[] = [7, 30, 90]
 /** Weekdays, Monday first. */
 export const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const
 export const DAYS_LONG = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as const
 const DAY_MS = 86_400_000
+
+// ───────────────── Periods and channels ─────────────────
+
+/** Which orders: all of them, the ones taken in the outlet, or the ones placed online. */
+export type Channel = 'all' | 'store' | 'online'
+/** A period: the last 7, 30 or 90 days, or any span of whole days (yyyy-mm-dd) up to yesterday. */
+export type Period = { kind: 'last'; days: 7 | 30 | 90 } | { kind: 'custom'; from: string; to: string }
+export const PRESETS = [7, 30, 90] as const
+/** How far back the history goes. */
+export const MAX_DAYS_BACK = 180
+/** A period as days ago: from `start` (the oldest) to `end` (the latest, 1 = yesterday), both included. */
+export interface Window {
+  start: number
+  end: number
+  len: number
+}
+
+const pad2 = (n: number) => String(n).padStart(2, '0')
+/** The date `daysAgo` days back, as yyyy-mm-dd (what a date field holds). */
+export function isoDay(daysAgo: number) {
+  const d = dayAt(daysAgo)
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`
+}
+function daysAgoOf(iso: string) {
+  const [y, m, d] = iso.split('-').map(Number)
+  if (!y || !m || !d) return 1
+  return Math.round((dayAt(0).getTime() - new Date(y, m - 1, d, 12).getTime()) / DAY_MS)
+}
+export function windowOf(p: Period): Window {
+  if (p.kind === 'last') return { start: p.days, end: 1, len: p.days }
+  const clamp = (v: number) => Math.min(MAX_DAYS_BACK, Math.max(1, v))
+  let start = clamp(daysAgoOf(p.from))
+  let end = clamp(daysAgoOf(p.to))
+  if (start < end) [start, end] = [end, start]
+  return { start, end, len: start - end + 1 }
+}
+/** "12 Oct – 18 Nov", with the year when it is not this one. */
+export function windowLabel(w: Window) {
+  const a = dayAt(w.start)
+  const b = dayAt(w.end)
+  const year = new Date().getFullYear()
+  const f = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', ...(d.getFullYear() !== year ? { year: 'numeric' } : {}) })
+  return w.start === w.end ? f(a) : `${f(a)} – ${f(b)}`
+}
 
 const dowOf = (d: Date) => (d.getDay() + 6) % 7
 const sumOf = (a: number[]) => a.reduce((x, y) => x + y, 0)
@@ -41,6 +83,17 @@ const HOUR_SHARE = Object.fromEntries(
     ind,
     Array.from({ length: 7 }, (_, dow) => {
       const w = Array.from({ length: 24 }, (_, h) => hourWeight(ind, dow, h))
+      const t = sumOf(w) || 1
+      return w.map((v) => v / t)
+    }),
+  ]),
+) as Record<IndustryId, number[][]>
+/** Online orders lean to the evening (delivery at dinner) and away from the morning. */
+const HOUR_SHARE_ONLINE = Object.fromEntries(
+  (Object.entries(HOUR_SHARE) as [IndustryId, number[][]][]).map(([ind, days]) => [
+    ind,
+    days.map((row) => {
+      const w = row.map((v, h) => v * (h >= 18 && h <= 22 ? 1.45 : h >= 11 && h <= 14 ? 1.1 : h < 11 ? 0.55 : 0.9))
       const t = sumOf(w) || 1
       return w.map((v) => v / t)
     }),
@@ -77,7 +130,7 @@ function profile(s: Store): Profile {
   p = {
     base,
     basket: s.industry === 'it' ? between(r, 85, 160) : s.industry === 'hospitality' ? between(r, 24, 48) : between(r, 14, 32),
-    trend: between(r, -0.3, 0.35) + bias * 0.6,
+    trend: Math.min(0.6, Math.max(-0.4, between(r, -0.3, 0.35) + bias * 0.6)),
     online: s.industry === 'hospitality' ? between(r, 22, 40) : s.industry === 'it' ? between(r, 8, 18) : between(r, 6, 15),
     rating: Math.min(4.85, Math.max(3.3, between(r, 3.55, 4.6) + bias * 0.3)),
     reviewRate: between(r, 0.012, 0.03),
@@ -100,7 +153,8 @@ function dayOf(s: Store, daysAgo: number) {
   const p = profile(s)
   const date = dayAt(daysAgo)
   const r = rng(`${s.id}:day:${date.toDateString()}`)
-  const revenue = p.base * WEEK[s.industry][dowOf(date)] * (1 - (p.trend * daysAgo) / 365) * between(r, 0.88, 1.12)
+  // Compound growth: going back a year divides by (1 + trend), so far-back days stay plausible.
+  const revenue = p.base * WEEK[s.industry][dowOf(date)] * Math.pow(1 + p.trend, -daysAgo / 365) * between(r, 0.88, 1.12)
   // Online grows faster than the rest.
   const onlineShare = Math.min(60, p.online * (1 - (0.35 * daysAgo) / 365) * between(r, 0.9, 1.1))
   return { date, revenue, online: (revenue * onlineShare) / 100 }
@@ -201,16 +255,21 @@ export interface Source {
 }
 
 export interface SalesInsights {
-  range: Range
-  /** Oldest first. */
-  days: { date: Date; revenue: number; online: number; orders: number }[]
+  window: Window
+  channel: Channel
+  /** Oldest first. `revenue` and `orders` follow the channel; `store` and `online` are always both. */
+  days: { date: Date; revenue: number; orders: number; store: number; online: number }[]
+  /** Sales, orders and basket for the channel, and their change against the period before (%). */
   total: number
   orders: number
   basket: number
-  /** Against the period before (%). */
   growth: number
   ordersGrowth: number
   basketGrowth: number
+  /** The channel's share of all sales (%), and its change in points. 100 for all channels. */
+  share: number
+  shareDelta: number
+  /** Online share of all sales (%), and its change in points. */
   onlineShare: number
   onlineShareDelta: number
   /** Average sales per hour slot, [weekday][hour]. */
@@ -223,11 +282,13 @@ export interface SalesInsights {
   peakSlot: { dow: number; h: number; value: number }
   peakHour: number
   dayparts: Daypart[]
+  /** Both channels, whatever the filter: the comparison stays in view. */
   channels: {
     store: { revenue: number; orders: number; basket: number; growth: number }
     online: { revenue: number; orders: number; basket: number; growth: number }
-    sources: Source[]
   }
+  /** Where the orders come from, for the channel. */
+  sources: Source[]
   products: ProductRow[]
   categories: string[]
 }
@@ -241,96 +302,135 @@ const DAYPART_DEF: [id: string, food: string, other: string, from: number, to: n
 ]
 const inPart = (h: number, from: number, to: number) => (from < to ? h >= from && h < to : h >= from || h < to)
 
+/** What sells better online than in the outlet (1 = the same): mains travel, drinks and repairs do not. */
+const ONLINE_MIX: Record<string, number> = {
+  Mains: 1.3,
+  Brunch: 0.75,
+  Drinks: 0.55,
+  Desserts: 1.1,
+  Accessories: 1.3,
+  Devices: 1.15,
+  Services: 0.35,
+  Produce: 1.25,
+  'Dairy & eggs': 1.1,
+  Bakery: 0.7,
+  Pantry: 1.2,
+}
+/** A basket online is bigger (delivery), in the outlet a little smaller. */
+const BASKET = { store: 0.95, online: 1.3 }
+
 const salesCache = new Map<string, SalesInsights>()
-/** Sales over the last `range` whole days for these outlets, compared with the `range` days before. */
-export function salesInsights(stores: Store[], range: Range): SalesInsights {
-  const key = `${range}:${dayAt(0).toDateString()}:${hashString(stores.map((s) => s.id).join())}`
+/** Sales of these outlets over a span of whole days, for one channel or both, compared with the same number of days just before. */
+export function salesInsights(stores: Store[], w: Window, channel: Channel = 'all'): SalesInsights {
+  const key = `${w.start}-${w.end}:${channel}:${dayAt(0).toDateString()}:${hashString(stores.map((s) => s.id).join())}`
   const hit = salesCache.get(key)
   if (hit) return hit
 
   const food = stores.length > 0 && stores.every((s) => s.industry === 'hospitality')
-  const days = Array.from({ length: range }, (_, i) => ({ date: dayAt(range - i), revenue: 0, online: 0, orders: 0 }))
+  const pick = (st: number, on: number) => (channel === 'store' ? st : channel === 'online' ? on : st + on)
+  const days = Array.from({ length: w.len }, (_, i) => ({ date: dayAt(w.start - i), revenue: 0, orders: 0, store: 0, online: 0 }))
   const heatSum = Array.from({ length: 7 }, () => new Array<number>(24).fill(0))
   const dowCount = new Array<number>(7).fill(0)
   days.forEach((d) => dowCount[dowOf(d.date)]++)
-  let prevTotal = 0
-  let prevOrders = 0
-  let prevOnline = 0
-  let storeOrders = 0
-  let onlineOrders = 0
+  const cur = { store: 0, online: 0, storeOrders: 0, onlineOrders: 0 }
+  const prev = { store: 0, online: 0, storeOrders: 0, onlineOrders: 0 }
   const sourceRev = new Map<string, { label: string; group: 'store' | 'online'; revenue: number }>()
   const addSource = (id: string, label: string, group: 'store' | 'online', v: number) => {
-    const cur = sourceRev.get(id) ?? { label, group, revenue: 0 }
-    cur.revenue += v
-    sourceRev.set(id, cur)
+    const s = sourceRev.get(id) ?? { label, group, revenue: 0 }
+    s.revenue += v
+    sourceRev.set(id, s)
   }
   const products = new Map<string, ProductRow & { prevQty: number }>()
 
   for (const s of stores) {
     const p = profile(s)
-    let rev = 0
-    let prev = 0
-    let online = 0
-    for (let i = 0; i < range; i++) {
-      const d = dayOf(s, range - i)
-      const o = d.revenue / p.basket
-      days[i].revenue += d.revenue
-      days[i].online += d.online
-      days[i].orders += o
-      rev += d.revenue
-      online += d.online
-      storeOrders += (d.revenue - d.online) / (p.basket * 0.95)
-      onlineOrders += d.online / (p.basket * 1.3)
-      const share = HOUR_SHARE[s.industry][dowOf(d.date)]
-      const row = heatSum[dowOf(d.date)]
-      for (let h = 0; h < 24; h++) row[h] += d.revenue * share[h]
+    let st = 0
+    let on = 0
+    let pst = 0
+    let pon = 0
+    for (let i = 0; i < w.len; i++) {
+      const d = dayOf(s, w.start - i)
+      const dst = d.revenue - d.online
+      const day = days[i]
+      day.store += dst
+      day.online += d.online
+      day.revenue += pick(dst, d.online)
+      day.orders += pick(dst / (p.basket * BASKET.store), d.online / (p.basket * BASKET.online))
+      st += dst
+      on += d.online
+      const dow = dowOf(d.date)
+      const sh = HOUR_SHARE[s.industry][dow]
+      const sho = HOUR_SHARE_ONLINE[s.industry][dow]
+      const row = heatSum[dow]
+      for (let h = 0; h < 24; h++) row[h] += pick(dst * sh[h], d.online * sho[h])
     }
-    for (let i = range + 1; i <= range * 2; i++) {
-      const d = dayOf(s, i)
-      prev += d.revenue
-      prevTotal += d.revenue
-      prevOrders += d.revenue / p.basket
-      prevOnline += d.online
+    for (let i = 0; i < w.len; i++) {
+      const d = dayOf(s, w.start + w.len - i)
+      pst += d.revenue - d.online
+      pon += d.online
     }
+    cur.store += st
+    cur.online += on
+    cur.storeOrders += st / (p.basket * BASKET.store)
+    cur.onlineOrders += on / (p.basket * BASKET.online)
+    prev.store += pst
+    prev.online += pon
+    prev.storeOrders += pst / (p.basket * BASKET.store)
+    prev.onlineOrders += pon / (p.basket * BASKET.online)
 
     // Where the orders come from: fixed splits per outlet.
     const rs = rng(`${s.id}:sources`)
-    const inStore = rev - online
     const kiosk = p.kiosk ? between(rs, 0.1, 0.2) : 0
     const table = s.industry === 'hospitality' ? between(rs, 0.2, 0.35) : 0
-    addSource('pos', 'POS counter', 'store', inStore * (1 - kiosk - table))
-    if (table) addSource('table', 'Table service', 'store', inStore * table)
-    if (kiosk) addSource('kiosk', 'Kiosk', 'store', inStore * kiosk)
     const web = between(rs, 0.2, 0.35)
     const app = between(rs, 0.15, 0.3)
-    addSource('web', 'Website & e-shop', 'online', online * web)
-    addSource('app', 'Mobile app', 'online', online * app)
-    if (s.industry === 'hospitality') addSource('delivery', 'Delivery apps', 'online', online * (1 - web - app))
-    else addSource('market', 'Marketplaces', 'online', online * (1 - web - app))
+    if (channel !== 'online') {
+      addSource('pos', 'POS counter', 'store', st * (1 - kiosk - table))
+      if (table) addSource('table', 'Table service', 'store', st * table)
+      if (kiosk) addSource('kiosk', 'Kiosk', 'store', st * kiosk)
+    }
+    if (channel !== 'store') {
+      addSource('web', 'Website & e-shop', 'online', on * web)
+      addSource('app', 'Mobile app', 'online', on * app)
+      if (s.industry === 'hospitality') addSource('delivery', 'Delivery apps', 'online', on * (1 - web - app))
+      else addSource('market', 'Marketplaces', 'online', on * (1 - web - app))
+    }
 
-    // Products: quantities that add up to the outlet's sales; the previous period moves a little per item.
+    // Products: quantities that add up to each channel's sales, with a menu mix of their own online. The previous period moves a little per item.
     const menu = MENU[s.industry]
-    const w = weightsOf(s)
-    const rp = rng(`${s.id}:menu:${range}:${dayAt(0).toDateString()}`)
-    const wPrev = w.map((v) => v * between(rp, 0.78, 1.25))
-    const unit = rev / sumOf(menu.map(([, , price], i) => w[i] * price))
-    const unitPrev = prev / sumOf(menu.map(([, , price], i) => wPrev[i] * price))
+    const wStore = weightsOf(s)
+    const wOnline = wStore.map((v, i) => v * (ONLINE_MIX[menu[i][1]] ?? 1))
+    const rp = rng(`${s.id}:menu:${w.start}-${w.end}:${dayAt(0).toDateString()}`)
+    const drift = wStore.map(() => between(rp, 0.78, 1.25))
+    const qtyOf = (weights: number[], revenue: number) => {
+      const unit = revenue / (sumOf(menu.map(([, , price], i) => weights[i] * price)) || 1)
+      return weights.map((v) => v * unit)
+    }
+    const qs = qtyOf(wStore, st)
+    const qo = qtyOf(wOnline, on)
+    const ps = qtyOf(wStore.map((v, i) => v * drift[i]), pst)
+    const po = qtyOf(wOnline.map((v, i) => v * drift[i]), pon)
     menu.forEach(([name, category, price], i) => {
-      const cur = products.get(name) ?? { name, category, industry: s.industry, price, qty: 0, revenue: 0, share: 0, trend: 0, prevQty: 0 }
-      cur.qty += w[i] * unit
-      cur.revenue += w[i] * unit * price
-      cur.prevQty += wPrev[i] * unitPrev
-      products.set(name, cur)
+      const row = products.get(name) ?? { name, category, industry: s.industry, price, qty: 0, revenue: 0, share: 0, trend: 0, prevQty: 0 }
+      const q = pick(qs[i], qo[i])
+      row.qty += q
+      row.revenue += q * price
+      row.prevQty += pick(ps[i], po[i])
+      products.set(name, row)
     })
   }
 
-  const total = sumOf(days.map((d) => d.revenue))
-  const orders = sumOf(days.map((d) => d.orders))
-  const onlineTotal = sumOf(days.map((d) => d.online))
+  const all = cur.store + cur.online
+  const prevAll = prev.store + prev.online
+  const total = pick(cur.store, cur.online)
+  const prevTotal = pick(prev.store, prev.online)
+  const orders = pick(cur.storeOrders, cur.onlineOrders)
+  const prevOrders = pick(prev.storeOrders, prev.onlineOrders)
   const heat = heatSum.map((row, dow) => row.map((v) => (dowCount[dow] ? v / dowCount[dow] : 0)))
   const byWeekday = heat.map((row) => sumOf(row))
-  const avgDay = sumOf(byWeekday) / 7 || 1
-  const order = byWeekday.map((v, dow) => ({ dow, v })).sort((a, b) => b.v - a.v)
+  const seen = byWeekday.map((v, dow) => ({ dow, v })).filter((x) => dowCount[x.dow] > 0)
+  const avgDay = seen.length ? sumOf(seen.map((x) => x.v)) / seen.length : 1
+  const order = [...seen].sort((a, b) => b.v - a.v)
   let peakSlot = { dow: 0, h: 12, value: 0 }
   heat.forEach((row, dow) => row.forEach((v, h) => v > peakSlot.value && (peakSlot = { dow, h, value: v })))
   const hourTotals = Array.from({ length: 24 }, (_, h) => sumOf(heat.map((row) => row[h])))
@@ -338,7 +438,7 @@ export function salesInsights(stores: Store[], range: Range): SalesInsights {
 
   // Time frames: sales from the hours; orders spread by how big a basket is at that time of day.
   const parts = DAYPART_DEF.map(([id, fl, ol, from, to, fb, ob]) => {
-    const revenue = sumOf(hourTotals.filter((_, h) => inPart(h, from, to))) * (range / 7)
+    const revenue = sumOf(hourTotals.filter((_, h) => inPart(h, from, to)))
     return { id, label: food ? fl : ol, from, to, revenue, weight: revenue / (food ? fb : ob) }
   })
   const partRevenue = sumOf(parts.map((p) => p.revenue)) || 1
@@ -350,18 +450,17 @@ export function salesInsights(stores: Store[], range: Range): SalesInsights {
     return { ...p, revenue, orders: o, basket: o ? revenue / o : 0, share: (p.revenue / partRevenue) * 100 }
   })
 
-  const rows = [...products.values()]
-  const productRows: ProductRow[] = rows
+  const productRows: ProductRow[] = [...products.values()]
     .map(({ prevQty, ...r }) => ({ ...r, share: total ? (r.revenue / total) * 100 : 0, trend: prevQty ? ((r.qty - prevQty) / prevQty) * 100 : 0 }))
     .sort((a, b) => b.revenue - a.revenue)
 
-  const storeRev = total - onlineTotal
-  const prevStoreRev = prevTotal - prevOnline
   const pct = (a: number, b: number) => (b ? ((a - b) / b) * 100 : 0)
+  const ratio = (a: number, b: number) => (b ? (a / b) * 100 : 0)
   const sourceTotal = sumOf([...sourceRev.values()].map((s) => s.revenue)) || 1
 
   const out: SalesInsights = {
-    range,
+    window: w,
+    channel,
     days,
     total,
     orders,
@@ -369,22 +468,24 @@ export function salesInsights(stores: Store[], range: Range): SalesInsights {
     growth: pct(total, prevTotal),
     ordersGrowth: pct(orders, prevOrders),
     basketGrowth: pct(orders ? total / orders : 0, prevOrders ? prevTotal / prevOrders : 0),
-    onlineShare: total ? (onlineTotal / total) * 100 : 0,
-    onlineShareDelta: (total ? (onlineTotal / total) * 100 : 0) - (prevTotal ? (prevOnline / prevTotal) * 100 : 0),
+    share: ratio(total, all),
+    shareDelta: ratio(total, all) - ratio(prevTotal, prevAll),
+    onlineShare: ratio(cur.online, all),
+    onlineShareDelta: ratio(cur.online, all) - ratio(prev.online, prevAll),
     heat,
     byWeekday,
-    peakDay: { dow: order[0].dow, lift: (order[0].v / avgDay - 1) * 100 },
-    quietDay: { dow: order[6].dow, lift: (order[6].v / avgDay - 1) * 100 },
+    peakDay: { dow: order[0]?.dow ?? 0, lift: order[0] ? (order[0].v / avgDay - 1) * 100 : 0 },
+    quietDay: { dow: order[order.length - 1]?.dow ?? 0, lift: order.length ? (order[order.length - 1].v / avgDay - 1) * 100 : 0 },
     peakSlot,
     peakHour,
     dayparts,
     channels: {
-      store: { revenue: storeRev, orders: storeOrders, basket: storeOrders ? storeRev / storeOrders : 0, growth: pct(storeRev, prevStoreRev) },
-      online: { revenue: onlineTotal, orders: onlineOrders, basket: onlineOrders ? onlineTotal / onlineOrders : 0, growth: pct(onlineTotal, prevOnline) },
-      sources: [...sourceRev.entries()]
-        .map(([id, s]) => ({ id, ...s, share: (s.revenue / sourceTotal) * 100 }))
-        .sort((a, b) => (a.group === b.group ? b.revenue - a.revenue : a.group === 'store' ? -1 : 1)),
+      store: { revenue: cur.store, orders: cur.storeOrders, basket: cur.storeOrders ? cur.store / cur.storeOrders : 0, growth: pct(cur.store, prev.store) },
+      online: { revenue: cur.online, orders: cur.onlineOrders, basket: cur.onlineOrders ? cur.online / cur.onlineOrders : 0, growth: pct(cur.online, prev.online) },
     },
+    sources: [...sourceRev.entries()]
+      .map(([id, s]) => ({ id, ...s, share: (s.revenue / sourceTotal) * 100 }))
+      .sort((a, b) => (a.group === b.group ? b.revenue - a.revenue : a.group === 'store' ? -1 : 1)),
     products: productRows,
     categories: [...new Set(productRows.map((r) => r.category))],
   }
@@ -760,10 +861,10 @@ const COMMENTS: Record<IndustryId, [string, number][][]> = {
 }
 
 const fbCache = new Map<string, FeedbackInsights>()
-/** Customer feedback from every channel (receipt QR, kiosk, website and app, delivery apps, Google) over the last `range` days. */
-export function feedback(stores: Store[], range: Range): FeedbackInsights {
+/** Customer feedback from every channel (receipt QR, kiosk, website and app, delivery apps, Google) over a span of whole days. */
+export function feedback(stores: Store[], win: Window): FeedbackInsights {
   const today = dayAt(0).toDateString()
-  const key = `${range}:${today}:${hashString(stores.map((s) => s.id).join())}`
+  const key = `${win.start}-${win.end}:${today}:${hashString(stores.map((s) => s.id).join())}`
   const hit = fbCache.get(key)
   if (hit) return hit
 
@@ -780,9 +881,9 @@ export function feedback(stores: Store[], range: Range): FeedbackInsights {
   for (const s of stores) {
     const p = profile(s)
     let orders = 0
-    for (let i = 1; i <= range; i++) orders += dayOf(s, i).revenue / p.basket
+    for (let i = win.end; i <= win.start; i++) orders += dayOf(s, i).revenue / p.basket
     const n = orders * p.reviewRate
-    const r = rng(`${s.id}:fb:${range}:${today}`)
+    const r = rng(`${s.id}:fb:${win.start}-${win.end}:${today}`)
     // The rating moves a little from one period to the next.
     const drift = between(r, -0.18, 0.18)
     const shares = starShares(p.rating + drift / 2)
@@ -825,8 +926,9 @@ export function feedback(stores: Store[], range: Range): FeedbackInsights {
   const reviews: Review[] = []
   const rr = rng(`fb:list:${key}`)
   const totalN = sumOf(weights.map((w) => w.n)) || 1
-  const perMinute = totalN / (range * 24 * 60)
-  let minutes = 0
+  const perMinute = totalN / (win.len * 24 * 60)
+  // The newest review is from the last day of the period (yesterday's evening at the latest… or today for the default periods).
+  let minutes = (win.end - 1) * 24 * 60
   for (let i = 0; i < 14 && weights.length; i++) {
     minutes += Math.max(1, Math.round((-Math.log(1 - rr() * 0.999) / Math.max(perMinute, 1e-4)) * 0.6))
     let pickN = rr() * totalN
@@ -970,7 +1072,7 @@ export function suggestActions(x: {
       id: `slow-${slow.name}`,
       priority: 'low',
       title: `Rethink ${slow.name}`,
-      why: `${Math.round(slow.qty).toLocaleString('fr-BE')} sold in ${x.sales.range} days (${fmtPct(slow.trend)}). Put it in a combo or take it off the menu.`,
+      why: `${Math.round(slow.qty).toLocaleString('fr-BE')} sold in ${x.sales.window.len} days (${fmtPct(slow.trend)}). Put it in a combo or take it off the menu.`,
       tab: 'sales',
       cta: 'See products',
     })

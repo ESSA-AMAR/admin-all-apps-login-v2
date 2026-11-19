@@ -80,7 +80,7 @@ function answer(q: string, c: AssistantCtx): Omit<Msg, 'id' | 'from'> {
     case 'best': {
       const top = [...s.products].sort((a, b) => b.qty - a.qty).slice(0, 3)
       return {
-        text: `Best sellers over the last ${s.range} days:\n${top.map((p, i) => `${i + 1}. **${p.name}**: ${num(p.qty)} sold (${signed(p.trend, 0)})`).join('\n')}`,
+        text: `Best sellers over the last ${s.window.len} days:\n${top.map((p, i) => `${i + 1}. **${p.name}**: ${num(p.qty)} sold (${signed(p.trend, 0)})`).join('\n')}`,
         go: [{ label: TAB_LABEL.sales, tab: 'sales' }],
       }
     }
@@ -93,9 +93,9 @@ function answer(q: string, c: AssistantCtx): Omit<Msg, 'id' | 'from'> {
     }
     case 'online': {
       const ch = s.channels
-      const topOnline = ch.sources.filter((x) => x.group === 'online').sort((a, b) => b.revenue - a.revenue)[0]
+      const topOnline = s.sources.filter((x) => x.group === 'online').sort((a, b) => b.revenue - a.revenue)[0]
       return {
-        text: `Online is **${pct(s.onlineShare, 1)}** of sales over ${s.range} days: ${signed(ch.online.growth)} vs the period before, against ${signed(ch.store.growth)} in store.\nOnline basket ${eur(ch.online.basket, 2)}, in store ${eur(ch.store.basket, 2)}.${topOnline ? ` First online source: ${topOnline.label}.` : ''}`,
+        text: `Online is **${pct(s.onlineShare, 1)}** of sales over ${s.window.len} days: ${signed(ch.online.growth)} vs the period before, against ${signed(ch.store.growth)} in store.\nOnline basket ${eur(ch.online.basket, 2)}, in store ${eur(ch.store.basket, 2)}.${topOnline ? ` First online source: ${topOnline.label}.` : ''}`,
         go: [{ label: 'See online vs store', tab: 'sales' }],
       }
     }

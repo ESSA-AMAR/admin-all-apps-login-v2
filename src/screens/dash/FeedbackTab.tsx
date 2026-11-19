@@ -4,8 +4,8 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useMemo, useState } from 'react'
 import { CountUp, ease } from '../../components/ui'
 import type { Store } from '../../data/types'
-import { feedback, RANGES, type Range, type ReviewSource } from '../../lib/insights'
-import { Seg, Stars } from './charts'
+import { feedback, windowLabel, windowOf, type Period, type ReviewSource } from '../../lib/insights'
+import { PeriodPicker, Stars } from './charts'
 import { ago, num, pct } from './format'
 
 const card = (i: number) => ({
@@ -17,8 +17,10 @@ const card = (i: number) => ({
 const SOURCE_ICON: Record<ReviewSource, typeof QrCode> = { receipt: QrCode, kiosk: DeviceTablet, web: Globe, delivery: Moped, google: GoogleLogo }
 type Filter = 'all' | 'negative' | 'unanswered'
 
-export function FeedbackTab({ stores, range, onRange, onSay }: { stores: Store[]; range: Range; onRange: (r: Range) => void; onSay: (msg: string) => void }) {
-  const f = useMemo(() => feedback(stores, range), [stores, range])
+export function FeedbackTab({ stores, period, onPeriod, onSay }: { stores: Store[]; period: Period; onPeriod: (p: Period) => void; onSay: (msg: string) => void }) {
+  const w = useMemo(() => windowOf(period), [period])
+  const f = useMemo(() => feedback(stores, w), [stores, w])
+  const days = `${w.len} ${w.len === 1 ? 'day' : 'days'}`
   const [filter, setFilter] = useState<Filter>('all')
   const [replied, setReplied] = useState<Set<string>>(() => new Set())
   const isReplied = (id: string, base: boolean) => base || replied.has(id)
@@ -30,8 +32,10 @@ export function FeedbackTab({ stores, range, onRange, onSay }: { stores: Store[]
   return (
     <div className="dt-tab">
       <div className="dt-tab-head">
-        <p className="label dim">Ratings and comments from the POS receipt QR, the kiosk, the website and app, delivery apps and Google</p>
-        <Seg label="Period" value={range} options={RANGES.map((r) => ({ id: r, label: `${r} days` }))} onChange={onRange} />
+        <p className="label dim">
+          {windowLabel(w)} ({days}) · ratings and comments from the POS receipt QR, the kiosk, the website and app, delivery apps and Google
+        </p>
+        <PeriodPicker value={period} onChange={onPeriod} />
       </div>
 
       <div className="kpi-row">
@@ -48,7 +52,7 @@ export function FeedbackTab({ stores, range, onRange, onSay }: { stores: Store[]
                 {f.avgDelta > 0 ? '▲' : '▼'} {num(Math.abs(f.avgDelta), 2)} ★
               </span>
             )}
-            <span className="label dim">vs previous {range} days</span>
+            <span className="label dim">vs previous {days}</span>
           </div>
         </motion.div>
         <motion.div className="kpi" {...card(1)}>
@@ -57,7 +61,7 @@ export function FeedbackTab({ stores, range, onRange, onSay }: { stores: Store[]
             <CountUp value={f.count} format={(v) => num(v)} />
           </b>
           <div className="kpi-foot">
-            <span className="label dim">in {range} days</span>
+            <span className="label dim">{windowLabel(w)}</span>
           </div>
         </motion.div>
         <motion.div className="kpi" {...card(2)}>

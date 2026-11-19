@@ -9,8 +9,11 @@
   grid-column: 1 / -1;
 }
 
-/* Tabs */
+/* Tabs: under the page title, and they stay pinned under the top bar once the page scrolls past them. */
 .dt-tabs {
+  position: sticky;
+  top: calc(var(--bo-top, 76px) + 4px);
+  z-index: 12;
   display: flex;
   gap: 4px;
   padding: 4px;
@@ -18,8 +21,13 @@
   max-width: 100%;
   overflow-x: auto;
   border-radius: 12px;
-  background: var(--gl-fill-soft, color-mix(in srgb, var(--text) 5%, transparent));
-  box-shadow: var(--gl-field-edge, none);
+  /* The glass over a solid panel, so what scrolls underneath does not show through the labels. */
+  background: var(--gl-fill-soft, color-mix(in srgb, var(--text) 5%, transparent)), var(--panel);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
+  box-shadow:
+    var(--gl-field-edge, none),
+    0 10px 26px -14px rgba(0, 0, 0, 0.55);
   scrollbar-width: none;
 }
 .dt-tabs button {
@@ -116,6 +124,85 @@
 .dt-filter button.on {
   color: var(--text);
   background: color-mix(in srgb, var(--text) 12%, transparent);
+}
+
+/* Period: presets, then Custom opens a From and a To date */
+.dt-tab-filters {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.dt-period {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+.dt-seg button svg {
+  vertical-align: -2px;
+  margin-right: 4px;
+}
+.dt-dates {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.dt-dates label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.dt-dates label span {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-dim);
+}
+.dt-date {
+  height: 40px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  background: color-mix(in srgb, var(--text) 5%, transparent);
+  border: 1.5px solid var(--line);
+  color-scheme: dark;
+}
+:root[data-theme='light'] .dt-date {
+  color-scheme: light;
+}
+.dt-date:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--text) 55%, var(--line));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--text) 10%, transparent);
+}
+.dt-dates-len {
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 13px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+.dt-period .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.dt-split-cell.sel {
+  border-color: color-mix(in srgb, var(--text) 45%, var(--line));
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+}
+.dt-split-cell.dim {
+  opacity: 0.55;
 }
 
 .dt-note {

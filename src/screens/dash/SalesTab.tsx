@@ -5,8 +5,8 @@ import { useMemo, useState } from 'react'
 import { CountUp, ease } from '../../components/ui'
 import type { Store } from '../../data/types'
 import { eur } from '../../lib/kpis'
-import { DAYS_LONG, hourRange, RANGES, salesInsights, type Range } from '../../lib/insights'
-import { DayBars, Heatmap, Seg, Trend, TwoLines } from './charts'
+import { DAYS_LONG, hourRange, salesInsights, windowLabel, windowOf, type Channel, type Period } from '../../lib/insights'
+import { DayBars, Heatmap, PeriodPicker, Seg, Trend, TwoLines } from './charts'
 import { money, num, pct, signed } from './format'
 
 const card = (i: number) => ({
@@ -15,31 +15,50 @@ const card = (i: number) => ({
   transition: { duration: 0.6, delay: 0.05 + i * 0.05, ease },
 })
 
-export function SalesTab({ stores, range, onRange }: { stores: Store[]; range: Range; onRange: (r: Range) => void }) {
-  const s = useMemo(() => salesInsights(stores, range), [stores, range])
+const CHANNELS: { id: Channel; label: string }[] = [
+  { id: 'all', label: 'All' },
+  { id: 'store', label: 'In store' },
+  { id: 'online', label: 'Online' },
+]
+/** A word after a title for the filtered channel. */
+const CH_SUFFIX: Record<Channel, string> = { all: '', store: ' · in store', online: ' · online' }
+
+export function SalesTab({ stores, period, onPeriod, channel, onChannel }: { stores: Store[]; period: Period; onPeriod: (p: Period) => void; channel: Channel; onChannel: (c: Channel) => void }) {
+  const w = useMemo(() => windowOf(period), [period])
+  const s = useMemo(() => salesInsights(stores, w, channel), [stores, w, channel])
   const [cat, setCat] = useState<string>('all')
-  const products = cat === 'all' ? s.products : s.products.filter((p) => p.category === cat)
+  const products = cat === 'all' || !s.categories.includes(cat) ? s.products : s.products.filter((p) => p.category === cat)
   const best = [...s.products].sort((a, b) => b.qty - a.qty).slice(0, 5)
   const maxPart = Math.max(...s.dayparts.map((d) => d.revenue), 1)
   const bestPart = s.dayparts.reduce((a, b) => (b.revenue > a.revenue ? b : a), s.dayparts[0])
   const maxProduct = Math.max(...products.map((p) => p.revenue), 1)
   const ch = s.channels
-  const storeSources = ch.sources.filter((x) => x.group === 'store')
-  const onlineSources = ch.sources.filter((x) => x.group === 'online')
-  const maxSource = Math.max(...ch.sources.map((x) => x.share), 1)
+  const storeSources = s.sources.filter((x) => x.group === 'store')
+  const onlineSources = s.sources.filter((x) => x.group === 'online')
+  const maxSource = Math.max(...s.sources.map((x) => x.share), 1)
+  const days = `${w.len} ${w.len === 1 ? 'day' : 'days'}`
+  const prev = `vs previous ${days}`
+  const sfx = CH_SUFFIX[channel]
 
   const kpis = [
-    { label: 'Sales', value: s.total, fmt: money, trend: s.growth },
-    { label: 'Orders', value: s.orders, fmt: (v: number) => num(v), trend: s.ordersGrowth },
+    { label: channel === 'store' ? 'In-store sales' : channel === 'online' ? 'Online sales' : 'Sales', value: s.total, fmt: money, trend: s.growth },
+    { label: channel === 'store' ? 'In-store orders' : channel === 'online' ? 'Online orders' : 'Orders', value: s.orders, fmt: (v: number) => num(v), trend: s.ordersGrowth },
     { label: 'Average basket', value: s.basket, fmt: (v: number) => eur(v, 2), trend: s.basketGrowth },
-    { label: 'Online share', value: s.onlineShare, fmt: (v: number) => pct(v, 1), trend: s.onlineShareDelta, unit: 'pts' as const },
+    channel === 'all'
+      ? { label: 'Online share', value: s.onlineShare, fmt: (v: number) => pct(v, 1), trend: s.onlineShareDelta, unit: 'pts' as const }
+      : { label: 'Share of all sales', value: s.share, fmt: (v: number) => pct(v, 1), trend: s.shareDelta, unit: 'pts' as const },
   ]
 
   return (
     <div className="dt-tab">
       <div className="dt-tab-head">
-        <p className="label dim">Last {range} days, ending yesterday · compared with the {range} days before</p>
-        <Seg label="Period" value={range} options={RANGES.map((r) => ({ id: r, label: `${r} days` }))} onChange={onRange} />
+        <p className="label dim">
+          {windowLabel(w)} ({days}) · compared with the {days} before{channel === 'store' ? ' · orders taken in the outlets' : channel === 'online' ? ' · orders placed online' : ''}
+        </p>
+        <div className="dt-tab-filters">
+          <Seg label="Channel" value={channel} options={CHANNELS} onChange={onChannel} />
+          <PeriodPicker value={period} onChange={onPeriod} />
+        </div>
       </div>
 
       <div className="kpi-row">
@@ -51,7 +70,7 @@ export function SalesTab({ stores, range, onRange }: { stores: Store[]; range: R
             </b>
             <div className="kpi-foot">
               <Trend v={k.trend} unit={k.unit} />
-              <span className="label dim">vs previous {range} days</span>
+              <span className="label dim">{prev}</span>
             </div>
           </motion.div>
         ))}
@@ -60,7 +79,7 @@ export function SalesTab({ stores, range, onRange }: { stores: Store[]; range: R
       <div className="dash-grid">
         <motion.section className="panel tile span-8" {...card(4)}>
           <div className="tile-head">
-            <h3>Sales by day</h3>
+            <h3>Sales by day{sfx}</h3>
             <span className="label dim">The 3 busiest days in red</span>
           </div>
           <DayBars days={s.days} />
@@ -68,7 +87,7 @@ export function SalesTab({ stores, range, onRange }: { stores: Store[]; range: R
 
         <motion.section className="panel tile span-4" {...card(5)}>
           <div className="tile-head">
-            <h3>Peak times</h3>
+            <h3>Peak times{sfx}</h3>
             <span className="label dim">Average week</span>
           </div>
           <ul className="dt-facts">
@@ -114,7 +133,7 @@ export function SalesTab({ stores, range, onRange }: { stores: Store[]; range: R
 
         <motion.section className="panel tile span-8" {...card(6)}>
           <div className="tile-head">
-            <h3>Day × hour</h3>
+            <h3>Day × hour{sfx}</h3>
             <span className="label dim">Average sales per hour · the busiest slot outlined</span>
           </div>
           <Heatmap heat={s.heat} peak={s.peakSlot} />
@@ -122,7 +141,7 @@ export function SalesTab({ stores, range, onRange }: { stores: Store[]; range: R
 
         <motion.section className="panel tile span-4" {...card(7)}>
           <div className="tile-head">
-            <h3>Time frames</h3>
+            <h3>Time frames{sfx}</h3>
             <span className="label dim">Best: {bestPart?.label}</span>
           </div>
           <ul className="dt-parts">
@@ -167,14 +186,14 @@ export function SalesTab({ stores, range, onRange }: { stores: Store[]; range: R
                 ['Online', Globe, ch.online],
               ] as const
             ).map(([label, Icon, c]) => (
-              <div key={label} className="dt-split-cell">
+              <div key={label} className={`dt-split-cell${channel === 'all' ? '' : (channel === 'store') === (label === 'In store') ? ' sel' : ' dim'}`}>
                 <span className="dt-split-head">
                   <Icon size={18} aria-hidden /> {label}
-                  <em>{pct(s.total ? (c.revenue / s.total) * 100 : 0)}</em>
+                  <em>{pct(ch.store.revenue + ch.online.revenue ? (c.revenue / (ch.store.revenue + ch.online.revenue)) * 100 : 0)}</em>
                 </span>
                 <b>{money(c.revenue)}</b>
                 <span className="dt-split-meta">
-                  <Trend v={c.growth} /> <span className="label dim">vs previous {range} days</span>
+                  <Trend v={c.growth} /> <span className="label dim">{prev}</span>
                 </span>
                 <small>
                   {num(c.orders)} orders · basket {eur(c.basket, 2)}
@@ -182,19 +201,21 @@ export function SalesTab({ stores, range, onRange }: { stores: Store[]; range: R
               </div>
             ))}
           </div>
-          <TwoLines a={s.days.map((d) => d.revenue - d.online)} b={s.days.map((d) => d.online)} labels={['In store', 'Online']} />
+          <TwoLines a={s.days.map((d) => d.store)} b={s.days.map((d) => d.online)} labels={['In store', 'Online']} />
         </motion.section>
 
         <motion.section className="panel tile span-4" {...card(9)}>
           <div className="tile-head">
-            <h3>Where orders come from</h3>
+            <h3>Where orders come from{sfx}</h3>
           </div>
           {(
             [
               ['In store', storeSources],
               ['Online', onlineSources],
             ] as const
-          ).map(([group, list]) => (
+          )
+            .filter(([, list]) => list.length > 0)
+            .map(([group, list]) => (
             <div key={group} className="dt-sources">
               <span className="label dim">{group}</span>
               <ul className="bars">
@@ -214,7 +235,7 @@ export function SalesTab({ stores, range, onRange }: { stores: Store[]; range: R
 
         <motion.section className="panel tile span-4" {...card(10)}>
           <div className="tile-head">
-            <h3>Best sellers</h3>
+            <h3>Best sellers{sfx}</h3>
             <span className="label dim">By quantity</span>
           </div>
           <ol className="dt-best">
@@ -238,7 +259,7 @@ export function SalesTab({ stores, range, onRange }: { stores: Store[]; range: R
 
         <motion.section className="panel tile span-8" {...card(11)}>
           <div className="tile-head">
-            <h3>Menu products</h3>
+            <h3>Menu products{sfx}</h3>
             <div className="dt-filter" role="group" aria-label="Category">
               {['all', ...s.categories].map((c) => (
                 <button key={c} className={cat === c ? 'on' : ''} onClick={() => setCat(c)}>
