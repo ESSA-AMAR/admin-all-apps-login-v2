@@ -43,7 +43,8 @@
 /* ───────── the page ───────── */
 .bo-screen {
   position: relative;
-  max-width: 1280px;
+  /* the screens use the whole width the sidebar leaves; no cap, so a large window is filled, not left half empty */
+  width: 100%;
   padding: 104px 32px 96px 16px;
 }
 .bo-head2 {
