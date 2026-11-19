@@ -659,42 +659,92 @@
   font-weight: 800;
   letter-spacing: -0.03em;
 }
-.lo-seal {
+/* The success mark, as in the POS v3 sign-in: the logo's box draws, then its check, then a ring and a few sparks (components/SuccessMark.tsx). */
+.cmok {
   position: relative;
-  display: grid;
-  place-items: center;
+  display: block;
+  width: 156px;
+  height: 156px;
+}
+.cmok svg {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 0 18px rgba(224, 45, 60, 0.4));
+}
+.cmok-d {
+  fill: none;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+.cmok-bx {
+  animation: cmok-draw 0.5s cubic-bezier(0.65, 0, 0.25, 1) 0.15s forwards;
+}
+.cmok-ck {
+  animation: cmok-draw 0.35s cubic-bezier(0.65, 0, 0.25, 1) 0.6s forwards;
+}
+.cmok-wave {
+  position: absolute;
+  left: 18px;
+  top: 23px;
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  background: rgba(18, 183, 106, 0.12);
-  border: 1.5px solid var(--lo-ok);
-}
-.lo-seal::after {
-  content: '';
-  position: absolute;
-  inset: -3px;
-  border-radius: 50%;
-  border: 2px solid var(--lo-ok);
+  border: 2px solid rgba(236, 42, 58, 0.7);
   opacity: 0;
-  animation: lo-wave 1.4s cubic-bezier(0.2, 0.6, 0.4, 1) 0.2s 1;
+  animation: cmok-wave 0.9s cubic-bezier(0.2, 0.6, 0.3, 1) 0.95s;
 }
-.lo-seal svg {
-  width: 52px;
-  height: 52px;
-  fill: none;
-  stroke: #fff;
-  stroke-width: 2.4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.cmok-wave.w2 {
+  animation-delay: 1.05s;
+  border-color: rgba(236, 42, 58, 0.4);
 }
-.lo-seal path {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  animation: lo-draw 0.5s cubic-bezier(0.65, 0, 0.25, 1) 0.25s forwards;
+.cmok-burst {
+  position: absolute;
+  inset: 0;
 }
-@keyframes lo-draw {
+.cmok-burst i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  margin: -4px;
+  border-radius: 50%;
+  background: #ff4a57;
+  opacity: 0;
+  transform: rotate(var(--a)) translateY(0);
+  animation: cmok-burst 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.92s;
+}
+.cmok-burst i:nth-child(even) {
+  width: 5px;
+  height: 5px;
+  margin: -2.5px;
+  background: #ffb3b9;
+}
+@keyframes cmok-draw {
   to {
     stroke-dashoffset: 0;
+  }
+}
+@keyframes cmok-wave {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.75);
+  }
+}
+@keyframes cmok-burst {
+  0% {
+    opacity: 1;
+    transform: rotate(var(--a)) translateY(-60px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--a)) translateY(-118px) scale(0.3);
   }
 }
 @keyframes lo-wave {
@@ -885,9 +935,17 @@
 @media (prefers-reduced-motion: reduce) {
   .lo-story h1 em,
   .lo-marquee-track,
-  .lo-radar i,
-  .lo-seal::after {
+  .lo-radar i {
     animation: none;
+  }
+  .cmok-bx,
+  .cmok-ck {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  .cmok-wave,
+  .cmok-burst {
+    display: none;
   }
 }
 

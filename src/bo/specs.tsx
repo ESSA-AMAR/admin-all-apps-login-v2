@@ -31,7 +31,7 @@ const M = (n: number, d = 2): CellObj => ({ t: eur(n, d), n })
 const S = (t: string, tone: Tone, dashed?: boolean): CellObj => ({ t, tone, dashed })
 const pct = (n: number, max: number) => Math.round((n / Math.max(1, max)) * 100)
 
-const PEOPLE = ['Sarah Lambert', 'Yanis Benali', 'Nadia El Amrani', 'Tom Peeters', 'Youssef El Idrissi', 'Driss Amrani', 'Rayan Kaci', 'Hugo Martin', 'Lina Bakri', 'Elad Ilyas', 'Amira Khelifi', 'Lucas Dubois']
+const PEOPLE = ['Benaissa Amari', 'Sarah Lambert', 'Yanis Benali', 'Nadia El Amrani', 'Tom Peeters', 'Youssef El Idrissi', 'Driss Amrani', 'Rayan Kaci', 'Hugo Martin', 'Lina Bakri', 'Amira Khelifi', 'Lucas Dubois']
 const day = (back = 0) => {
   const d = new Date()
   d.setDate(d.getDate() - back)
@@ -232,7 +232,7 @@ function governanceScreens(c: Ctx): Record<string, Screen> {
     ['10:42', 'Sarah Lambert', 'Back office', 'changed', 'Refund approval above', ['50,00 €', '75,00 €']], ['10:31', 'Tom Peeters', 'Back office', 'changed', 'Tip suggestions · Utrecht', ['5 · 10 · 15 %', '10 · 15 · 20 %']],
     ['09:58', 'Driss Amrani', 'POS', 'turned on rush mode at', 'Crusty · Brussels Central', undefined], ['09:12', 'Yanis Benali', 'Back office', 'added the account', 'Hugo Martin', undefined],
     ['Yesterday 18:40', 'Rayan Kaci', 'KDS', 'marked as sold out', 'Truffle Risotto', undefined], ['Yesterday 16:05', 'Nadia El Amrani', 'Back office', 'closed the cash session', 'Register 2 · Ghent', ['Counted 412,50 €', 'Reconciled']],
-    ['Yesterday 11:20', 'Sarah Lambert', 'Back office', 'published', 'Version 40', undefined], ['2 days ago', 'Elad Ilyas', 'Support', 'entered the client as support', 'Nordlight Ventures', undefined],
+    ['Yesterday 11:20', 'Sarah Lambert', 'Back office', 'published', 'Version 40', undefined], ['2 days ago', 'Benaissa Amari', 'Support', 'entered the client as support', 'Nordlight Ventures', undefined],
   ] as const
   const tax: Row[] = [['Standard', '21 %', 'Retail, drinks, takeaway', 'Belgium'], ['Reduced', '12 %', 'Restaurant meals', 'Belgium'], ['Reduced', '6 %', 'Fresh food', 'Belgium'], ['Standard', '20 %', 'Most goods', 'France'], ['Reduced', '10 %', 'On-site food', 'France'], ['Standard', '21 %', 'Most goods', 'Netherlands'], ['Reduced', '9 %', 'Food and drink', 'Netherlands']].map(([n, v, a, k], i) => ({ id: `t${i}`, name: n, rate: v, applies: a, country: k }))
   return {

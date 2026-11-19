@@ -2,6 +2,7 @@ import { ArrowRight, ChartLineUp, Eye, EyeSlash, IdentificationBadge, ShieldChec
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent } from 'react'
 import { LoginBackdrop } from '../components/LoginBackdrop'
+import { SuccessMark } from '../components/SuccessMark'
 import { ROLES } from '../data/apps'
 import { USERS } from '../data/mock'
 import type { Session } from '../data/types'
@@ -98,7 +99,7 @@ export function Login({ onAuthenticated }: { onAuthenticated: (s: Session) => vo
       setWelcome(`Welcome back, ${session.user.name.split(' ')[0]}`)
       setBadge(false)
       sfx.ok()
-      await wait(1150)
+      await wait(1700)
       onAuthenticated(session)
     } catch (err) {
       sfx.err()
@@ -293,10 +294,8 @@ export function Login({ onAuthenticated }: { onAuthenticated: (s: Session) => vo
           </motion.main>
         ) : (
           <motion.main key="verified" className="lo-verified" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <motion.span className="lo-seal" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5, ease: RISE }}>
-              <svg viewBox="0 0 24 24" aria-hidden>
-                <path d="M5 12.5l4.5 4.5L19 7.5" pathLength={1} />
-              </svg>
+            <motion.span initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5, ease: RISE }}>
+              <SuccessMark />
             </motion.span>
             <b aria-label={welcome}>
               <Letters text={welcome} />

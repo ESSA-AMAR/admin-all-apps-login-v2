@@ -171,7 +171,7 @@ export const POS_PIN = '1234'
 
 /** Demo accounts. Every role signs in with email + its own password; front-line roles can also use a staff PIN on a store terminal. */
 export const USERS: (User & { password?: string; pin?: string })[] = [
-  { id: 'u-admin', name: 'Elad Ilyas', email: 'admin@caissemanager.com', password: 'admin123', pin: '0011665980', role: 'super_admin', title: 'Group Administrator', assignment: { holdingIds: ['cmh', 'nlv', 'ahg'] } },
+  { id: 'u-admin', name: 'Benaissa Amari', email: 'admin@caissemanager.com', password: 'admin123', pin: '0011665980', role: 'super_admin', title: 'Group Administrator', assignment: { holdingIds: ['cmh', 'nlv', 'ahg'] } },
   { id: 'u-holding', name: 'Sarah Lambert', email: 'manager@lumen.be', password: 'holding123', role: 'holding_admin', title: 'Holding Director · Lumen', assignment: { holdingIds: ['lmn'] } },
   { id: 'u-brand', name: 'Yanis Benali', email: 'brand@crusty.be', password: 'brand123', role: 'brand_manager', title: 'Brand Manager · Crusty', assignment: { holdingIds: ['cmh'], brandIds: ['cmh-crusty'] } },
   { id: 'u-region', name: 'Nadia El Amrani', email: 'benelux@caissemanager.com', password: 'region123', role: 'regional_manager', title: 'Regional Manager · Benelux', assignment: { holdingIds: ['cmh'], countryIds: ['056', '528', '442'] } },
