@@ -7,7 +7,7 @@
 
 .app.has-bo {
   --bo-w: 264px;
-  --bo-top: 104px;
+  --bo-top: 76px;
 }
 .app.has-bo.bo-rail {
   --bo-w: 64px;
@@ -21,7 +21,7 @@
 .bo-side {
   position: fixed;
   z-index: 15;
-  top: var(--bo-top, 104px);
+  top: var(--bo-top, 76px);
   left: 16px;
   bottom: 16px;
   width: var(--bo-w, 264px);
@@ -314,7 +314,7 @@
 /* ───────── the concept page ───────── */
 .bo-page {
   max-width: 880px;
-  padding: 104px 32px 48px 16px;
+  padding: 76px 32px 48px 16px;
 }
 .bo-page .step-title {
   margin-top: 8px;

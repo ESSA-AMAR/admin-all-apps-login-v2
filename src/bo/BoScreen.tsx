@@ -10,7 +10,7 @@ import { screenFor, type Ctx } from './specs'
 interface Props {
   /** Id of the sidebar item that was opened. */
   id: string
-  ctx: Omit<Ctx, 'go'>
+  ctx: Omit<Ctx, 'go' | 'open'>
   /** The app's dispatch: the screens open the map, the dashboard or the launchpad through it. */
   dispatch: (a: Action) => void
   onPick: (item: BoItem) => void
@@ -36,7 +36,14 @@ export function BoScreen({ id, ctx, onPick, dispatch, locked }: Props) {
   // Built once per item and scope: a message on screen must not rebuild it (that would reset what the person just did in it).
   const { stores, holdings, scopeName } = ctx
   const go = useCallback<Ctx['go']>((mode) => dispatch({ type: 'mode', mode }), [dispatch])
-  const screen = useMemo(() => (BO_INDEX.has(id) ? screenFor(id, { stores, holdings, scopeName, go }) : null), [id, stores, holdings, scopeName, go])
+  const open = useCallback<Ctx['open']>(
+    (id) => {
+      const it = BO_INDEX.get(id)?.item
+      if (it) dispatch(it.to ? { type: 'mode', mode: it.to } : { type: 'page', key: it.id })
+    },
+    [dispatch],
+  )
+  const screen = useMemo(() => (BO_INDEX.has(id) ? screenFor(id, { stores, holdings, scopeName, go, open }) : null), [id, stores, holdings, scopeName, go, open])
 
   if (!hit) return null
   if (!screen) return <ConceptPage id={id} onPick={onPick} locked={locked} />

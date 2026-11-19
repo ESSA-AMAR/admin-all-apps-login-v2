@@ -277,7 +277,7 @@ export const BACKOFFICE: BoSection[] = [
         min: 4,
         items: [
           item('estate.apps', 'Applications & entitlements', 'Applications & entitlements', { to: 'apps' }),
-          item('estate.pos', 'POS', 'POS', { soon: true }),
+          item('estate.pos', 'POS', 'POS'),
           item('estate.mpos', 'Mobile POS', 'Mobile POS', { soon: true }),
           item('estate.kiosk', 'Kiosk', 'Kiosk', { soon: true }),
           item('estate.kds', 'KDS', 'KDS', { to: 'apps' }),

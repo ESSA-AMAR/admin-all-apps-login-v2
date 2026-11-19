@@ -3048,7 +3048,7 @@
   .lite .cpop .cp-b.go::after { animation: none; display: none; }
 
   /* login headlines: heavy, tight, all caps — grey words with one red word (the name, the PIN) */
-  :root { --hl-grey: #5a5a5c; --hl-red: #ff2e3b; }
+  :root { --hl-grey: #8a8a8e; --hl-red: #ff2e3b; }   /* the big headline words: a mid grey, one word red */
   #hello h1, #who h2, #pinPanel h2 { font-family: 'Inter Tight', 'IBM Plex Sans Arabic', 'Roboto', sans-serif; font-weight: 800; text-transform: uppercase; letter-spacing: -.035em; word-spacing: .08em; }
   #hello h1 { font-size: 78px; line-height: 84px; height: 84px; color: var(--hl-grey); }
   #hello h1 .hn { font-weight: 800; color: var(--hl-red); text-shadow: 0 0 40px rgba(255,46,59,.25); }
@@ -4080,8 +4080,8 @@ html #order .tools .kp button .mi { width: 28px; height: 28px; }
 html #carousel .item.center .ring, html:not(.light) #carousel .item.center .ring, html #travel .ring, html:not(.light) #travel .ring { border-width: 0 !important; filter: none !important; }
 html #carousel .item.center .shine, html:not(.light) #carousel .item.center .shine, html #travel .shine, html:not(.light) #travel .shine { border-width: 0 !important; background: none !important; }
 
-/* PIN: the white text is brighter, so it reads clearly on the dark screen (the "Enter your" part of the title was a dark grey) */
-html #pinPanel h2 { color: #f4f4f5; }
+/* PIN: the title uses the same headline grey as the other screens ("Enter your" grey, "PIN" red); the text under it stays bright white so it reads clearly on the dark screen */
+html #pinPanel h2 { color: var(--hl-grey); }
 html #pinPanel .pin-sub { color: rgba(255,255,255,.86); }
 html #who p.dimmable { color: rgba(255,255,255,.8); }
 html #pinPanel .help { color: rgba(255,255,255,.8); }
@@ -4254,16 +4254,20 @@ html #order .subbar :is(.sb-cur, .sb-clear)::after { content: ""; position: abso
 /* THE PROFILE MENU: the red box on the current screen (Order, Tables, ...) has sharp corners. */
 html #stage .drawer .dr-it, html #stage .drawer .dr-it.on, html #stage .drawer .dr-it::before, html #stage .drawer .dr-it::after { border-radius: 0; }
 
-/* DISH CARDS WITHOUT PHOTOS (the Cards view, and any dish with no picture): a bigger name at the top, the price at the bottom right, and a dish on the ticket shows its count in a round badge
-   in the top corner. */
-html #order :is(.icons .prod, .prod:has(> .ph.noimg)) { min-height: 112px; }
-html #order :is(.icons .prod, .prod:has(> .ph.noimg)) .info, html .rtl #order :is(.icons .prod, .prod:has(> .ph.noimg)) .info { position: relative; justify-content: flex-start; align-items: flex-start; gap: 0; padding: 18px 18px 46px; }
-html #order :is(.icons .prod, .prod:has(> .ph.noimg)) .nm { font-size: clamp(18px, 10.4cqw, 23px); font-weight: 600; line-height: 1.2; color: rgba(255,255,255,.95); }
-html #order :is(.icons .prod, .prod:has(> .ph.noimg)).has .nm { padding-inline-end: 40px; }
-html #order :is(.icons .prod, .prod:has(> .ph.noimg)) .pr { position: absolute; bottom: 14px; inset-inline-end: 18px; display: flex; align-items: baseline; gap: 5px; }
-html #order :is(.icons .prod, .prod:has(> .ph.noimg)) .pr b { font: 600 clamp(18px, 10cqw, 22px)/1 'Roboto Mono', monospace; color: rgba(255,255,255,.95); }
-html #order :is(.icons .prod, .prod:has(> .ph.noimg)) .pr small { font-size: 13px; color: rgba(255,255,255,.5); }
+/* DISH CARDS WITHOUT PHOTOS (the Cards view, and any dish with no picture): a dish on the ticket shows its count in a round badge in the top corner.
+   The name and the price keep the standard card layout. */
 html #order :is(.icons .prod, .prod:has(> .ph.noimg)) .ph .qb { top: 14px; inset-inline: auto 8px; min-width: 32px; height: 32px; padding: 0 6px; border-radius: 999px; display: grid; place-items: center; font: 700 16px 'Roboto Mono', monospace; box-shadow: 0 6px 14px -4px rgba(224,45,60,.7); }
+/* A client on the ticket: just their picture. No red glass button behind it, no sheen, no name (it is in the tooltip and in the client pop-up).
+   Written with the button's id so it outranks the red glass rules for Dark and Light (those are !important and long selectors). */
+html #stage #order #tkClient.has {
+  width: auto; max-width: none; height: 34px; padding: 0; gap: 0; justify-content: center; overflow: visible; border-radius: 50%;
+  background: none !important; box-shadow: none !important; text-shadow: none !important;
+  -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+html #stage #order #tkClient.has::before, html #stage #order #tkClient.has::after { display: none !important; }
+html #stage #order #tkClient.has .cnm { display: none; }
+html #stage #order #tkClient.has .cav { width: 34px; height: 34px; }
+html #stage #order #tkClient.has:hover .cav { box-shadow: 0 0 0 2px rgba(var(--ice-rgb), .55); }
+html #stage #order #tkClient.has:active { transform: scale(.94); }
 html #order .subbar .sb-cur .n { background: none; padding: 0; padding-inline-start: 8px; border-radius: 0; border-inline-start: 1.5px solid rgba(255,255,255,.4); font-size: 13px; line-height: 18px; }   /* the count is plain text after a thin divider, no dark box */
 html #order .subbar .sb-cur .mi { width: 18px; height: 18px; padding: 3px; box-sizing: content-box; border-radius: 50%; background-color: #fff; color: #e02d3c; }
 html #order .subbar .sb-clear { height: 40px; margin: 0; margin-inline-start: 8px; border-radius: 6px; position: relative; background: none; box-shadow: none; }

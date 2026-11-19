@@ -9,6 +9,18 @@ export interface IndustryKpi {
   delta: number
 }
 
+/** Profit and control figures. The ratios are % of sales; the deltas are in points against last week. */
+export interface ControlKpis {
+  /** Like-for-like sales growth: same outlets, against the same day last year (%). */
+  lfl: number
+  /** Product cost plus labour, as a share of sales (%). */
+  primeCost: number
+  /** Voids, refunds and discounts, as a share of sales (%). */
+  loss: number
+  primeCostDelta: number
+  lossDelta: number
+}
+
 export interface StoreKpis {
   revenueToday: number
   target: number
@@ -23,6 +35,7 @@ export interface StoreKpis {
   industry: IndustryKpi[]
   staff: { name: string; role: string; since: string }[]
   terminals: { id: string; app: string; status: 'online' | 'idle' | 'offline' }[]
+  control: ControlKpis
 }
 
 /** Business-hour shape per industry (0–1 weight by hour). */
@@ -99,6 +112,17 @@ export function buildKpis(store: Store, now = new Date()): StoreKpis {
             { label: 'Supplier drops', value: Math.round(between(r, 2, 9)), delta: between(r, -10, 10) },
           ]
 
+  // Profit and control figures: demo values drawn from a separate seed, so nothing above changes. Prime cost runs higher in retail than in food.
+  const rc = rng(`${store.id}:control:${day.date}`)
+  const [primeLo, primeHi] = store.industry === 'it' ? [66, 78] : store.industry === 'hospitality' ? [56, 68] : [58, 70]
+  const control: ControlKpis = {
+    lfl: between(rc, -6, 14),
+    primeCost: between(rc, primeLo, primeHi),
+    loss: between(rc, 1.1, 4.8),
+    primeCostDelta: between(rc, -2.5, 2.5),
+    lossDelta: between(rc, -1, 1),
+  }
+
   const card = between(r, 48, 66)
   const contactless = between(r, 14, 26)
   const cash = between(r, 6, 16)
@@ -124,6 +148,7 @@ export function buildKpis(store: Store, now = new Date()): StoreKpis {
     hourly,
     hourlyLastWeek,
     paymentMix,
+    control,
     topProducts: products
       .map(([name, price]) => {
         const qty = Math.round(between(r, 4, 60) * (revenueToday / scale / 8 + 0.3))
@@ -198,6 +223,7 @@ export interface ScopeKpis {
   status: { online: number; degraded: number; offline: number }
   terminals: { online: number; total: number }
   staffOnShift: number
+  control: ControlKpis
 }
 
 const RATIO_UNITS = new Set(['x', 'min', '%'])
@@ -245,6 +271,13 @@ export function consolidate(stores: Store[]): ScopeKpis {
       transactions: weighted((k) => k.deltas.transactions),
       basket: weighted((k) => k.deltas.basket),
       customers: weighted((k) => k.deltas.customers),
+    },
+    control: {
+      lfl: weighted((k) => k.control.lfl),
+      primeCost: weighted((k) => k.control.primeCost),
+      loss: weighted((k) => k.control.loss),
+      primeCostDelta: weighted((k) => k.control.primeCostDelta),
+      lossDelta: weighted((k) => k.control.lossDelta),
     },
     hourly: Array.from({ length: 24 }, (_, h) => sum((k) => k.hourly[h])),
     hourlyLastWeek: Array.from({ length: 24 }, (_, h) => sum((k) => k.hourlyLastWeek[h])),

@@ -45,7 +45,7 @@
   position: relative;
   /* the screens use the whole width the sidebar leaves; no cap, so a large window is filled, not left half empty */
   width: 100%;
-  padding: 104px 32px 96px 16px;
+  padding: 76px 32px 96px 16px;
 }
 .bo-head2 {
   display: flex;
@@ -1960,5 +1960,493 @@
   .bo-toast,
   .bo-fly {
     animation: none;
+  }
+}
+
+/* ───────── floor plan editor (Dining room › Floor plan) ───────── */
+.bo-fe {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.bo-fe-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+}
+.bo-fe-zones,
+.bo-fe-act {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.bo-fe-zones button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font: 600 14px/1 var(--font-sans, 'Roboto', sans-serif);
+  color: var(--gl-ink);
+  background: var(--bo-field);
+  transition: background 0.2s;
+}
+.bo-fe-zones button:hover {
+  background: var(--bo-hover);
+}
+.bo-fe-zones button.on {
+  color: #fff;
+  background: var(--bo-red);
+}
+.bo-fe-zones button em {
+  font: 400 12px/1 var(--font-mono);
+  font-style: normal;
+  color: var(--bo-sub);
+}
+.bo-fe-zones button.on em {
+  color: rgba(255, 255, 255, 0.85);
+}
+.bo-fe-zones button.add {
+  color: var(--bo-sub);
+  background: transparent;
+  outline: 1px dashed color-mix(in srgb, var(--gl-ink) 30%, transparent);
+  outline-offset: -1px;
+}
+.bo-fe-zones button.add:hover {
+  color: var(--gl-ink);
+}
+.bo-fe-pal {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--bo-panel);
+  box-shadow: var(--bo-panel-edge);
+}
+.bo-fe-cap {
+  margin-right: 4px;
+  font: 600 12px/16px var(--font-sans, 'Roboto', sans-serif);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--bo-sub);
+}
+.bo-fe-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 48px;
+  padding: 0 14px 0 10px;
+  border-radius: 8px;
+  text-align: left;
+  color: var(--gl-ink);
+  background: var(--bo-field);
+  transition: background 0.2s, transform 0.15s var(--spring);
+}
+.bo-fe-item:hover {
+  background: var(--bo-hover);
+}
+.bo-fe-item:active {
+  transform: scale(0.97);
+}
+.bo-fe-item .shp {
+  display: grid;
+  place-items: center;
+  width: 40px;
+}
+.bo-fe-item .shp i {
+  display: block;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--gl-ink) 55%, transparent);
+}
+.bo-fe-item .shp i.round {
+  border-radius: 50%;
+}
+.bo-fe-item .shp small {
+  font: 600 11px/1 var(--font-sans, 'Roboto', sans-serif);
+  letter-spacing: 0.14em;
+  color: var(--bo-sub);
+}
+.bo-fe-item b {
+  display: block;
+  font: 600 13px/16px var(--font-sans, 'Roboto', sans-serif);
+}
+.bo-fe-item span:last-child small {
+  display: block;
+  font-size: 11px;
+  line-height: 14px;
+  color: var(--bo-sub);
+}
+.bo-fe-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 16px;
+  align-items: start;
+}
+.bo-fe-room {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1720 / 660;
+  container-type: inline-size;
+  border-radius: 8px;
+  overflow: hidden;
+  touch-action: none;
+  outline: 0;
+  background-color: var(--bo-panel);
+  background-image: radial-gradient(circle, color-mix(in srgb, var(--gl-ink) 22%, transparent) 1.1px, transparent 1.5px);
+  box-shadow: var(--bo-panel-edge);
+}
+.bo-fe-room:focus-visible {
+  box-shadow: var(--bo-panel-edge), var(--gl-focus);
+}
+.bo-fe-t {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  text-align: center;
+  color: var(--gl-ink);
+  background: color-mix(in srgb, var(--gl-ink) 9%, transparent);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--gl-ink) 36%, transparent);
+  transition: background 0.15s, box-shadow 0.15s;
+}
+.bo-fe-t:active {
+  cursor: grabbing;
+}
+.bo-fe-t.round {
+  border-radius: 50%;
+}
+.bo-fe-t:hover {
+  background: color-mix(in srgb, var(--gl-ink) 15%, transparent);
+}
+.bo-fe-t.sel {
+  background: color-mix(in srgb, var(--hl-red) 18%, transparent);
+  box-shadow: inset 0 0 0 2px var(--hl-red), 0 0 0 4px rgba(255, 46, 59, 0.22);
+  z-index: 2;
+}
+.bo-fe-t.clash,
+.bo-fe-t.out {
+  background: color-mix(in srgb, var(--bo-danger) 22%, transparent);
+  box-shadow: inset 0 0 0 2px var(--bo-danger);
+}
+.bo-fe-t b {
+  font: 600 clamp(11px, 1.3cqw, 17px) / 1 var(--font-mono);
+}
+.bo-fe-t small {
+  max-width: 100%;
+  font: 400 clamp(8px, 0.82cqw, 12px) / 1.2 var(--font-sans, 'Roboto', sans-serif);
+  color: var(--bo-sub);
+}
+.bo-fe-t .dm {
+  display: none;
+}
+@container (min-width: 880px) {
+  .bo-fe-t .dm {
+    display: block;
+  }
+}
+.bo-fe-wall {
+  position: absolute;
+  cursor: grab;
+  touch-action: none;
+  background: color-mix(in srgb, var(--gl-ink) 26%, transparent);
+  border-radius: 2px;
+}
+.bo-fe-wall.sel {
+  outline: 2px solid var(--hl-red);
+  outline-offset: 2px;
+}
+.bo-fe-lbl {
+  position: absolute;
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  white-space: nowrap;
+  font: 600 clamp(9px, 0.8cqw, 12px) / 16px var(--font-sans, 'Roboto', sans-serif);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--bo-sub);
+}
+.bo-fe-lbl.sel {
+  outline: 2px solid var(--hl-red);
+  color: var(--gl-ink);
+}
+.bo-fe-ins {
+  position: sticky;
+  top: 88px;
+}
+.bo-fe-ins .bo-kv {
+  margin-bottom: 8px;
+}
+.bo-fe-rows {
+  display: flex;
+  flex-direction: column;
+  margin: 8px 0 16px;
+}
+.bo-fe-rows > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  min-height: 52px;
+  box-shadow: inset 0 -1px 0 var(--bo-line);
+}
+.bo-fe-rows > div:last-child {
+  box-shadow: none;
+}
+.bo-fe-rows label {
+  font-size: 13px;
+  color: var(--bo-sub);
+}
+.bo-fe-ins .bo-seg button {
+  padding: 0 10px;
+}
+.bo-fe-in {
+  height: 40px;
+  min-width: 0;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  font: 500 14px/1 var(--font-sans, 'Roboto', sans-serif);
+  color: var(--gl-ink);
+  background: var(--bo-field);
+}
+.bo-fe-in:focus-visible {
+  outline: 0;
+  box-shadow: var(--gl-focus);
+}
+.bo-fe-in.short {
+  width: 84px;
+  text-align: center;
+  text-transform: uppercase;
+}
+.bo-fe-in.num {
+  width: 84px;
+  text-align: right;
+  font-family: var(--font-mono);
+}
+select.bo-fe-in {
+  cursor: pointer;
+}
+.bo-fe-in option {
+  color: #0b1220;
+  background: #fff;
+}
+.bo-fe-cm {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.bo-fe-cm i {
+  font-size: 12px;
+  font-style: normal;
+  color: var(--bo-sub);
+}
+.bo-fe-stp {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.bo-fe-stp button {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--gl-ink);
+  background: var(--bo-field);
+  transition: background 0.2s;
+}
+.bo-fe-stp button:hover:not(:disabled) {
+  background: var(--bo-hover);
+}
+.bo-fe-stp button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.bo-fe-stp b {
+  min-width: 32px;
+  text-align: center;
+  font: 600 15px/1 var(--font-mono);
+}
+/* the room outline: inside is the floor, the margin round it is dimmed */
+.bo-fe-room.has-room {
+  background-color: color-mix(in srgb, var(--bo-panel) 60%, rgba(0, 0, 0, 0.25));
+}
+:root[data-theme='light'] .bo-fe-room.has-room {
+  background-color: rgba(11, 18, 32, 0.04);
+}
+.bo-fe-poly,
+.bo-fe-pen {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.bo-fe-poly polygon {
+  fill: var(--bo-panel);
+  stroke: color-mix(in srgb, var(--gl-ink) 70%, transparent);
+  stroke-width: 3;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+:root[data-theme='light'] .bo-fe-poly polygon {
+  fill: #fff;
+}
+.bo-fe-room.pen {
+  cursor: crosshair;
+}
+.bo-fe-pen polyline {
+  fill: none;
+  stroke: var(--hl-red);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.bo-fe-pen circle {
+  fill: var(--gl-ink);
+}
+.bo-fe-pen circle.first {
+  fill: var(--hl-red);
+  stroke: #fff;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+/* the length of a side: tap it to type the real one */
+.bo-fe-edge {
+  position: absolute;
+  z-index: 3;
+  transform: translate(-50%, -50%);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font: 600 12px/18px var(--font-mono);
+  white-space: nowrap;
+  color: var(--gl-ink);
+  background: var(--bo-panel);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gl-ink) 30%, transparent);
+  cursor: text;
+}
+.bo-fe-edge:hover {
+  box-shadow: inset 0 0 0 1px var(--hl-red);
+}
+.bo-fe-edge.live {
+  cursor: default;
+  pointer-events: none;
+  color: #fff;
+  background: var(--hl-red);
+  box-shadow: none;
+}
+.bo-fe-edgein {
+  position: absolute;
+  z-index: 4;
+  width: 84px;
+  height: 32px;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  font-family: var(--font-mono);
+}
+/* the room each table's chairs need, and the chairs */
+.bo-fe-bay {
+  position: absolute;
+  border-radius: 6px;
+  pointer-events: none;
+  outline: 1.5px dashed color-mix(in srgb, var(--bo-ok) 70%, transparent);
+  outline-offset: -1px;
+  background: color-mix(in srgb, var(--bo-ok) 6%, transparent);
+}
+.bo-fe-bay.bad {
+  outline-color: color-mix(in srgb, var(--bo-warn) 80%, transparent);
+  background: color-mix(in srgb, var(--bo-warn) 8%, transparent);
+}
+.bo-fe-ch {
+  position: absolute;
+  border-radius: 3px;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--gl-ink) 30%, transparent);
+}
+.bo-fe-t.tight {
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--bo-warn) 85%, transparent);
+  background: color-mix(in srgb, var(--bo-warn) 14%, transparent);
+}
+.bo-fe-t.sel.tight,
+.bo-fe-t.sel.clash,
+.bo-fe-t.sel.out {
+  box-shadow: inset 0 0 0 2px var(--hl-red), 0 0 0 4px rgba(255, 46, 59, 0.22);
+}
+.bo-fe-chk {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.bo-fe-chk small {
+  font-size: 12px;
+  color: var(--bo-sub);
+}
+/* the pencil's bar */
+.bo-fe-penbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--gl-ink);
+  background: linear-gradient(color-mix(in srgb, var(--hl-red) 12%, transparent), color-mix(in srgb, var(--hl-red) 12%, transparent)), var(--bo-panel);
+  box-shadow: var(--bo-panel-edge), inset 3px 0 0 var(--hl-red);
+}
+.bo-fe-penbar > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 320px;
+}
+.bo-fe-item.on {
+  color: #fff;
+  background: var(--bo-red);
+}
+.bo-fe-item.on small {
+  color: rgba(255, 255, 255, 0.82) !important;
+}
+.bo-fe-dims {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.bo-fe-dims .bo-fe-in.num {
+  width: 72px;
+}
+.bo-fe-dims em,
+.bo-fe-dims i {
+  font-style: normal;
+  font-size: 12px;
+  color: var(--bo-sub);
+}
+@media (max-width: 1180px) {
+  .bo-fe-main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .bo-fe-ins {
+    position: static;
   }
 }

@@ -89,7 +89,7 @@ export function Sidebar({ collapsed, onToggle, active, onNavigate, rank, seesLoc
   const toggleGroup = (g: BoGroup, el: HTMLElement) => {
     if (collapsed) {
       const r = el.getBoundingClientRect()
-      setFly((f) => (f?.id === g.id ? null : { id: g.id, top: Math.max(96, Math.min(r.top, innerHeight - 56 - g.items.length * 44)) }))
+      setFly((f) => (f?.id === g.id ? null : { id: g.id, top: Math.max(72, Math.min(r.top, innerHeight - 56 - g.items.length * 44)) }))
       return
     }
     setOpen((o) => {

@@ -9,6 +9,9 @@ import { eur, storeKpis } from '../lib/kpis'
 import { between, pick, rng } from '../lib/random'
 import { Banner, BarList, Btn, Cards, Chips, DataTable, Kpis, Pill, Section, Seg, Settings, Timeline, Toolbar, useSay, type CardItem, type Cell, type CellObj, type Col, type Row, type SettingRow, type Tone } from './kit'
 import { ALL_TABLES, Board, FloorPlan, ImportExport, OpeningSteps, OrgTree, ReservationCalendar, RoleGrid, TABLE_STATE_LABEL, TABLE_STATE_TONE, TestOrder } from './views'
+import { FloorEditor } from './FloorEditor'
+import { PosSettings } from './PosSettings'
+import { dimsOf, useFloor } from './floor'
 
 export interface Ctx {
   stores: Store[]
@@ -16,6 +19,8 @@ export interface Ctx {
   scopeName: string
   /** Open one of the three live screens: the map (explore), the dashboard (insights) or the launchpad (apps). */
   go: (mode: 'apps' | 'explore' | 'insights') => void
+  /** Open another Back Office item by its id. */
+  open: (id: string) => void
 }
 
 export interface Screen {
@@ -312,12 +317,23 @@ function cashScreens(c: Ctx): Record<string, Screen> {
   }
 }
 
+/** The tables of the floor plan as a list. It follows the saved floor plan; the live state is the demo state of the main hall's tables, the others are free. */
+function TablesList() {
+  const floor = useFloor()
+  const zoneName = new Map(floor.zones.map((z) => [z.id, z.name]))
+  const demo = new Map(ALL_TABLES.map((t) => [t.id, t]))
+  const rows: Row[] = floor.tables.map((t) => {
+    const st = demo.get(t.id)?.state ?? 'free'
+    return { id: t.id, code: t.id, zone: zoneName.get(t.z) ?? t.z, seats: t.seats, shape: t.round ? 'Round' : t.seats >= 8 ? 'Banquet' : t.seats >= 6 ? 'Long' : 'Rectangular', size: dimsOf(t), state: S(TABLE_STATE_LABEL[st], TABLE_STATE_TONE[st], st === 'clear') }
+  })
+  return table({ cols: [{ key: 'code', label: 'Table', kind: 'strong' }, { key: 'zone', label: 'Zone' }, { key: 'seats', label: 'Seats', kind: 'num' }, { key: 'shape', label: 'Shape' }, { key: 'size', label: 'Size', kind: 'mono' }, { key: 'state', label: 'State now', kind: 'pill' }], rows, search: 'Search tables', filter: { key: 'zone', label: 'Zone' } })
+}
+
 function diningScreens(): Record<string, Screen> {
-  const rows: Row[] = ALL_TABLES.map((t) => ({ id: t.id, code: t.id, section: t.section, seats: t.seats, shape: t.round ? 'Round' : t.kind === 'l8' ? 'Banquet' : t.kind === 'l6' ? 'Long' : 'Rectangular', size: t.dim, state: S(TABLE_STATE_LABEL[t.state], TABLE_STATE_TONE[t.state], t.state === 'clear') }))
   const count = (s: string) => ALL_TABLES.filter((t) => t.state === s).length
   return {
-    'dining.plan': { desc: 'The room as the staff see it: sizes, seats and where each table stands. Click a table for its details.', actions: <Act label="Open the floor plan editor" say="The editor opens on the POS, where tables are drawn to scale" />, body: <FloorPlan mode="plan" /> },
-    'dining.tables': { desc: 'The tables as a list: which section each belongs to, its seats, shape and size.', actions: <Act label="Add a table" say="This would add a table to the floor plan" primary />, body: table({ cols: [{ key: 'code', label: 'Table', kind: 'strong' }, { key: 'section', label: 'Section' }, { key: 'seats', label: 'Seats', kind: 'num' }, { key: 'shape', label: 'Shape' }, { key: 'size', label: 'Size', kind: 'mono' }, { key: 'state', label: 'State now', kind: 'pill' }], rows, search: 'Search tables', filter: { key: 'section', label: 'Section' } }) },
+    'dining.plan': { desc: 'Draw the room as the staff see it: zones, table shapes and sizes, to scale. What you save here is the floor plan the POS opens with.', body: <FloorEditor /> },
+    'dining.tables': { desc: 'Every table of the floor plan as a list: its zone, seats, shape and size. Change the plan itself in Floor plan.', body: <TablesList /> },
     'dining.live': { desc: 'The state of every table right now. Tap a state to show only those tables.', body: <><Kpis items={[{ label: 'Open tables', value: String(count('order') + count('dine') + count('late')), hint: 'of 20' }, { label: 'Free', value: String(count('free')), tone: 'ok' }, { label: 'Over 45 min', value: String(count('late')), tone: 'danger' }, { label: 'To clear', value: String(count('clear')), tone: 'warn' }]} /><FloorPlan mode="live" /></> },
   }
 }
@@ -544,7 +560,7 @@ export function screenFor(id: string, c: Ctx): Screen | null {
     case 'estate.integrations':
       return integrationsScreen()
     case 'estate.pos':
-      return soonScreen('The POS page', [['Terminals & stations', 'Pair, rename and retire POS devices'], ['Receipt templates', 'One receipt look per brand'], ['Offline mode', 'What a till may do without a connection']])
+      return { desc: 'Every setting of the POS, the stations, and its floor plan, set from here.', actions: <Btn onClick={() => window.open('/pos-v3/index.html', '_blank')}>Open the POS</Btn>, body: <PosSettings open={c.open} /> }
     case 'estate.mpos':
       return soonScreen('The Mobile POS page', [['Handhelds', 'Pair and assign waiter devices'], ['Table service rules', 'Who may open, move and close tables'], ['Battery & sync', 'Spot a device that stopped syncing']])
     case 'estate.kiosk':

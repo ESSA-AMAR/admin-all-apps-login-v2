@@ -1503,8 +1503,8 @@ input {
   flex-direction: column;
   gap: 18px;
   padding: 110px clamp(16px, 2.5vw, 32px) 40px;
-  max-width: 1600px;
-  margin: 0 auto;
+  /* the Overview uses the whole width the sidebar leaves, as the Back Office screens do */
+  width: 100%;
 }
 .dash-head {
   display: flex;
@@ -1632,6 +1632,14 @@ input {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 18px;
+}
+.kpi-row.kpi-row-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+@media (max-width: 820px) {
+  .kpi-row.kpi-row-3 {
+    grid-template-columns: 1fr;
+  }
 }
 .kpi {
   position: relative;

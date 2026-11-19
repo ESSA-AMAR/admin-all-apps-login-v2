@@ -86,7 +86,7 @@ export function Login({ onAuthenticated }: { onAuthenticated: (s: Session) => vo
   const rootRef = useRef<HTMLDivElement>(null)
   const kick = () => setPulse((p) => p + 1)
 
-  /** Shared ending: green check, then hand the session to the app. */
+  /** Shared ending: the logo mark and the welcome, then hand the session to the app. */
   const signIn = async (attempt: () => Promise<Session>, what: 'password' | 'badge') => {
     setState('busy')
     setError('')

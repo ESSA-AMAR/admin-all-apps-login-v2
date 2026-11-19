@@ -378,7 +378,7 @@ export interface CardItem {
   meta?: [string, string][]
   /** A switch on the card: its label and its starting state. */
   toggle?: { label: string; on: boolean; immediate?: boolean }
-  actions?: { label: string; say: string; primary?: boolean }[]
+  actions?: { label: string; say: string; primary?: boolean; onClick?: () => void }[]
 }
 
 function Switch({ on, onChange, label, disabled }: { on: boolean; onChange: (v: boolean) => void; label: string; disabled?: boolean }) {
@@ -427,7 +427,7 @@ export function Cards({ items, cols = 3 }: { items: CardItem[]; cols?: 2 | 3 | 4
                 </label>
               )}
               {c.actions?.map((a) => (
-                <Btn key={a.label} small primary={a.primary} onClick={() => say(a.say)}>
+                <Btn key={a.label} small primary={a.primary} onClick={() => (a.onClick ? a.onClick() : say(a.say))}>
                   {a.label}
                 </Btn>
               ))}
@@ -484,6 +484,8 @@ export interface SettingRow {
   /** Where the value comes from: Inherited from …, Locked by …, Defined here. */
   source?: { text: string; tone?: Tone }
   immediate?: boolean
+  /** Called with the new value when the switch or the choice is changed. */
+  onChange?: (v: boolean | string) => void
 }
 
 export function Settings({ rows }: { rows: SettingRow[] }) {
@@ -504,10 +506,10 @@ export function Settings({ rows }: { rows: SettingRow[] }) {
             {r.source && <Pill tone={r.source.tone ?? 'neutral'}>{r.source.text}</Pill>}
             {r.immediate && <Immediate />}
             <div className="bo-set-v">
-              {r.kind === 'switch' && <Switch on={!!v} label={r.name} disabled={locked} onChange={(x) => (setVals((s) => ({ ...s, [r.name]: x })), say(`${r.name}: ${x ? 'on' : 'off'}`))} />}
+              {r.kind === 'switch' && <Switch on={!!v} label={r.name} disabled={locked} onChange={(x) => (setVals((s) => ({ ...s, [r.name]: x })), r.onChange?.(x), say(`${r.name}: ${x ? 'on' : 'off'}`))} />}
               {r.kind === 'value' && <span className="mono">{r.value}</span>}
               {r.kind === 'select' && (
-                <select value={String(v)} disabled={locked} onChange={(e) => (setVals((s) => ({ ...s, [r.name]: e.target.value })), say(`${r.name}: ${e.target.value}`))} aria-label={r.name}>
+                <select value={String(v)} disabled={locked} onChange={(e) => (setVals((s) => ({ ...s, [r.name]: e.target.value })), r.onChange?.(e.target.value), say(`${r.name}: ${e.target.value}`))} aria-label={r.name}>
                   {r.options!.map((o) => (
                     <option key={o}>{o}</option>
                   ))}

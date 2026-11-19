@@ -48,11 +48,15 @@ function Sparkline({ data, w = 120, h = 34 }: { data: number[]; w?: number; h?: 
   )
 }
 
-function Delta({ v }: { v: number }) {
+function Delta({ v, pts, lowerIsBetter }: { v: number; /** a change in percentage points, for a ratio */ pts?: boolean; /** a rise is bad news (costs, losses): the colour flips, the arrow still follows the sign */ lowerIsBetter?: boolean }) {
+  // Nothing moved: no arrow, no good or bad colour
+  if (Math.abs(v) < 0.05) return <span className="delta">— 0.0{pts ? ' pts' : '%'}</span>
   const up = v >= 0
+  const good = lowerIsBetter ? !up : up
   return (
-    <span className={`delta ${up ? 'up' : 'down'}`}>
-      {up ? '▲' : '▼'} {Math.abs(v).toFixed(1)}%
+    <span className={`delta ${good ? 'up' : 'down'}`}>
+      {up ? '▲' : '▼'} {Math.abs(v).toFixed(1)}
+      {pts ? ' pts' : '%'}
     </span>
   )
 }
@@ -320,6 +324,50 @@ export function Dashboard({ scope, stores, breakdowns, onDrill, onSwitch }: Prop
     { label: 'Customers', value: base.customers, fmt: (v: number) => Math.round(v).toLocaleString('fr-BE'), delta: base.deltas.customers, spark: base.hourly.map((v, i) => v * (0.8 + ((i * 7) % 5) / 10)) },
   ]
 
+  // Profit and control: how much we keep, and what leaks. Percentages in the French format, signed where it is a growth.
+  const pct1 = (v: number) => `${v.toLocaleString('fr-BE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`
+  const signed1 = (v: number) => `${v < 0 ? '−' : '+'}${Math.abs(v).toLocaleString('fr-BE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`
+  const ctl = base.control
+  const controlKpis: { label: string; hint: string; value: number; fmt: (v: number) => string; foot: ReactNode }[] = [
+    {
+      label: 'Like-for-like sales',
+      hint: 'Sales growth on the same outlets, against the same day last year. New openings do not count.',
+      value: ctl.lfl,
+      fmt: signed1,
+      foot: (
+        <>
+          <span className={`delta ${ctl.lfl >= 0 ? 'up' : 'down'}`}>{ctl.lfl >= 0 ? '▲' : '▼'}</span>
+          <span className="label dim">same outlets · vs last year</span>
+        </>
+      ),
+    },
+    {
+      label: 'Prime cost',
+      hint: 'Product cost plus labour, as a share of sales. Lower is better.',
+      value: ctl.primeCost,
+      fmt: pct1,
+      foot: (
+        <>
+          <Delta v={ctl.primeCostDelta} pts lowerIsBetter />
+          <span className="label dim">of sales · vs last wk</span>
+        </>
+      ),
+    },
+    {
+      label: 'Loss',
+      hint: 'Voids, refunds and discounts, as a share of sales. Lower is better.',
+      value: ctl.loss,
+      fmt: pct1,
+      foot: (
+        <>
+          <Delta v={ctl.lossDelta} pts lowerIsBetter />
+          <span className="label dim">of sales · vs last wk</span>
+        </>
+      ),
+    },
+  ]
+
+  const allOnline = !store && base.status.online === stores.length
   const where = store ? `${store.address}, ${cityById(store.cityId).name} · ${store.terminals} terminals · since ${store.openedYear}` : null
   const countries = new Set(stores.map((s) => s.countryId)).size
 
@@ -329,23 +377,22 @@ export function Dashboard({ scope, stores, breakdowns, onDrill, onSwitch }: Prop
         <div className="dash-title">
           <span className="dash-icon">{scope.icon}</span>
           <div>
-            <div className="label dim dash-path">
-              <span className="scope-chip">{isStore ? 'Store' : `Consolidated · ${LEVEL_LABEL[scope.level]}`}</span>
-              {scope.path.join(' · ')}
-            </div>
             <h1>
               <DecodeText text={scope.name} speed={22} />
             </h1>
             <div className="dash-sub">
-              {store ? (
-                <span className={`status ${store.status}`}>{store.status}</span>
-              ) : (
-                <span className="status online">
-                  {base.status.online}/{stores.length} online
-                </span>
-              )}
+              {/* Everything fine: plain text, no dot, no green. Colour and a dot only when something is not online. */}
+              {store
+                ? store.status !== 'online' && <span className={`status ${store.status}`}>{store.status}</span>
+                : !allOnline && (
+                    <span className={`status ${base.status.offline ? 'offline' : 'degraded'}`}>
+                      {base.status.online}/{stores.length} online
+                    </span>
+                  )}
               <span className="label dim">
-                {where ?? `${storesLabel(stores.length)} · ${countries} ${countries === 1 ? 'country' : 'countries'} · ${base.terminals.total} terminals`}
+                {where
+                  ? `${store?.status === 'online' ? 'Online · ' : ''}${where}`
+                  : `${storesLabel(stores.length)}${allOnline ? ' online' : ''} · ${countries} ${countries === 1 ? 'country' : 'countries'} · ${base.terminals.total} terminals`}
               </span>
             </div>
           </div>
@@ -401,6 +448,18 @@ export function Dashboard({ scope, stores, breakdowns, onDrill, onSwitch }: Prop
         ))}
       </div>
 
+      <div className="kpi-row kpi-row-3">
+        {controlKpis.map((k, i) => (
+          <motion.div key={k.label} className="kpi" title={k.hint} {...card(6 + i)}>
+            <span className="kpi-label label">{k.label}</span>
+            <b className="kpi-value">
+              <CountUp value={k.value} format={k.fmt} />
+            </b>
+            <div className="kpi-foot">{k.foot}</div>
+          </motion.div>
+        ))}
+      </div>
+
       <div className="dash-grid">
         <motion.section className="panel tile span-8" {...card(6)}>
           <div className="tile-head">
@@ -428,7 +487,7 @@ export function Dashboard({ scope, stores, breakdowns, onDrill, onSwitch }: Prop
         {breakdowns[0] && <BreakdownTile b={breakdowns[0]} index={0} onDrill={breakdowns[0].drill ? (key) => onDrill(breakdowns[0], key) : undefined} />}
 
         {!isStore && (
-          <motion.section className="panel tile span-4" {...card(8)}>
+          <motion.section className="panel tile span-4 health-tile" {...card(8)}>
             <div className="tile-head">
               <h3>Network health</h3>
               <span className="label dim">

@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ArrowUp, CaretDown, ChartLineUp, Check, Compass, Moon, SignOut, SquaresFour, Sun } from '@phosphor-icons/react'
 import { cityById, countryById, industryById } from '../data/mock'
 import type { Store } from '../data/types'
@@ -21,10 +21,9 @@ const PLURAL: Record<Level, string> = { holding: 'holdings', industry: 'industri
 
 type Theme = 'dark' | 'light'
 
-function useTheme(): [Theme, () => void] {
+function useTheme(): [Theme, (t: Theme) => void] {
   const [theme, setTheme] = useState<Theme>(() => (document.documentElement.dataset.theme === 'light' ? 'light' : 'dark'))
-  const toggle = () => {
-    const next: Theme = theme === 'dark' ? 'light' : 'dark'
+  const apply = (next: Theme) => {
     document.documentElement.dataset.theme = next
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', next === 'dark' ? '#06070a' : '#eceef2')
     try {
@@ -34,7 +33,7 @@ function useTheme(): [Theme, () => void] {
     }
     setTheme(next)
   }
-  return [theme, toggle]
+  return [theme, apply]
 }
 
 /** Everything the user could pick at `level`, given what is selected above it. */
@@ -69,7 +68,24 @@ function optionsFor(flow: Flow, level: Level): { id: string; name: string; sub: 
 
 export function HUD({ flow, dispatch }: { flow: Flow; dispatch: (a: Action) => void }) {
   const [menu, setMenu] = useState(false)
-  const [theme, toggleTheme] = useTheme()
+  // The profile menu closes when you click anywhere outside it (or press Escape). Capture phase, so a click that a screen stops still closes it.
+  const userRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!menu) return
+    const away = (e: PointerEvent) => {
+      if (!userRef.current?.contains(e.target as Node)) setMenu(false)
+    }
+    const esc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenu(false)
+    }
+    addEventListener('pointerdown', away, true)
+    addEventListener('keydown', esc)
+    return () => {
+      removeEventListener('pointerdown', away, true)
+      removeEventListener('keydown', esc)
+    }
+  }, [menu])
+  const [theme, setTheme] = useTheme()
   const [open, setOpen] = useState<{ level: Level; x: number; y: number } | null>(null)
 
   // Close the switcher on outside click; Esc closes it, and otherwise steps one layer back up.
@@ -255,11 +271,7 @@ export function HUD({ flow, dispatch }: { flow: Flow; dispatch: (a: Action) => v
           ))}
       </div>
 
-      <button className="theme-toggle" onClick={toggleTheme} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`} title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}>
-        {theme === 'dark' ? <Sun size={18} weight="bold" /> : <Moon size={18} weight="bold" />}
-      </button>
-
-      <div className="hud-user">
+      <div className="hud-user" ref={userRef}>
         <button className="user-btn" onClick={() => setMenu((m) => !m)}>
           <Avatar user={session.user} />
           <span className="user-meta">
@@ -280,6 +292,22 @@ export function HUD({ flow, dispatch }: { flow: Flow; dispatch: (a: Action) => v
               <div className="label dim">{session.user.email}</div>
               <div className="label dim">
                 {session.holdings.length} holding{multi ? 's' : ''} · session {session.token.slice(0, 8)}
+              </div>
+              <div className="theme-row">
+                <span className="label dim">Appearance</span>
+                <div className="theme-seg" role="radiogroup" aria-label="Theme">
+                  {(
+                    [
+                      ['dark', 'Dark', Moon],
+                      ['light', 'Light', Sun],
+                    ] as const
+                  ).map(([id, label, Glyph]) => (
+                    <button key={id} type="button" role="radio" aria-checked={theme === id} className={theme === id ? 'on' : ''} onClick={() => setTheme(id)}>
+                      <Glyph size={16} weight={theme === id ? 'fill' : 'regular'} />
+                      {label}
+                    </button>
+                  ))}
+                </div>
               </div>
               <button
                 className="btn-ghost danger"

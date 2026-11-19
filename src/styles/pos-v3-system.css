@@ -362,6 +362,70 @@
 :root:root :is(.lp-cats button, .method-toggle button):active {
   transform: scale(0.96);
 }
+/* The Launchpad filter row: the search and the glass switcher are the same height, on one line when they fit (search left, switcher right), and the lit tab sits in the middle of the glass.
+   Before, a later rule took the track's padding away, so the 46px tabs hugged the top of a 56px track, and the two did not fit side by side. */
+:root:root .lp-toolbar {
+  justify-content: space-between;
+  row-gap: 16px;
+}
+:root:root .lp-search {
+  flex: 1 1 260px;
+  max-width: 380px;
+  height: 56px;
+}
+:root:root .lp-cats {
+  align-items: center;
+  flex: 0 1 auto;
+  max-width: 100%;
+  height: 56px;
+  padding: 5px;
+}
+:root:root .lp-cats button {
+  flex: none;
+  height: 46px;
+  padding: 0 16px;
+}
+
+/* Network health: the three counts are glass boxes in this layer, so they get their inner padding back (an older "figures, not boxes" rule had set the sides to 0, which left the numbers
+   and labels touching the box edge). The industry KPIs carried the same rule. In the "Needs attention" list, the icon and the status line up with the store name, not between name and address. */
+:root:root .health {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+:root:root .health-cell {
+  min-width: 0;
+  padding: 12px 10px;
+}
+/* the status word is a little tighter in these boxes so the longest one (DEGRADED) sits inside the box with its dot */
+:root:root .health-cell .status {
+  gap: 5px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
+:root:root .health-cell .status::before {
+  width: 6px;
+  height: 6px;
+}
+/* a panel too narrow for three columns (about 1290px windows) shows the three counts as rows, number on the left and status on the right, instead of letting the boxes spill out of the panel */
+:root:root .health-tile {
+  container-type: inline-size;
+}
+@container (max-width: 299px) {
+  :root:root .health {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  :root:root .health-cell {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+  }
+}
+:root:root .ind-kpi {
+  padding: 12px 14px;
+}
+:root:root .alerts li {
+  align-items: start;
+}
 /* the top bar's Apps / Explore / Consolidated: the chosen one is a red tint, like the POS section bar */
 :root:root .hud .mode-toggle {
   background: none;
@@ -382,6 +446,48 @@
 }
 :root:root .hud .mode-toggle button:active {
   transform: scale(0.94);
+}
+
+/* ───────────────────────── The top bar is 64px (it was 92px) ─────────────────────────
+   10px above and below a 44px row: the three view buttons and the avatar are 44px, the smallest comfortable tap size.
+   Everything that was offset to clear the old bar moves up by the same 28px. */
+:root:root .hud {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+:root:root .hud .mode-toggle button {
+  min-width: 56px;
+  height: 44px;
+  gap: 2px;
+  padding: 3px 16px;
+}
+:root:root .hud .hud-user .avatar {
+  width: 44px;
+  height: 44px;
+}
+:root:root .screen {
+  padding-top: 122px;
+}
+:root:root .screen.pick {
+  padding-top: 92px;
+}
+/* the little "live" dots do not pulse: a still dot says as much (the Streaming tag in Live transactions) */
+:root:root .dot.live {
+  animation: none;
+  box-shadow: none;
+}
+:root:root .dash {
+  padding-top: 82px;
+}
+:root:root .geo-heading {
+  top: 92px;
+}
+:root:root .geo-panel {
+  top: 76px;
+}
+:root:root .scope-side {
+  top: 76px;
+  max-height: calc(100vh - 96px);
 }
 
 /* ───────────────────────── 7. Focus: the ice ring ───────────────────────── */
@@ -477,6 +583,53 @@
   margin-top: 6px;
   font-size: 15px;
   color: var(--t-text-3);
+}
+/* the profile menu's Dark / Light switch: a glass track with the chosen side lit, as in the Launchpad filter */
+:root:root .user-menu .theme-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+  padding-top: 14px;
+  box-shadow: inset 0 1px 0 rgba(var(--ice-hi), 0.12);
+}
+:root[data-theme='light']:root .user-menu .theme-row {
+  box-shadow: inset 0 1px 0 rgba(11, 18, 32, 0.1);
+}
+:root:root .user-menu .theme-seg {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--r);
+  background: var(--gl-fill-soft);
+  box-shadow: var(--gl-field-edge);
+}
+:root:root .user-menu .theme-seg button {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  border-radius: 6px;
+  font: 600 14px/1 var(--font-sans, 'Roboto', sans-serif);
+  color: color-mix(in srgb, var(--gl-ink) 68%, transparent);
+  transition:
+    background 0.25s,
+    color 0.2s,
+    box-shadow 0.25s,
+    transform 0.15s var(--spring);
+}
+:root:root .user-menu .theme-seg button:hover {
+  color: var(--gl-ink);
+}
+:root:root .user-menu .theme-seg button.on {
+  color: var(--gl-ink);
+  background: var(--gl-fill-hi);
+  box-shadow: var(--gl-edge-hi), 0 6px 14px -6px rgba(0, 0, 0, 0.5);
+}
+:root:root .user-menu .theme-seg button:active {
+  transform: scale(0.97);
 }
 
 /* ───────────────────────── 11. The ice blue: a cool light in the corner, a red-to-ice hairline under the top bar ───────────────────────── */
