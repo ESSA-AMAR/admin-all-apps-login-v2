@@ -4429,6 +4429,54 @@ html .lite #order .tk-empty .tk-logo { animation: rise .6s var(--rise) both; }
 html #order .o-head { gap: 8px; }
 html #order .a-util { gap: 18px; }
 html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
+
+/* THE BOTTOM PANEL, POLISHED. Three parts side by side, no box inside the panel and no gap:
+     Print bill and Open drawer   cool glass (left end)
+     the other tools              bare, on the panel's own glass
+     the number keypad            the same cool glass (right end)
+   The two glass ends carry a soft light along their top edge and a crisp ice line where they meet the tools; their inner lines are faint ice, the lines between
+   the tools are softer still. Labels are calm and even, the digits light and clean, and hover / press light the cell in ice. Written with ids so it outranks the
+   earlier rules (some are !important with long selectors). */
+html #order #acts { --ln: rgba(255,255,255,.06); }
+html #order #acts button:not(:nth-child(6n+1)) { color: rgba(250,250,250,.8); transition: background .2s, color .2s; }
+html #order #acts button:not(:nth-child(6n+1)):not(.dan) .mi { background-color: rgba(255,255,255,.88) !important; }
+html #order #acts button:not(:nth-child(6n+1)):hover { background: rgba(var(--ice-hi), .06) !important; color: #fff; }
+html #order #acts button:not(:nth-child(6n+1)):active { background: rgba(var(--ice-hi), .12) !important; }
+/* Delete line and Cancel order keep their red */
+html #order #acts button.dan { color: #ff6b76; }
+html #order #acts button.dan:hover { color: #ff8d95; }
+/* the two glass ends */
+html #order #acts button:nth-child(6n+1), html #order .tools #kp {
+  background: linear-gradient(180deg, rgba(var(--ice-rgb), .2) 0%, rgba(var(--ice-rgb), .08) 62%, rgba(var(--ice-rgb), .05) 100%), rgba(0,0,0,.26) !important;
+}
+html #order #acts button:nth-child(6n+1) { color: #fff !important; font-weight: 500 !important; transition: background .2s; }
+html #order #acts button:nth-child(6n+1) .mi { background-color: #fff !important; }
+html #order #acts button:nth-child(1) { box-shadow: inset 0 1px 0 rgba(var(--ice-hi), .3), inset -1px 0 0 rgba(var(--ice-hi), .24), inset 0 -1px 0 rgba(var(--ice-hi), .1) !important; }
+html #order #acts button:nth-child(7) { box-shadow: inset -1px 0 0 rgba(var(--ice-hi), .24) !important; }
+html #order #acts button:nth-child(6n+1):hover { background: linear-gradient(180deg, rgba(var(--ice-rgb), .27) 0%, rgba(var(--ice-rgb), .11) 62%, rgba(var(--ice-rgb), .07) 100%), rgba(0,0,0,.26) !important; }
+html #order #acts button:nth-child(6n+1):active { background: linear-gradient(180deg, rgba(var(--ice-rgb), .34) 0%, rgba(var(--ice-rgb), .16) 62%, rgba(var(--ice-rgb), .1) 100%), rgba(0,0,0,.26) !important; }
+html #order .tools #kp { --ln: rgba(var(--ice-hi), .1); box-shadow: inset 0 1px 0 rgba(var(--ice-hi), .3), inset 1px 0 0 rgba(var(--ice-hi), .24); }
+html #order .tools #kp::before { display: none; }
+html #order .tools #kp button { color: #fff; font-weight: 400; transition: background .15s; }
+html #order .tools #kp button .mi { background-color: #fff !important; }
+html #order .tools #kp button[data-k=","] { color: rgb(var(--ice-hi)); font-weight: 600; }
+html #order .tools #kp button:hover { background: rgba(var(--ice-hi), .08); }
+html #order .tools #kp button:active, html #order .tools #kp button.pressed { background: rgba(var(--ice-hi), .16); }
+
+/* SUB-CATEGORY SIDE BAR (profile menu): a floating panel, not a full-height column. It opens over the dishes, right beside the categories, and is only as tall as its
+   sub-categories (a long level scrolls), so no empty space is left under the last one and the dishes keep their full width (six to a row) whether it is open or not.
+   A frosted dark glass with a soft shadow; the bottom panel stays exactly where it is. */
+html #order .o-body { position: relative; }
+html #order .o-cat:has(.subs:not([hidden])) .tools { left: -131px; }
+html #order .o-body > .subs {
+  position: absolute; z-index: 8; top: 6px; inset-inline-start: 0; width: 248px; height: auto; max-height: calc(100% - 184px);
+  padding: 8px !important; overflow-y: auto; overscroll-behavior: contain;
+  background: linear-gradient(160deg, rgba(var(--ice-rgb), .06), rgba(255,255,255,.01) 60%), rgba(10,10,13,.86);
+  -webkit-backdrop-filter: blur(22px) saturate(1.3); backdrop-filter: blur(22px) saturate(1.3);
+  border: 1px solid rgba(255,255,255,.09); border-radius: 8px;
+  box-shadow: inset 0 1px 0 rgba(var(--ice-hi), .14), 0 22px 48px -18px rgba(0,0,0,.8), 0 6px 18px -8px rgba(0,0,0,.6) !important;
+}
+html #order .o-body:has(> .subs:not([hidden])) > .prods::before { display: none; }
 </style>
 <script>
 /* The skins. Smart and Light are the v2 stylesheet (skin-v2a + skin-v2b). Dark is POS v1's own look: its stylesheet is read from /pos-v1/index.html
@@ -4770,6 +4818,7 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
     <div class="o-main">
       <div class="o-cat">
         <div class="o-body">
+          <div class="subs" id="subs" hidden></div>
           <div class="prods" id="prods">
             <div class="p-bar" hidden>
               <div class="vs" id="vs">
@@ -5670,7 +5719,7 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
     if (hubRole && parent !== window) { parent.postMessage({ type: 'cm-pos:lock' }, location.origin); return; }
     inPos = false; isPin = false; signedOut = false;
     if (O.catPics) { O.catPics = false; syncPics(); }   // the next person starts on icons
-    O.mode = 'icons';                                    // ... and on the Cards (no photos) view of the dishes
+    O.mode = 'photos';                                   // ... and on the Photos view of the dishes (dish cards with their pictures)
     posEl.getAnimations().forEach(a => a.cancel());
     stage.classList.remove('is-order', 'is-app', 'is-tables', 'is-pos', 'is-pin', 'verifying');
     carousel.classList.remove('focus');
@@ -6158,7 +6207,7 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
   const isG = () => T.kind === 'glovo';
   const isTk = () => T.kind === 'take';
   const hhmm = ts => { const d = new Date(ts); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
-  const O = { cat: 'dessert', sub: 'all', ss: null, q: '', mode: 'icons', kbuf: '', tk: 'dark', parked: 0, catPics: false };
+  const O = { cat: 'dessert', sub: 'all', ss: null, q: '', mode: 'photos', kbuf: '', tk: 'dark', parked: 0, catPics: false };   // dishes open on Photos (cards with their pictures)
   // the receipt's mode (the sun / moon icon at its top): what you pick is kept in every theme and after a reload; with no pick yet it follows the theme
   const TK_KEY = 'cm-pos-v3-tk';
   let tkPicked = null; try { const v = localStorage.getItem(TK_KEY); if (v === 'light' || v === 'dark') tkPicked = v; } catch (e) {}
@@ -6168,6 +6217,13 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
   // profile drawer → Category photos: one switch for the photos in the category rail and the sub-category list (icons unless photos are turned on)
   O.catPics = false;   // every sign-in starts on icons; photos, once turned on, last until the next sign-out (a refresh keeps them)
   const syncPics = () => $o('order').classList.toggle('no-pics', !O.catPics);
+  // profile menu → Sub-category side bar: the old second column of sub-categories, between the categories and the dishes, instead of the path bar above the dishes.
+  // Off by default; what is picked is kept on this device (it is a layout choice, not one person's).
+  const SUBSIDE_KEY = 'cm-pos-v3-subside';
+  O.subSide = false; try { O.subSide = localStorage.getItem(SUBSIDE_KEY) === '1'; } catch (e) {}
+  // The side bar closes by itself once a last-level sub-category is picked (the dishes get the full width); tapping a category on the rail opens it again,
+  // the current category reopening it where you were.
+  O.subClosed = false;
   syncPics();
   let lastTot = null, lastSel = null;   // lastSel: the line that was selected the last time the receipt was drawn (a newly selected line gets its bar and tint animated)
 
@@ -6213,6 +6269,8 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
   }
   addEventListener('keydown', e => { if (e.key === 'Escape' && sbOpen()) sbClose(); });
   function renderSubs(anim) {
+    if (O.subSide) { const sb = $o('subbar'); sb.hidden = true; sb.innerHTML = ''; sbClose(); return renderSubCol(anim); }
+    $o('subs').hidden = true; $o('subs').innerHTML = ''; $o('subs').dataset.was = '';
     const s = $o('subbar');
     s.hidden = O.cat === 'all' || O.cat === 'fav';        // Favorites and All items have no sub-category bar: dishes by section
     if (!s.hidden && !SECTIONS.some(x => x.cat === O.cat)) s.hidden = true;           // a category without sections has nothing to choose
@@ -6255,6 +6313,52 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
       { duration: 340, delay: i * 30, easing: RISE, fill: 'backwards' }));
   }
   addEventListener('pointerdown', e => { if (sbOpen() && !e.target.closest('#sbSheet, .sb-cur')) sbClose(); });
+  // SUB-CATEGORY SIDE BAR (the old version, turned on from the profile menu): a second column between the categories and the dishes. One level at a time: inside a
+  // section that has sub-sections, the top row says where you are (tap it to go up a level), then "All" and the options of this level; one with more inside opens it,
+  // a last one shows only its dishes. Going down slides in from the side, going up from the other side.
+  // a last-level pick: the column shows the choice for a moment, then slides away and the dishes take the full width
+  function closeSubCol(now) {
+    const s = $o('subs'); O.subClosed = true;
+    const done = () => { if (!O.subClosed) return; s.hidden = true; s.innerHTML = ''; s.dataset.was = ''; };
+    if (stage.classList.contains('lite')) return done();
+    const an = s.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: `translateX(${RTL() ? 20 : -20}px)` }], { duration: now ? 180 : 240, delay: now ? 0 : 220, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' });
+    an.onfinish = () => { an.cancel(); done(); };
+  }
+  // the floating side bar closes when you tap anywhere outside it (the categories keep their own taps: one opens it again)
+  addEventListener('pointerdown', e => {
+    if (!O.subSide || O.subClosed || $o('subs').hidden || e.target.closest('#subs, #rail, #drawer, #drScrim')) return;
+    closeSubCol(true);
+  });
+  function renderSubCol(anim) {
+    const s = $o('subs');
+    const none = O.cat === 'all' || O.cat === 'fav' || !SECTIONS.some(x => x.cat === O.cat);   // Favorites, All items and a category without sections: dishes by section
+    s.hidden = none || O.subClosed;
+    if (none) { s.innerHTML = ''; s.dataset.was = ''; O.sub = 'all'; O.ss = null; return; }
+    if (O.subClosed) { s.innerHTML = ''; s.dataset.was = ''; return; }                                        // closed after a last pick: the choice stays, the column does not show
+    const secs = SECTIONS.filter(x => x.cat === O.cat), inCat = catList(O.cat), c = CATS.find(c => c.id === O.cat);
+    const n = sec => inCat.filter(p => p.sec === sec).length, go = ic('caret-open').replace('mi', 'mi go');
+    const sec = secs.find(x => x.id === O.sub && x.subs);
+    if (sec) {
+      const at = O.ss ? NODE[O.ss] : null, level = at?.kids ? at : at && at.path.length > 1 ? NODE[at.path.at(-2)] : null;
+      const here = level || { id: '', name: sec.name, kids: sec.subs }, inSec = inCat.filter(p => p.sec === sec.id);
+      const up = level ? (level.path.length > 1 ? level.path.at(-2) : '') : 'all';
+      const cnt = id => id ? inSec.filter(p => inNode(p, id)).length : inSec.length;
+      s.innerHTML = `<button class="sub back" type="button" data-up="${up}" aria-label="Back">${ic('caret-open')}<span>${here.name}</span></button>` +
+        `<button class="sub ${!at || at.kids ? 'on' : ''}" type="button" data-ss="${here.id}">${subImg(subPic(inSec, p => !here.id || inNode(p, here.id)))}<span>All</span><span class="n">${cnt(here.id)}</span></button>` +
+        here.kids.map(([id, nm, , k]) => `<button class="sub ${at?.id === id && !k ? 'on' : ''}" type="button" data-ss="${id}"${k ? ' data-in="1"' : ' data-leaf="1"'}>` +
+          `${subImg(subPic(inSec, p => inNode(p, id)))}<span>${nm}</span><span class="n">${cnt(id)}</span>${k ? go : ''}</button>`).join('');
+    } else
+      s.innerHTML = `<button class="sub ${O.sub === 'all' ? 'on' : ''}" type="button" data-sub="all">${subImg(thumb(CAT_PIC[c.id]) || subPic(inCat, () => true))}<span>All ${c.name.toLowerCase()}</span><span class="n">${inCat.length}</span></button>` +
+        secs.map(x => `<button class="sub ${O.sub === x.id ? 'on' : ''}" type="button" data-sub="${x.id}"${x.subs ? '' : ' data-leaf="1"'}>${subImg(subPic(inCat, p => p.sec === x.id))}<span>${x.name}</span><span class="n">${n(x.id)}</span>${x.subs ? go : ''}</button>`).join('');
+    if (anim === 'in' || anim === 'out') [...s.children].forEach((b, i) => b.animate(
+      [{ opacity: 0, transform: `translateX(${(anim === 'in') !== RTL() ? 36 : -36}px)` }, { opacity: 1, transform: 'none' }],
+      { duration: 380, delay: i * 30, easing: RISE, fill: 'backwards' }));
+    else if (anim) [...s.children].forEach((b, i) => b.animate([{ opacity: 0, transform: 'translateY(14px)' }, { opacity: 1, transform: 'none' }],
+      { duration: 450, delay: 120 + i * 40, easing: RISE, fill: 'backwards' }));
+    if (anim && !stage.classList.contains('lite') && s.dataset.was !== 'open')       // the panel slides out from the categories when it appears
+      s.animate([{ opacity: 0, transform: `translateX(${RTL() ? 16 : -16}px)` }, { opacity: 1, transform: 'none' }], { duration: 300, easing: RISE });
+    s.dataset.was = 'open';
+  }
   function prodCard(p) {
     const q = qtyOf(p.id);
     return `<button class="prod ${q ? 'has' : ''} ${p.out ? 'out' : ''}" data-pid="${p.id}" ${p.out ? 'aria-disabled="true"' : ''} aria-label="Add ${p.name}">
@@ -6441,8 +6545,9 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
     an.onfinish = () => { an.cancel(); if (tok === swapTok) renderProducts('switch'); };
   }
   $o('rail').addEventListener('click', e => {
-    const b = e.target.closest('button'); if (!b || b.dataset.cat === O.cat) return;
-    sfx.tap(); O.cat = b.dataset.cat; O.sub = 'all'; O.ss = null;
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.cat === O.cat) { if (O.subSide && O.subClosed) { sfx.tap(); O.subClosed = false; renderSubs('in'); } return; }   // the side bar closed: open it again where you were
+    sfx.tap(); O.cat = b.dataset.cat; O.sub = 'all'; O.ss = null; O.subClosed = false;
     $o('rail').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
     renderSubs(true); swapItems();
   });
@@ -6452,6 +6557,12 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
     if (b.classList.contains('sb-cur')) return sbToggle();
     if (b.dataset.up == null && b.dataset.sub == null && b.dataset.ss == null) return;
     sbKeep = sbOpen(); subTap(b);      // going back or up while the sheet is open keeps it open on that level
+  });
+  $o('subs').addEventListener('click', e => {
+    const b = e.target.closest('.sub'); if (!b) return;
+    const last = !!b.dataset.leaf && !b.classList.contains('on');
+    subTap(b);
+    if (last) closeSubCol();
   });
   $o('sbSheet').addEventListener('click', e => {
     if (e.target.closest('.sb-x')) return sbClose();
@@ -8833,7 +8944,7 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
       <i class="mi" style="--ic:url(/pos/assets/${icon}.svg)"></i><span>${label}</span>${tag !== undefined && tag !== '' ? `<span class="tg">${tag}</span>` : ''}</button>`;
     drawer.innerHTML = `<div class="dr-me"><img src="${img}" alt=""><div><b>${name}</b><small>${role} · ${pos}</small></div></div><div class="dr-rule"></div>
       <div class="dr-cap">MENU</div>${it('nav-order', 'Order', 'order')}${it('nav-tables', 'Tables', 'tables')}${it('nav-orders', 'Orders list', 'orders')}${it('nav-pending', 'Pending', 'pending', O.parked || '')}
-      <div class="dr-rule"></div><div class="dr-cap">GENERAL</div>${themeRow(k++)}${receiptRow(k++)}${viewRow(k++)}${langRow(k++)}${it('dr-motion', 'Motion', 'motion', stage.classList.contains('lite') ? 'Lite' : 'Full')}${it(muted ? 'dr-mute' : 'dr-sound', 'Sounds', 'sound', muted ? 'Off' : 'On')}${it('dine/image', 'Category photos', 'catpics', O.catPics ? 'On' : 'Off')}${it('dr-keyboard', 'Keyboard', 'kbd', GKB.isEnabled() ? 'Auto' : 'Never')}
+      <div class="dr-rule"></div><div class="dr-cap">GENERAL</div>${themeRow(k++)}${receiptRow(k++)}${viewRow(k++)}${langRow(k++)}${it('dr-motion', 'Motion', 'motion', stage.classList.contains('lite') ? 'Lite' : 'Full')}${it(muted ? 'dr-mute' : 'dr-sound', 'Sounds', 'sound', muted ? 'Off' : 'On')}${it('dine/image', 'Category photos', 'catpics', O.catPics ? 'On' : 'Off')}${it('dr-sidebar', 'Sub-category side bar', 'subside', O.subSide ? 'On' : 'Off')}${it('dr-keyboard', 'Keyboard', 'kbd', GKB.isEnabled() ? 'Auto' : 'Never')}
       ${it('dr-floor', 'Floor plan', 'floor', TABLES.length + ' tables')}${it('dine/chip-fork', 'Kitchen display', 'kds', 'Open')}
       <div class="spacer"></div><div class="dr-rule"></div>${it('dr-pos', 'Switch POS', 'pos')}${it('dr-logout', 'Lock & switch user', 'lock')}`;
   }
@@ -8861,6 +8972,7 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
     if (a === 'motion') { stage.classList.toggle('lite'); renderDrawer(); return; }
     if (a === 'sound') { muted = !muted; renderDrawer(); if (!muted) sfx.tap(); return; }
     if (a === 'catpics') { O.catPics = !O.catPics; syncPics(); renderRail(true); renderDrawer(); return; }
+    if (a === 'subside') { O.subSide = !O.subSide; O.subClosed = false; try { localStorage.setItem(SUBSIDE_KEY, O.subSide ? '1' : '0'); } catch (err) {} renderSubs(true); renderDrawer(); return; }
     if (a === 'kbd') { GKB.setEnabled(!GKB.isEnabled()); renderDrawer(); return; }
     if (a === 'floor') { closeDrawer(); setTimeout(openFE, 180); return; }
     if (a === 'kds') { closeDrawer(); window.open('/kds-v2/index.html', 'cm-kds'); return; }
@@ -9075,7 +9187,7 @@ html #app .a-util .me { margin: 0; margin-inline-start: 6px; }
     'Print anyway': ['Imprimer quand même', 'اطبع على أي حال'], 'Card · •••• 4471 · approved': ['Carte · •••• 4471 · acceptée', 'بطاقة · •••• 4471 · مقبولة'],
     'Cash · exact amount': ['Espèces · montant exact', 'نقدًا · المبلغ بالضبط'],
     // drawer
-    'MENU': ['MENU', 'القائمة'], 'GENERAL': ['GÉNÉRAL', 'عام'], 'Theme': ['Thème', 'المظهر'], 'Motion': ['Animations', 'الحركة'], 'Sounds': ['Sons', 'الأصوات'], 'Dishes': ['Plats', 'الأطباق'], 'Language': ['Langue', 'اللغة'], 'Receipt': ['Reçu', 'الإيصال'], 'Print bill': ['Imprimer l’addition', 'طباعة الفاتورة'], 'Open drawer': ['Ouvrir le tiroir', 'فتح الدرج'], 'Bill sent to the printer.': ['Addition envoyée à l’imprimante.', 'تم إرسال الفاتورة إلى الطابعة.'], 'Cash drawer opened.': ['Tiroir-caisse ouvert.', 'تم فتح درج النقود.'], 'Keyboard': ['Clavier', 'لوحة المفاتيح'], 'Auto': ['Auto', 'تلقائي'], 'Never': ['Jamais', 'أبدًا'],'Category photos': ['Photos des catégories', 'صور الفئات'],
+    'MENU': ['MENU', 'القائمة'], 'GENERAL': ['GÉNÉRAL', 'عام'], 'Theme': ['Thème', 'المظهر'], 'Motion': ['Animations', 'الحركة'], 'Sounds': ['Sons', 'الأصوات'], 'Dishes': ['Plats', 'الأطباق'], 'Language': ['Langue', 'اللغة'], 'Receipt': ['Reçu', 'الإيصال'], 'Print bill': ['Imprimer l’addition', 'طباعة الفاتورة'], 'Open drawer': ['Ouvrir le tiroir', 'فتح الدرج'], 'Bill sent to the printer.': ['Addition envoyée à l’imprimante.', 'تم إرسال الفاتورة إلى الطابعة.'], 'Cash drawer opened.': ['Tiroir-caisse ouvert.', 'تم فتح درج النقود.'], 'Keyboard': ['Clavier', 'لوحة المفاتيح'], 'Auto': ['Auto', 'تلقائي'], 'Never': ['Jamais', 'أبدًا'],'Category photos': ['Photos des catégories', 'صور الفئات'], 'Sub-category side bar': ['Barre latérale des sous-catégories', 'الشريط الجانبي للفئات الفرعية'],
     'Dark': ['Sombre', 'داكن'], 'Full': ['Complètes', 'كاملة'], 'Lite': ['Légères', 'خفيفة'], 'On': ['Activés', 'مفعّلة'], 'Off': ['Coupés', 'متوقفة'],
     'Switch POS': ['Changer de caisse', 'تغيير نقطة البيع'], 'Lock & switch user': ['Verrouiller & changer', 'قفل وتغيير المستخدم'], 'Language': ['Langue', 'اللغة'],
     // notes

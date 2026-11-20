@@ -20,7 +20,7 @@ export interface PosPrefs {
   keyboard: boolean
 }
 /** What the POS starts with when nothing was chosen. */
-const DEFAULTS: PosPrefs = { theme: 'Smart', receipt: 'Dark', dishes: 'Cards', language: 'English', motion: 'Full', sounds: true, catPics: false, keyboard: true }
+const DEFAULTS: PosPrefs = { theme: 'Smart', receipt: 'Dark', dishes: 'Photos', language: 'English', motion: 'Full', sounds: true, catPics: false, keyboard: true }
 
 const LANG_CODE = { English: 'en', Français: 'fr', العربية: 'ar' } as const
 const LANG_NAME = { en: 'English', fr: 'Français', ar: 'العربية' } as const
