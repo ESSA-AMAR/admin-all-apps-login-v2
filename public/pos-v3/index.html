@@ -6461,14 +6461,12 @@ html :is(.tk-act .pay.sweep-on, .pm-go.wake)::after { animation: none !important
     const secs = SECTIONS.filter(x => x.cat === O.cat), inCat = catList(O.cat), c = CATS.find(c => c.id === O.cat);
     const sec = secs.find(x => x.id === O.sub && x.subs), picked = secs.find(x => x.id === O.sub);
     const steps = [[c.name, 'data-sub="all"']];
-    let up = 'all', count = picked ? inCat.filter(p => p.sec === picked.id).length : inCat.length;
+    let up = 'all';
     if (sec) {
       const at = O.ss ? NODE[O.ss] : null, level = at?.kids ? at : at && at.path.length > 1 ? NODE[at.path.at(-2)] : null, leaf = at && !at.kids ? at : null;
-      const inSec = inCat.filter(p => p.sec === sec.id);
       up = level ? (level.path.length > 1 ? level.path.at(-2) : '') : 'all';
       steps.push([sec.name, `data-sub="${sec.id}"`], ...(level ? level.path.map(id => [NODE[id].name, `data-ss="${id}" data-in="1"`]) : []));
       if (leaf) steps.push([leaf.name, '']);
-      const end = leaf || level; count = end ? inSec.filter(p => inNode(p, end.id)).length : inSec.length;
     } else if (picked) steps.push([picked.name, '']);
     else { barHide(s); return renderSubCol(anim); }
     // each step is keyed by its path, so the steps already on screen stay still and only the new ones glide in
@@ -6478,7 +6476,7 @@ html :is(.tk-act .pay.sweep-on, .pm-go.wake)::after { animation: none !important
     const sep = '<span class="sb-sep" aria-hidden="true">›</span>', last = steps.length - 1;
     s.innerHTML = `<button class="sb-back" type="button" data-up="${up}" aria-label="Back">${ic('caret-open')}</button><nav class="sb-path" aria-label="Where you are">` +
       steps.map(([nm, at], i) => i === last
-        ? `<button class="sb-crumb here" type="button" data-k="${keys[i]}" data-here="1" aria-current="location" aria-controls="subs" aria-expanded="${!O.subClosed}"><span>${nm}</span><span class="n">${count}</span></button>`
+        ? `<button class="sb-crumb here" type="button" data-k="${keys[i]}" data-here="1" aria-current="location" aria-controls="subs" aria-expanded="${!O.subClosed}"><span>${nm}</span></button>`
         : `<button class="sb-crumb" type="button" data-k="${keys[i]}" ${at}>${nm}</button>`).join(sep) + '</nav>';
     if (!barLite()) {
       let k = 0;
