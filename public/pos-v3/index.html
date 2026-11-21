@@ -4645,6 +4645,20 @@ html:not(.light) .hv-btn.blue:active { box-shadow: inset 0 1px 0 rgba(255,255,25
 html.light #stage .hv-btn.blue { color: #fff; text-shadow: 0 1px 1px rgba(0, 30, 80, .4); filter: url(#lflip);
   background: linear-gradient(150deg, #5fb0ff, #2a86ea 60%, #1c6fd0) !important; box-shadow: inset 0 1px 0 rgba(255,255,255,.55), inset 0 0 0 1px rgba(150,200,255,.55) !important; }
 
+/* LIGHT RECEIPT: the action strip and Park / Send / No receipt are white like the receipt (no dark band, no red glow); the icons keep their colours.
+   Pay is a solid blue so it stays strong on white. Keyed on #ticket (not ".ticket:not(.dark)", which the receipt script drops for the action buttons). */
+html #order #ticket:not(.dark) .tk-act { background: #f4f5f7 !important; }
+html #order #ticket:not(.dark) .tk-act :is(.park, .send, .norc), html #order #ticket:not(.dark) .tk-act .send.done {
+  color: #24272f !important; text-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+  background: linear-gradient(160deg, #ffffff 0%, #f1f2f5 100%) !important; box-shadow: inset 0 0 0 1px rgba(36,39,47,.09) !important; }
+html #order #ticket:not(.dark) .tk-act :is(.park, .send, .norc):hover { background: linear-gradient(160deg, #ffffff 0%, #e8eaee 100%) !important; }
+html #order #ticket:not(.dark) .tk-act .park .mi { color: #2a74d6; }
+html #order #ticket:not(.dark) .tk-act :is(.send, .send.done) .mi { color: #0f8f59; }
+html #order #ticket:not(.dark) .tk-act .norc .mi { color: #3d4049; }
+html #order #ticket:not(.dark) .tk-act .norc.on { color: #1c4f94 !important; background: rgba(79,163,247,.14) !important; box-shadow: inset 0 0 0 2px rgba(42,134,234,.85) !important; }
+html #order #ticket:not(.dark) .tk-act .pay { background: linear-gradient(150deg, #4a9ff5 0%, #2a86ea 60%, #1c6fd0 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.35), inset 0 0 0 1px rgba(28,111,208,.5) !important; text-shadow: 0 1px 1px rgba(0,30,80,.35) !important; }
+
 #hello { isolation: isolate; }
 #hello::before { content: ""; position: absolute; z-index: -1; inset: -150px -200px -150px -180px; pointer-events: none;
   background: radial-gradient(closest-side, rgba(0,0,0,.6), rgba(0,0,0,.38) 45%, rgba(0,0,0,.14) 75%, rgba(0,0,0,0)); }
