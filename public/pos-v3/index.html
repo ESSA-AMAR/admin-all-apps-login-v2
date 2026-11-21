@@ -3048,7 +3048,7 @@
   .lite .cpop .cp-b.go::after { animation: none; display: none; }
 
   /* login headlines: heavy, tight, all caps — grey words with one red word (the name, the PIN) */
-  :root { --hl-grey: #8a8a8e; --hl-red: #ff2e3b; }   /* the big headline words: a mid grey, one word red */
+  :root { --hl-grey: #ffffff; --hl-red: #ff2e3b; }   /* the big headline words: white, one word red */
   #hello h1, #who h2, #pinPanel h2 { font-family: 'Inter Tight', 'IBM Plex Sans Arabic', 'Roboto', sans-serif; font-weight: 800; text-transform: uppercase; letter-spacing: -.035em; word-spacing: .08em; }
   #hello h1 { font-size: 78px; line-height: 84px; height: 84px; color: var(--hl-grey); }
   #hello h1 .hn { font-weight: 800; color: var(--hl-red); text-shadow: 0 0 40px rgba(255,46,59,.25); }
@@ -4477,6 +4477,161 @@ html #order .o-body > .subs {
   box-shadow: inset 0 1px 0 rgba(var(--ice-hi), .14), 0 22px 48px -18px rgba(0,0,0,.8), 0 6px 18px -8px rgba(0,0,0,.6) !important;
 }
 html #order .o-body:has(> .subs:not([hidden])) > .prods::before { display: none; }
+/* BREADCRUMBS: once you are inside a sub-category, a trail above the dishes says where you are. The popup keeps its place; while it is open the trail starts just to its right */
+html #order .subbar { transition: padding-inline-start .32s cubic-bezier(.2,.8,.2,1); }
+html #order .subbar.with-pop { padding-inline-start: 256px; }
+html #order .subbar .sb-crumb { transition: color .25s, font-weight .25s; }
+html #stage.lite #order .subbar { transition: none; }
+html #order .subbar .sb-crumb.here { display: inline-flex; align-items: center; gap: 8px; color: #fff; font-weight: 600; }
+html #order .subbar .sb-crumb.here .n { font: 500 12px 'Roboto Mono', monospace; padding: 2px 7px; border-radius: 9px; background: #e02d3c; color: #fff; }
+
+/* THE COOL LIGHT LIVES IN THE CORNERS: the blue glow is centred on the top-right corner itself, with a flat, even falloff
+   (no bright spot), and it only breathes in place, so it never drifts under the big headline. The low blue drift sits in
+   the bottom-right corner. Under the headline itself there is always a soft dark pool, so the huge text reads on dark. */
+html .ambient .a-corner { right: -560px; top: -420px; width: 1120px; height: 840px;
+  background: radial-gradient(closest-side, rgba(var(--ice-amb), .15) 0%, rgba(var(--ice-amb), .135) 20%, rgba(var(--ice-amb), .105) 38%, rgba(var(--ice-amb), .07) 55%, rgba(var(--ice-amb), .038) 70%, rgba(var(--ice-amb), .014) 84%, rgba(var(--ice-amb), 0) 100%);
+  animation: iceCorner 11s ease-in-out infinite alternate; }
+@keyframes iceCorner { from { opacity: .75; transform: scale(.96); } to { opacity: 1; transform: scale(1.04); } }
+html .ambient::before { background: radial-gradient(760px 480px at 100% 100%, rgba(var(--ice-deep-rgb), .085) 0%, rgba(var(--ice-deep-rgb), .07) 25%, rgba(var(--ice-deep-rgb), .045) 50%, rgba(var(--ice-deep-rgb), .018) 75%, rgba(var(--ice-deep-rgb), 0) 100%),
+  radial-gradient(700px 520px at 2% 104%, rgba(var(--glow-rgb), .06) 0%, rgba(var(--glow-rgb), .042) 30%, rgba(var(--glow-rgb), .021) 50%, rgba(var(--glow-rgb), .008) 70%, rgba(var(--glow-rgb), 0) 100%);
+  animation: none; }
+/* PAY IN BLUE: the same glass as before, in the ice blue of the rest of the design (with the Dark skin, whose ice is red, it follows that skin) */
+html:not(.light) #order .ticket.ticket .tk-act .pay, html:not(.light) #order .tk-act .pay {
+  background: linear-gradient(140deg, rgba(var(--ice-deep-rgb), .82) 0%, rgba(var(--ice-deep-rgb), .58) 48%, rgba(var(--ice-deep-rgb), .74) 100%) !important;
+  text-shadow: 0 1px 2px rgba(0, 24, 60, .55) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.32), inset 0 0 0 1px rgba(var(--ice-hi), .3), inset 0 -14px 22px -12px rgba(var(--ice-deep-rgb), .85) !important; }
+html:not(.light) #order .tk-act .pay:active { box-shadow: inset 0 1px 0 rgba(255,255,255,.4), inset 0 0 0 1px rgba(var(--ice-hi), .45), inset 0 3px 10px rgba(0, 30, 80, .45) !important; }
+html.light #stage #order .tk-act .pay, html.light #stage #order .ticket.dark .tk-act .pay {
+  background: linear-gradient(150deg, #5fb0ff, #2a86ea 60%, #1c6fd0) !important; text-shadow: 0 1px 1px rgba(0, 30, 80, .4) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.55), inset 0 0 0 1px rgba(150,200,255,.55), 0 14px 28px -12px rgba(30,110,220,.55) !important; }
+
+/* ACTION BUTTONS (Park, All sent, No receipt): the glass of a product card without its photo, square corners, no colour of their own;
+   only the icons keep their colours. The red glow that sat behind them at the foot of the receipt is gone. */
+#order .ticket.dark { background:
+  linear-gradient(90deg, rgba(var(--ice-rgb), .36), rgba(var(--ice-rgb), .46) 62%, rgba(var(--ice-rgb), .10)) 0 0 / 100% 1px no-repeat,
+  linear-gradient(165deg, rgba(var(--ice-rgb), .10) 0%, rgba(var(--ice-rgb), .03) 34%, rgba(var(--ice-rgb), 0) 58%),
+  rgba(5, 6, 9, .94); }
+html #order .tk-act :is(.park, .send, .norc), html #order .ticket.ticket .tk-act :is(.park, .send, .norc),
+html #order .tk-act .send.done, html #order .ticket.ticket .tk-act .send.done {
+  border-radius: 0 !important;
+  background: linear-gradient(150deg, rgba(var(--ice-rgb), .13) 0%, rgba(255,255,255,.043) 45%, rgba(255,255,255,.02) 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(var(--ice-hi), .2), inset 0 0 0 1px rgba(var(--ice-hi), .09) !important; }
+html #order .tk-act :is(.park, .send, .norc):hover { background: linear-gradient(150deg, rgba(var(--ice-rgb), .18) 0%, rgba(255,255,255,.07) 45%, rgba(255,255,255,.035) 100%) !important; }
+
+/* PRINT BILL AND OPEN DRAWER: soft red glass (the keypad keeps its ice glass) */
+html #order #acts button:nth-child(6n+1) {
+  background: linear-gradient(180deg, rgba(224,45,60,.26) 0%, rgba(224,45,60,.13) 62%, rgba(224,45,60,.09) 100%), rgba(0,0,0,.26) !important; }
+html #order #acts button:nth-child(6n+1):hover { background: linear-gradient(180deg, rgba(224,45,60,.33) 0%, rgba(224,45,60,.17) 62%, rgba(224,45,60,.11) 100%), rgba(0,0,0,.26) !important; }
+html #order #acts button:nth-child(6n+1):active { background: linear-gradient(180deg, rgba(224,45,60,.4) 0%, rgba(224,45,60,.21) 62%, rgba(224,45,60,.14) 100%), rgba(0,0,0,.26) !important; }
+html #order #acts button:nth-child(1) { box-shadow: inset 0 1px 0 rgba(255,140,150,.32), inset -1px 0 0 rgba(255,120,130,.26), inset 0 -1px 0 rgba(255,120,130,.12) !important; }
+html #order #acts button:nth-child(7) { box-shadow: inset -1px 0 0 rgba(255,120,130,.26) !important; }
+
+/* THE BOTTOM PANEL'S TOP LINE = THE HEADER'S LINE: one red-to-ice line across the whole screen (tools, keypad and the action buttons),
+   the same gradient as the line under the header. The old ice line and the top highlights of the cells under it are gone, so it is a single line. */
+html #order .tools::before { display: none; }
+html #order .tools { box-shadow: none !important; }
+/* drawn in two pieces that make one line: the tools and keypad part, and the receipt's part (the receipt sits above the tools), each a window onto the same 1920px gradient */
+html #order .tools::after, html #order .tk-act::after { content: ""; position: absolute; z-index: 20; top: 0; left: 0; right: 0; height: 1px; pointer-events: none;
+  background: linear-gradient(90deg, rgba(224,45,60,0), rgba(224,45,60,.5) 14%, rgba(var(--ice-hi), .12) 45%, rgba(var(--ice-rgb), .42) 88%, rgba(var(--ice-rgb), 0)) 0 0 / 1920px 1px no-repeat; }
+html #order .tk-act { position: relative; }
+html #order .tk-act::after { background-position: 100% 0; }
+.rtl #order .tools::after { background-position: 100% 0; } .rtl #order .tk-act::after { background-position: 0 0; }
+html #order .tools #kp { box-shadow: inset 1px 0 0 rgba(var(--ice-hi), .24) !important; }
+html #order #acts button:nth-child(1) { box-shadow: inset -1px 0 0 rgba(255,120,130,.26), inset 0 -1px 0 rgba(255,120,130,.12) !important; }
+html #order .tk-act, html #order .ticket.ticket .tk-act { box-shadow: none !important; }
+html #order .tk-act :is(.park, .send, .norc), html #order .ticket.ticket .tk-act :is(.park, .send, .norc),
+html #order .tk-act .send.done, html #order .ticket.ticket .tk-act .send.done { box-shadow: inset 0 0 0 1px rgba(var(--ice-hi), .07) !important; }
+
+/* THE SELECTED LINE ON THE RECEIPT IN BLUE: the tint and the line's price take the ice blue instead of red (with the Dark skin, whose ice is red, it follows that skin) */
+html #order .tline.sel, html #order .ticket.dark .tline.sel, html #order .ticket:not(.dark) .tline.sel { background: rgba(var(--ice-deep-rgb), .22); }
+html #order .tline.sel .t, html #order .tline.sel .tq b, html #order .tline.sel .tq button { color: var(--ice); }
+html #order .tline.flash { animation-name: flashIce; }
+@keyframes flashIce { 0% { background: rgba(var(--ice-deep-rgb), .28); } }
+
+/* A SEPARATOR BETWEEN THE KEYPAD AND PAY / THE ACTION BUTTONS: a thin ice line down the receipt's edge, from the panel's top line to the bottom */
+html #order .tk-act::before { display: block !important; content: ""; position: absolute; z-index: 21; top: 0; bottom: 0; inset-inline-start: 0; width: 1px; height: auto; pointer-events: none;
+  background: linear-gradient(180deg, rgba(var(--ice-hi), .32), rgba(var(--ice-hi), .14)); border-radius: 0; }
+
+/* PRODUCT CARDS
+   - a dish that is on the order: a soft blue wash and a thin blue outline (no red number circle any more)
+   - sold out / not available: the whole card goes soft and a no-entry sign sits on it (the "Sold out" words stay for screen readers) */
+html #order .prod .qb { color: #fff !important; text-shadow: 0 1px 1px rgba(0, 24, 60, .35);
+  background: linear-gradient(rgba(0,0,0,.16), rgba(0,0,0,.16)), rgb(var(--ice-deep-rgb)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 6px 14px -4px rgba(var(--ice-deep-rgb), .7) !important; }   /* the counter, in the blue of the selected card */
+html #order .prod.has .ph { box-shadow: 0 0 0 2.5px rgba(var(--ice-rgb), .85), 0 16px 34px -14px rgba(var(--ice-deep-rgb), .6) !important; }
+html #order .prod.has .ph::after { opacity: 1 !important; z-index: 1;
+  background: linear-gradient(160deg, rgba(var(--ice-deep-rgb), .44) 0%, rgba(var(--ice-deep-rgb), .2) 55%, rgba(var(--ice-deep-rgb), .12) 100%) !important;
+  box-shadow: inset 0 0 0 1px rgba(var(--ice-hi), .4) !important; }
+html #order :is(.icons .prod.has, .prod.has:has(> .ph.noimg))::before {
+  background: linear-gradient(150deg, rgba(var(--ice-deep-rgb), .3) 0%, rgba(var(--ice-deep-rgb), .12) 55%, rgba(var(--ice-deep-rgb), .07) 100%) !important;
+  box-shadow: inset 0 0 0 1.5px rgba(var(--ice-rgb), .6), 0 14px 32px -14px rgba(var(--ice-deep-rgb), .45) !important; }
+html #order .prod.out .ph { opacity: .5; }
+html #order .prod.out .info { opacity: .85; }   /* the name stays readable */
+html #order .prod.out .ph img { filter: saturate(.25) brightness(.75); }
+html #order .prod.out .so { position: absolute !important; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+html #order .prod.out::after { content: ""; position: absolute; z-index: 6; top: 14px; left: auto; inset-inline-end: 14px; width: 34px; height: 34px; margin: 0; border-radius: 50%; pointer-events: none;
+  background: rgba(0,0,0,.42) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ff7a84' stroke-width='2.1' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='8.6'/%3E%3Cpath d='M5.9 5.9l12.2 12.2'/%3E%3C/svg%3E") center / 25px no-repeat;
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); box-shadow: inset 0 0 0 1px rgba(255,255,255,.1); }
+/* the sign sits exactly where the blue counter sits on a chosen card; cards without a photo (Icons view) have that spot a little lower */
+html #order :is(.icons .prod.out, .prod.out:has(> .ph.noimg))::after { top: 20px; inset-inline-end: 14px; width: 32px; height: 32px; background-size: 23px; }
+
+/* NO COUNTER CIRCLE ON SEND */
+html #order .tk-act .send .cnt { display: none !important; }
+
+/* THE BLUE COUNTER AND THE SOLD-OUT SIGN, IN THE CORNER, NEVER OVER THE NAME
+   - photo cards: the name is at the bottom, so they sit tight in the top corner of the photo
+   - cards without a photo (Icons view): the name runs along the top, so they sit in the bottom corner, beside the price */
+html #order .prod .ph .qb { top: 4px !important; inset-inline: auto 4px !important; }
+/* on a photo the border is red too, like the counter; the cards without a photo keep their blue outline */
+html #order .items:not(.icons) .prod.has:not(:has(> .ph.noimg)) .ph { box-shadow: 0 0 0 2.5px rgba(224,45,60,.9), 0 16px 34px -14px rgba(224,45,60,.55) !important; }
+html #order .items:not(.icons) .prod.has:not(:has(> .ph.noimg)) .ph::after { box-shadow: inset 0 0 0 1px rgba(255,130,140,.45) !important; }
+/* on a photo the counter is red (it stands out on the picture); the cards without a photo keep it blue */
+html #order .items:not(.icons) .prod:not(:has(> .ph.noimg)) .ph .qb { background: #e02d3c !important; text-shadow: 0 1px 1px rgba(90,0,12,.4);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 6px 14px -4px rgba(224,45,60,.7) !important; }
+html #order .prod.out::after { top: 10px; inset-inline-end: 10px; width: 32px; height: 32px; background-size: 24px; }
+/* cards without a photo: the counter sits inside the top-right corner; the name's first line keeps a notch free for it, so it never covers the name */
+html #order :is(.icons .prod, .prod:has(> .ph.noimg)) .ph .qb { top: 2px !important; inset-inline: auto 2px !important; min-width: 26px !important; height: 26px !important; padding: 0 5px !important; font-size: 13px !important; z-index: 7 !important; }
+html #order :is(.icons .prod, .prod:has(> .ph.noimg)) .nm::before { content: ""; float: inline-end; width: 30px; height: 19px; }
+html #order :is(.icons .prod.out, .prod.out:has(> .ph.noimg))::after { top: 8px; inset-inline-end: 8px; width: 26px; height: 26px; background-size: 20px; z-index: 7; }   /* the counter's spot, inside the top-right corner */
+
+/* LOGIN, PHOTOS: the running light hugs the photo, right on its edge, with no gap between them (welcome screen and PIN screen) */
+html #carousel .item .sweep, html #carousel .item.center .sweep { inset: -3px !important; }
+/* PIN screen: the photo sits 2.7% inside its frame and the frame is shown at 80%, so the light starts at the photo's edge and is a touch thicker (it reads 3px, as on the login) */
+html #travel .sweep { inset: calc(2.7% - 3.75px) !important; padding: 3.75px !important; }
+
+/* THE WARM LIGHT LIVES IN THE OTHER CORNER: one soft red glow centred on the bottom-left corner, the mirror of the blue one top right
+   (same size, same flat falloff, it only breathes in place). The red glows behind the photos, on the left side and along the floor are gone. */
+html .ambient .a-pro, html .ambient .a-floor { display: none; }
+html .ambient .a-left { left: -560px; top: auto; bottom: -420px; width: 1120px; height: 840px;
+  background: radial-gradient(closest-side, rgba(224,45,60,.17) 0%, rgba(224,45,60,.15) 20%, rgba(224,45,60,.115) 38%, rgba(224,45,60,.075) 55%, rgba(224,45,60,.04) 70%, rgba(224,45,60,.015) 84%, rgba(224,45,60,0) 100%);
+  animation: iceCorner 13s ease-in-out -5s infinite alternate; }
+html .ambient::before { background: radial-gradient(760px 480px at 100% 100%, rgba(var(--ice-deep-rgb), .085) 0%, rgba(var(--ice-deep-rgb), .07) 25%, rgba(var(--ice-deep-rgb), .045) 50%, rgba(var(--ice-deep-rgb), .018) 75%, rgba(var(--ice-deep-rgb), 0) 100%); }
+
+/* NO SHINE ON THE BUTTONS: the light that swept across Log in, Pay, the client button and the Go button every few seconds is gone */
+html :is(#toPin, #order .tk-client, #order .tk-act .pay, .cpop .cp-b.go)::after { animation: none !important; display: none !important; }
+
+/* ORDER TYPE PAGE (and the other screens under the same header): the Caisse Manager logo instead of Back and the POS chip */
+html #app .a-head .ctx .back, html #app .a-head .ctx .chip { display: none !important; }
+html #app .a-head .a-logo { height: 56px; padding: 0; margin: 0; box-shadow: none; }
+html #app .a-head .a-logo img { height: 52px; }
+
+/* LOGIN SUCCESS, POS STATION AND ORDER TYPE PAGES: the red light sits in the bottom-left corner, as on the login screen, instead of along the bottom (the blue stays top right).
+   Set on the layer itself, so the success screen (where it fades in early) gets it too. */
+html #stage .pos-bg { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .016 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(1400px 720px at 1920px 0px, rgba(var(--ice-amb), 0.180) 0%, rgba(var(--ice-amb), 0.172) 10%, rgba(var(--ice-amb), 0.153) 20%, rgba(var(--ice-amb), 0.125) 30%, rgba(var(--ice-amb), 0.094) 40%, rgba(var(--ice-amb), 0.064) 50%, rgba(var(--ice-amb), 0.038) 60%, rgba(var(--ice-amb), 0.018) 70%, rgba(var(--ice-amb), 0.006) 80%, rgba(var(--ice-amb), 0.001) 90%, rgba(var(--ice-amb), 0.000) 100%),
+    radial-gradient(560px 420px at 0px 1080px, rgba(224,45,60,.09) 0%, rgba(224,45,60,.08) 20%, rgba(224,45,60,.062) 38%, rgba(224,45,60,.04) 55%, rgba(224,45,60,.022) 70%, rgba(224,45,60,.008) 84%, rgba(224,45,60,0) 100%),
+    rgba(0,0,0,.35); }
+
+/* TABLES: the amount on a table says its currency, and the light that swept across busy tables is gone */
+html .ft .amt .cur { margin-inline-start: 4px; font-size: .78em; font-weight: 500; opacity: .7; }
+html .ft .sh::before { animation: none !important; display: none !important; }
+
+/* NO GLASS SHINE ON ANY BUTTON: the one-off light sweeps on Pay and on the payment's Go button are gone too */
+html :is(.tk-act .pay.sweep-on, .pm-go.wake)::after { animation: none !important; display: none !important; }
+
+#hello { isolation: isolate; }
+#hello::before { content: ""; position: absolute; z-index: -1; inset: -150px -200px -150px -180px; pointer-events: none;
+  background: radial-gradient(closest-side, rgba(0,0,0,.6), rgba(0,0,0,.38) 45%, rgba(0,0,0,.14) 75%, rgba(0,0,0,0)); }
 </style>
 <script>
 /* The skins. Smart and Light are the v2 stylesheet (skin-v2a + skin-v2b). Dark is POS v1's own look: its stylesheet is read from /pos-v1/index.html
@@ -4672,6 +4827,7 @@ html #order .o-body:has(> .subs:not([hidden])) > .prods::before { display: none;
   <section class="abs" id="app" aria-label="Point of sale">
     <header class="a-head">
       <div class="ctx">
+        <span class="o-logo a-logo"><img src="/pos/assets/logo.svg" alt="Caisse Manager"></span>
         <button class="back" id="appBack"><img src="/pos/assets/back-arrow.svg" alt="">Back</button>
         <span class="chip" id="posChipReal">POS 1</span>
       </div>
@@ -6207,7 +6363,7 @@ html #order .o-body:has(> .subs:not([hidden])) > .prods::before { display: none;
   const isG = () => T.kind === 'glovo';
   const isTk = () => T.kind === 'take';
   const hhmm = ts => { const d = new Date(ts); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
-  const O = { cat: 'salads', sub: 'all', ss: null, q: '', mode: 'photos', kbuf: '', tk: 'dark', parked: 0, catPics: false };   // dishes open on Photos (cards with their pictures)
+  const O = { cat: 'all', sub: 'all', ss: null, q: '', mode: 'photos', kbuf: '', tk: 'dark', parked: 0, catPics: false };   // dishes open on Photos (cards with their pictures)
   // the receipt's mode (the sun / moon icon at its top): what you pick is kept in every theme and after a reload; with no pick yet it follows the theme
   const TK_KEY = 'cm-pos-v3-tk';
   let tkPicked = null; try { const v = localStorage.getItem(TK_KEY); if (v === 'light' || v === 'dark') tkPicked = v; } catch (e) {}
@@ -6217,10 +6373,9 @@ html #order .o-body:has(> .subs:not([hidden])) > .prods::before { display: none;
   // profile drawer → Category photos: one switch for the photos in the category rail and the sub-category list (icons unless photos are turned on)
   O.catPics = false;   // every sign-in starts on icons; photos, once turned on, last until the next sign-out (a refresh keeps them)
   const syncPics = () => $o('order').classList.toggle('no-pics', !O.catPics);
-  // profile menu → Sub-category side bar: the old second column of sub-categories, between the categories and the dishes, instead of the path bar above the dishes.
-  // Off by default; what is picked is kept on this device (it is a layout choice, not one person's).
-  const SUBSIDE_KEY = 'cm-pos-v3-subside';
-  O.subSide = false; try { O.subSide = localStorage.getItem(SUBSIDE_KEY) === '1'; } catch (e) {}
+  // Sub-categories are picked in the floating side popup beside the categories, the only way now (the profile-menu switch is gone).
+  // Once you are inside a sub-category, a trail above the dishes shows where you are (Pizza › Specials › Meat & spicy): a step goes back to that level.
+  O.subSide = true;
   // The side bar closes by itself once a last-level sub-category is picked (the dishes get the full width); tapping a category on the rail opens it again,
   // the current category reopening it where you were.
   O.subClosed = false;
@@ -6268,49 +6423,73 @@ html #order .o-body:has(> .subs:not([hidden])) > .prods::before { display: none;
     const bar = $o('subbar'), sh = $o('sbSheet'), sc = $o('sbScrim'); sh.style.top = sc.style.top = bar.offsetHeight + 'px'; sc.hidden = false; sh.hidden = false; bar.querySelector('.sb-cur')?.setAttribute('aria-expanded', 'true'); sbScrollSel(); sfx.tap();
   }
   addEventListener('keydown', e => { if (e.key === 'Escape' && sbOpen()) sbClose(); });
+  // the trail bar slides open and shut (its height, so the dishes glide with it) instead of popping in and out
+  let barTok = 0;
+  const barLite = () => stage.classList.contains('lite');
+  function barShow(s) {
+    const was = !s.hidden && !s.dataset.leaving; ++barTok; delete s.dataset.leaving; s.getAnimations().forEach(a => a.cancel());
+    s.hidden = false;
+    if (was || barLite()) return;
+    s.style.overflow = 'hidden';
+    const an = s.animate([{ minHeight: '0px', height: '0px', opacity: 0 }, { minHeight: '50px', height: '50px', opacity: 1 }], { duration: 320, easing: RISE });
+    an.onfinish = an.oncancel = () => { s.style.overflow = ''; };
+  }
+  function barHide(s) {
+    if (s.hidden || s.dataset.leaving) return;
+    const tok = ++barTok, done = () => { if (tok !== barTok) return; delete s.dataset.leaving; s.hidden = true; s.innerHTML = ''; s.classList.remove('with-pop'); s.style.overflow = ''; };
+    if (barLite()) return done();
+    s.dataset.leaving = '1'; s.style.overflow = 'hidden';
+    const an = s.animate([{ minHeight: '50px', height: '50px', opacity: 1 }, { minHeight: '0px', height: '0px', opacity: 0 }], { duration: 260, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' });
+    an.onfinish = () => { done(); an.cancel(); };
+  }
   function renderSubs(anim) {
-    if (O.subSide) { const sb = $o('subbar'); sb.hidden = true; sb.innerHTML = ''; sbClose(); return renderSubCol(anim); }
-    $o('subs').hidden = true; $o('subs').innerHTML = ''; $o('subs').dataset.was = '';
-    const s = $o('subbar');
-    s.hidden = O.cat === 'all' || O.cat === 'fav';        // Favorites and All items have no sub-category bar: dishes by section
-    if (!s.hidden && !SECTIONS.some(x => x.cat === O.cat)) s.hidden = true;           // a category without sections has nothing to choose
-    if (s.hidden) { s.innerHTML = ''; sbClose(); O.sub = 'all'; O.ss = null; return; }
-    // while searching, the dishes come from the whole menu: the bar says so (with a Clear button) instead of showing a category that no longer applies
+    const s = $o('subbar'), pop = $o('subs');
+    sbClose(); sbKeep = false; $o('sbSheet').innerHTML = '';
+    const none = O.cat === 'all' || O.cat === 'fav' || !SECTIONS.some(x => x.cat === O.cat);   // Favorites, All items and a category without sections: dishes by section
+    if (none) { barHide(s); return renderSubCol(anim); }
+    // while searching, the dishes come from the whole menu: the bar says so (with a Clear button) and the popup stays shut
     const qs = O.q.trim();
     if (qs) {
       const N = PRODUCTS.filter(p => p.name.toLowerCase().includes(qs.toLowerCase())).length, esc = v => v.replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[ch]);
-      sbClose(); sbKeep = false; $o('sbSheet').innerHTML = '';
+      pop.hidden = true; pop.innerHTML = ''; pop.dataset.was = ''; barShow(s); s.classList.remove('with-pop');
       s.innerHTML = `<span class="sb-cat">Search</span><span class="sb-sep" aria-hidden="true">›</span><span class="sb-res">“${esc(qs)}” · ${N} dish${N === 1 ? '' : 'es'}</span><button class="sb-clear" type="button" data-clear="1">× Clear</button>`;
       return;
     }
+    // the trail, only once you are inside something: back arrow (up one level), then every step down to where you are. A step goes back to that level and opens the popup there;
+    // the last step is where you are (tap it to open or close the popup)
+    if (O.sub === 'all') { barHide(s); return renderSubCol(anim); }
     const secs = SECTIONS.filter(x => x.cat === O.cat), inCat = catList(O.cat), c = CATS.find(c => c.id === O.cat);
-    const n = sec => inCat.filter(p => p.sec === sec).length, go = ic('caret-open').replace('mi', 'mi go');
-    const sec = secs.find(x => x.id === O.sub && x.subs);
-    const crumb = (label, attrs) => `<button class="sb-crumb" type="button" ${attrs}>${label}</button>`, sep = '<span class="sb-sep" aria-hidden="true">›</span>';
-    const tile = (label, cnt, attrs, on, drill) => `<button class="sb-tile${on ? ' on' : ''}${cnt === 0 ? ' empty' : ''}" type="button" role="menuitem" ${attrs}><span>${label}</span><span class="n">${cnt}</span>${drill ? go : ''}</button>`;
-    let lead = '', path, cur, title, tiles, opts;
+    const sec = secs.find(x => x.id === O.sub && x.subs), picked = secs.find(x => x.id === O.sub);
+    const steps = [[c.name, 'data-sub="all"']];
+    let up = 'all', count = picked ? inCat.filter(p => p.sec === picked.id).length : inCat.length;
     if (sec) {
-      const at = O.ss ? NODE[O.ss] : null, level = at?.kids ? at : at && at.path.length > 1 ? NODE[at.path.at(-2)] : null;
-      const here = level || { id: '', name: sec.name, kids: sec.subs }, inSec = inCat.filter(p => p.sec === sec.id);
-      const up = level ? (level.path.length > 1 ? level.path.at(-2) : '') : 'all';
-      const cnt = id => id ? inSec.filter(p => inNode(p, id)).length : inSec.length, leaf = at && !at.kids ? at : null;
-      lead = `<button class="sb-back" type="button" data-up="${up}" aria-label="Back">${ic('caret-open')}</button>`;
-      path = [crumb(c.name, 'data-sub="all"'), crumb(sec.name, `data-sub="${sec.id}"`), ...(level ? level.path.map(id => crumb(NODE[id].name, `data-ss="${id}" data-in="1"`)) : [])];
-      cur = leaf ? [leaf.name, cnt(leaf.id)] : ['All', cnt(here.id)]; title = here.name; opts = here.kids.length;
-      tiles = tile('All', cnt(here.id), `data-ss="${here.id}"`, !leaf) + here.kids.map(([id, nm, , k]) => tile(nm, cnt(id), `data-ss="${id}"${k ? ' data-in="1"' : ''}`, leaf?.id === id, !!k)).join('');
-    } else {
-      const picked = secs.find(x => x.id === O.sub);
-      path = [`<span class="sb-cat">${c.name}</span>`]; cur = picked ? [picked.name, n(picked.id)] : [`All ${c.name.toLowerCase()}`, inCat.length]; title = c.name; opts = secs.length;
-      tiles = tile(`All ${c.name.toLowerCase()}`, inCat.length, 'data-sub="all"', O.sub === 'all') + secs.map(x => tile(x.name, n(x.id), `data-sub="${x.id}"`, O.sub === x.id, !!x.subs)).join('');
+      const at = O.ss ? NODE[O.ss] : null, level = at?.kids ? at : at && at.path.length > 1 ? NODE[at.path.at(-2)] : null, leaf = at && !at.kids ? at : null;
+      const inSec = inCat.filter(p => p.sec === sec.id);
+      up = level ? (level.path.length > 1 ? level.path.at(-2) : '') : 'all';
+      steps.push([sec.name, `data-sub="${sec.id}"`], ...(level ? level.path.map(id => [NODE[id].name, `data-ss="${id}" data-in="1"`]) : []));
+      if (leaf) steps.push([leaf.name, '']);
+      const end = leaf || level; count = end ? inSec.filter(p => inNode(p, end.id)).length : inSec.length;
+    } else if (picked) steps.push([picked.name, '']);
+    else { barHide(s); return renderSubCol(anim); }
+    // each step is keyed by its path, so the steps already on screen stay still and only the new ones glide in
+    const keys = steps.map((_, i) => steps.slice(0, i + 1).map(x => x[0]).join('›')), before = new Set([...s.querySelectorAll('.sb-path .sb-crumb')].map(b => b.dataset.k));
+    const fresh = !!s.dataset.leaving || s.hidden;
+    barShow(s); s.classList.toggle('with-pop', !O.subClosed);
+    const sep = '<span class="sb-sep" aria-hidden="true">›</span>', last = steps.length - 1;
+    s.innerHTML = `<button class="sb-back" type="button" data-up="${up}" aria-label="Back">${ic('caret-open')}</button><nav class="sb-path" aria-label="Where you are">` +
+      steps.map(([nm, at], i) => i === last
+        ? `<button class="sb-crumb here" type="button" data-k="${keys[i]}" data-here="1" aria-current="location" aria-controls="subs" aria-expanded="${!O.subClosed}"><span>${nm}</span><span class="n">${count}</span></button>`
+        : `<button class="sb-crumb" type="button" data-k="${keys[i]}" ${at}>${nm}</button>`).join(sep) + '</nav>';
+    if (!barLite()) {
+      let k = 0;
+      s.querySelectorAll('.sb-path .sb-crumb').forEach(b => {
+        if (!fresh && before.has(b.dataset.k)) return;
+        const sp = b.previousElementSibling?.classList.contains('sb-sep') ? [b.previousElementSibling, b] : [b];
+        sp.forEach(el => el.animate([{ opacity: 0, transform: `translateX(${RTL() ? -14 : 14}px)` }, { opacity: 1, transform: 'none' }], { duration: 320, delay: 60 + k * 45, easing: RISE, fill: 'backwards' }));
+        k++;
+      });
     }
-    if (!sbKeep) sbClose(); sbKeep = false;
-    s.innerHTML = lead + '<div class="sb-path">' + path.join(sep) + sep + '</div>' + `<button class="sb-cur" type="button" aria-haspopup="true" aria-expanded="${sbOpen()}" title="${cur[0]}"><span>${cur[0]}</span><span class="n">${cur[1]}</span>${ic('caret-open')}</button>`;
-    $o('sbSheet').innerHTML = `<div class="sb-sh-h"><div><b>${title}</b><small>${opts} option${opts === 1 ? '' : 's'}</small></div><button class="sb-x" type="button" aria-label="Close">×</button></div>` + tiles;
-    if (sbOpen()) sbScrollSel();
-    if (anim) [...s.querySelectorAll('.sb-back, .sb-crumb, .sb-cat, .sb-cur')].forEach((b, i) => b.animate(
-      anim === 'in' || anim === 'out' ? [{ opacity: 0, transform: `translateX(${(anim === 'in') !== RTL() ? 28 : -28}px)` }, { opacity: 1, transform: 'none' }]
-                                      : [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }],
-      { duration: 340, delay: i * 30, easing: RISE, fill: 'backwards' }));
+    renderSubCol(anim);
   }
   addEventListener('pointerdown', e => { if (sbOpen() && !e.target.closest('#sbSheet, .sb-cur')) sbClose(); });
   // SUB-CATEGORY SIDE BAR (the old version, turned on from the profile menu): a second column between the categories and the dishes. One level at a time: inside a
@@ -6319,6 +6498,8 @@ html #order .o-body:has(> .subs:not([hidden])) > .prods::before { display: none;
   // a last-level pick: the column shows the choice for a moment, then slides away and the dishes take the full width
   function closeSubCol(now) {
     const s = $o('subs'); O.subClosed = true;
+    const bar = $o('subbar'); bar.querySelector('.sb-crumb.here')?.setAttribute('aria-expanded', 'false');
+    setTimeout(() => { if (O.subClosed) bar.classList.remove('with-pop'); }, now || stage.classList.contains('lite') ? 0 : 220);
     const done = () => { if (!O.subClosed) return; s.hidden = true; s.innerHTML = ''; s.dataset.was = ''; };
     if (stage.classList.contains('lite')) return done();
     const an = s.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: `translateX(${RTL() ? 20 : -20}px)` }], { duration: now ? 180 : 240, delay: now ? 0 : 220, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' });
@@ -6326,7 +6507,7 @@ html #order .o-body:has(> .subs:not([hidden])) > .prods::before { display: none;
   }
   // the floating side bar closes when you tap anywhere outside it (the categories keep their own taps: one opens it again)
   addEventListener('pointerdown', e => {
-    if (!O.subSide || O.subClosed || $o('subs').hidden || e.target.closest('#subs, #rail, #drawer, #drScrim')) return;
+    if (!O.subSide || O.subClosed || $o('subs').hidden || e.target.closest('#subs, #subbar, #rail, #drawer, #drScrim')) return;
     closeSubCol(true);
   });
   function renderSubCol(anim) {
@@ -6355,7 +6536,7 @@ html #order .o-body:has(> .subs:not([hidden])) > .prods::before { display: none;
       { duration: 380, delay: i * 30, easing: RISE, fill: 'backwards' }));
     else if (anim) [...s.children].forEach((b, i) => b.animate([{ opacity: 0, transform: 'translateY(14px)' }, { opacity: 1, transform: 'none' }],
       { duration: 450, delay: 120 + i * 40, easing: RISE, fill: 'backwards' }));
-    if (anim && !stage.classList.contains('lite') && s.dataset.was !== 'open')       // the panel slides out from the categories when it appears
+    if (!stage.classList.contains('lite') && s.dataset.was !== 'open')       // the panel slides out from the categories when it appears
       s.animate([{ opacity: 0, transform: `translateX(${RTL() ? 16 : -16}px)` }, { opacity: 1, transform: 'none' }], { duration: 300, easing: RISE });
     s.dataset.was = 'open';
   }
@@ -6554,9 +6735,9 @@ html #order .o-body:has(> .subs:not([hidden])) > .prods::before { display: none;
   $o('subbar').addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
     if (b.dataset.clear) { O.q = ''; $o('oSearch').value = ''; setBuf?.(''); renderSubs(); renderProducts('switch'); return; }
-    if (b.classList.contains('sb-cur')) return sbToggle();
+    if (b.dataset.here) { sfx.tap(); if (!O.subClosed && !$o('subs').hidden) closeSubCol(true); else { O.subClosed = false; renderSubs('in'); } return; }
     if (b.dataset.up == null && b.dataset.sub == null && b.dataset.ss == null) return;
-    sbKeep = sbOpen(); subTap(b);      // going back or up while the sheet is open keeps it open on that level
+    O.subClosed = false; subTap(b);    // going back or up opens the popup on that level
   });
   $o('subs').addEventListener('click', e => {
     const b = e.target.closest('.sub'); if (!b) return;
@@ -7040,7 +7221,7 @@ html #order .o-body:has(> .subs:not([hidden])) > .prods::before { display: none;
     const kind = ticket?.kind || (card?.dataset.type === 'glovo' ? 'glovo' : 'dine');
     T = kind === 'glovo' ? GLOVO : ticket || DINE; lastTot = null;
     if (T.parkedAt) { delete T.parkedAt; syncPend(); }
-    O.cat = kind === 'glovo' ? 'all' : 'salads'; O.sub = 'all'; O.ss = null;    // salads first when an order opens (Glovo: all items)
+    O.cat = 'all'; O.sub = 'all'; O.ss = null;    // every order opens on All items
     $o('order').classList.toggle('glovo', kind === 'glovo');
     $o('order').classList.toggle('take', kind === 'take');
     $o('oType').innerHTML = kind === 'glovo'
@@ -7182,7 +7363,7 @@ html #order .o-body:has(> .subs:not([hidden])) > .prods::before { display: none;
     if (!o) return `<small>${t.seats} seat${t.seats > 1 ? 's' : ''}</small>`;
     const st = o.lines.some(l => !l.sent) ? '<span class="st new" title="Items not sent yet"></span>' : o.lines.length ? '<span class="st ok" title="All sent to the kitchen">✓</span>' : '';
     if (t.w < 100) return `<small class="tm">${mins(o)}m</small>${st}`;
-    return `<small class="tm">${mins(o)} min · ${o.covers}p</small>${t.w >= 120 && o.lines.length ? `<small class="amt">${fmt(ticketSum(o))}</small>` : ''}${st}`;
+    return `<small class="tm">${mins(o)} min · ${o.covers}p</small>${t.w >= 120 && o.lines.length ? `<small class="amt">${fmt(ticketSum(o))}<span class="cur">Dhs</span></small>` : ''}${st}`;
   }
   const ftClass = (t, cur, moving) => { const k = tStatus(t);
     return `ft ${t.round ? 'round' : ''} s-${k} ${OPEN[t.id] || PAID[t.id] ? 'busy' : ''} ${k === 'late' ? 'late' : ''} ${t.id === cur ? 'cur' : ''} ${moving && k !== 'free' && t.id !== cur ? 'off' : ''}`; };
@@ -8944,7 +9125,7 @@ html #order .o-body:has(> .subs:not([hidden])) > .prods::before { display: none;
       <i class="mi" style="--ic:url(/pos/assets/${icon}.svg)"></i><span>${label}</span>${tag !== undefined && tag !== '' ? `<span class="tg">${tag}</span>` : ''}</button>`;
     drawer.innerHTML = `<div class="dr-me"><img src="${img}" alt=""><div><b>${name}</b><small>${role} · ${pos}</small></div></div><div class="dr-rule"></div>
       <div class="dr-cap">MENU</div>${it('nav-order', 'Order', 'order')}${it('nav-tables', 'Tables', 'tables')}${it('nav-orders', 'Orders list', 'orders')}${it('nav-pending', 'Pending', 'pending', O.parked || '')}
-      <div class="dr-rule"></div><div class="dr-cap">GENERAL</div>${themeRow(k++)}${receiptRow(k++)}${viewRow(k++)}${langRow(k++)}${it('dr-motion', 'Motion', 'motion', stage.classList.contains('lite') ? 'Lite' : 'Full')}${it(muted ? 'dr-mute' : 'dr-sound', 'Sounds', 'sound', muted ? 'Off' : 'On')}${it('dine/image', 'Category photos', 'catpics', O.catPics ? 'On' : 'Off')}${it('dr-sidebar', 'Sub-category side bar', 'subside', O.subSide ? 'On' : 'Off')}${it('dr-keyboard', 'Keyboard', 'kbd', GKB.isEnabled() ? 'Auto' : 'Never')}
+      <div class="dr-rule"></div><div class="dr-cap">GENERAL</div>${themeRow(k++)}${receiptRow(k++)}${viewRow(k++)}${langRow(k++)}${it('dr-motion', 'Motion', 'motion', stage.classList.contains('lite') ? 'Lite' : 'Full')}${it(muted ? 'dr-mute' : 'dr-sound', 'Sounds', 'sound', muted ? 'Off' : 'On')}${it('dine/image', 'Category photos', 'catpics', O.catPics ? 'On' : 'Off')}${it('dr-keyboard', 'Keyboard', 'kbd', GKB.isEnabled() ? 'Auto' : 'Never')}
       ${it('dr-floor', 'Floor plan', 'floor', TABLES.length + ' tables')}${it('dine/chip-fork', 'Kitchen display', 'kds', 'Open')}
       <div class="spacer"></div><div class="dr-rule"></div>${it('dr-pos', 'Switch POS', 'pos')}${it('dr-logout', 'Lock & switch user', 'lock')}`;
   }
@@ -8972,7 +9153,6 @@ html #order .o-body:has(> .subs:not([hidden])) > .prods::before { display: none;
     if (a === 'motion') { stage.classList.toggle('lite'); renderDrawer(); return; }
     if (a === 'sound') { muted = !muted; renderDrawer(); if (!muted) sfx.tap(); return; }
     if (a === 'catpics') { O.catPics = !O.catPics; syncPics(); renderRail(true); renderDrawer(); return; }
-    if (a === 'subside') { O.subSide = !O.subSide; O.subClosed = false; try { localStorage.setItem(SUBSIDE_KEY, O.subSide ? '1' : '0'); } catch (err) {} renderSubs(true); renderDrawer(); return; }
     if (a === 'kbd') { GKB.setEnabled(!GKB.isEnabled()); renderDrawer(); return; }
     if (a === 'floor') { closeDrawer(); setTimeout(openFE, 180); return; }
     if (a === 'kds') { closeDrawer(); window.open('/kds-v2/index.html', 'cm-kds'); return; }
