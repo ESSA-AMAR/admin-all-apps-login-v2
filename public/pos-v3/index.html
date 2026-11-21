@@ -4565,9 +4565,11 @@ html #order .prod.has .ph::after { opacity: 1 !important; z-index: 1;
 html #order :is(.icons .prod.has, .prod.has:has(> .ph.noimg))::before {
   background: linear-gradient(150deg, rgba(var(--ice-deep-rgb), .3) 0%, rgba(var(--ice-deep-rgb), .12) 55%, rgba(var(--ice-deep-rgb), .07) 100%) !important;
   box-shadow: inset 0 0 0 1.5px rgba(var(--ice-rgb), .6), 0 14px 32px -14px rgba(var(--ice-deep-rgb), .45) !important; }
-html #order .prod.out .ph { opacity: .5; }
-html #order .prod.out .info { opacity: .85; }   /* the name stays readable */
-html #order .prod.out .ph img { filter: saturate(.25) brightness(.75); }
+html #order .prod.out .ph { opacity: .28; }
+html #order .prod.out .info { opacity: .5; }   /* very soft, the name still there to read */
+html #order .prod.out .ph img { filter: grayscale(1) brightness(.7); }
+html #order :is(.icons .prod.out, .prod.out:has(> .ph.noimg))::before { opacity: .4; }
+html #order .prod.out::after { opacity: .8; }
 html #order .prod.out .so { position: absolute !important; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 html #order .prod.out::after { content: ""; position: absolute; z-index: 6; top: 14px; left: auto; inset-inline-end: 14px; width: 34px; height: 34px; margin: 0; border-radius: 50%; pointer-events: none;
   background: rgba(0,0,0,.42) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ff7a84' stroke-width='2.1' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='8.6'/%3E%3Cpath d='M5.9 5.9l12.2 12.2'/%3E%3C/svg%3E") center / 25px no-repeat;
@@ -4582,11 +4584,11 @@ html #order .tk-act .send .cnt { display: none !important; }
    - photo cards: the name is at the bottom, so they sit tight in the top corner of the photo
    - cards without a photo (Icons view): the name runs along the top, so they sit in the bottom corner, beside the price */
 html #order .prod .ph .qb { top: 4px !important; inset-inline: auto 4px !important; }
-/* on a photo the border is red too, like the counter; the cards without a photo keep their blue outline */
+/* on a photo the border is red, like the counter; the cards without a photo keep their blue outline */
 html #order .items:not(.icons) .prod.has:not(:has(> .ph.noimg)) .ph { box-shadow: 0 0 0 2.5px rgba(224,45,60,.9), 0 16px 34px -14px rgba(224,45,60,.55) !important; }
 html #order .items:not(.icons) .prod.has:not(:has(> .ph.noimg)) .ph::after { box-shadow: inset 0 0 0 1px rgba(255,130,140,.45) !important; }
-/* on a photo the counter is red (it stands out on the picture); the cards without a photo keep it blue */
-html #order .items:not(.icons) .prod:not(:has(> .ph.noimg)) .ph .qb { background: #e02d3c !important; text-shadow: 0 1px 1px rgba(90,0,12,.4);
+/* on a photo the counter is red, like the border (it stands out on the picture); the cards without a photo keep it blue */
+html #order .items:not(.icons) .prod:not(:has(> .ph.noimg)) .ph .qb { background: #e02d3c !important; color: #fff !important; text-shadow: 0 1px 1px rgba(90,0,12,.4);
   box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 6px 14px -4px rgba(224,45,60,.7) !important; }
 html #order .prod.out::after { top: 10px; inset-inline-end: 10px; width: 32px; height: 32px; background-size: 24px; }
 /* cards without a photo: the counter sits inside the top-right corner; the name's first line keeps a notch free for it, so it never covers the name */
@@ -4628,6 +4630,20 @@ html .ft .sh::before { animation: none !important; display: none !important; }
 
 /* NO GLASS SHINE ON ANY BUTTON: the one-off light sweeps on Pay and on the payment's Go button are gone too */
 html :is(.tk-act .pay.sweep-on, .pm-go.wake)::after { animation: none !important; display: none !important; }
+
+/* THE CARD COUNTER IS A SQUIRCLE, NOT A CIRCLE (photo cards and cards without a photo alike) */
+html #order .prod .ph .qb { border-radius: 9px !important; }
+@supports (corner-shape: squircle) { html #order .prod .ph .qb { border-radius: 50% !important; corner-shape: squircle; } }
+
+/* BLUE GLASS BUTTON (New client): the red glass recipe in the ice blue of Pay */
+html:not(.light) .hv-btn.blue { color: #fff; text-shadow: 0 1px 2px rgba(0, 24, 60, .5);
+  background: linear-gradient(140deg, rgba(var(--ice-deep-rgb), .82) 0%, rgba(var(--ice-deep-rgb), .58) 48%, rgba(var(--ice-deep-rgb), .74) 100%) !important;
+  -webkit-backdrop-filter: var(--rg-blur); backdrop-filter: var(--rg-blur);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.32), inset 0 0 0 1px rgba(var(--ice-hi), .3), inset 0 -14px 22px -12px rgba(var(--ice-deep-rgb), .85) !important; }
+html:not(.light) .hv-btn.blue::before { background: var(--rg-gloss) !important; }
+html:not(.light) .hv-btn.blue:active { box-shadow: inset 0 1px 0 rgba(255,255,255,.4), inset 0 0 0 1px rgba(var(--ice-hi), .45), inset 0 3px 10px rgba(0, 30, 80, .45) !important; }
+html.light #stage .hv-btn.blue { color: #fff; text-shadow: 0 1px 1px rgba(0, 30, 80, .4); filter: url(#lflip);
+  background: linear-gradient(150deg, #5fb0ff, #2a86ea 60%, #1c6fd0) !important; box-shadow: inset 0 1px 0 rgba(255,255,255,.55), inset 0 0 0 1px rgba(150,200,255,.55) !important; }
 
 #hello { isolation: isolate; }
 #hello::before { content: ""; position: absolute; z-index: -1; inset: -150px -200px -150px -180px; pointer-events: none;
@@ -4920,7 +4936,7 @@ html :is(.tk-act .pay.sweep-on, .pm-go.wake)::after { animation: none !important
             <div class="fl-zones" id="clZones"></div>
             <div class="hv-tools">
               <label class="o-search"><i class="mi" style="--ic:url(/pos/assets/dine/search.svg)"></i><input id="clQ" placeholder="Name or phone" autocomplete="off" aria-label="Search clients"></label>
-              <button class="hv-btn red" id="clNew"><i class="mi" style="--ic:url(/pos/assets/dine/user-plus.svg)"></i>New client</button>
+              <button class="hv-btn blue" id="clNew"><i class="mi" style="--ic:url(/pos/assets/dine/user-plus.svg)"></i>New client</button>
             </div>
           </div>
           <div class="hv-body">
@@ -6053,6 +6069,21 @@ html :is(.tk-act .pay.sweep-on, .pm-go.wake)::after { animation: none !important
              { id: 'sfruit', name: 'Fruit' },
              { id: 'ssweetdip', name: 'Sweet dips' }],
   };
+  // USE CASE 3, a lot of sub-categories: Drinks › Juice & shake bar. Twelve sub-categories side by side, most with four to six of their own,
+  // and one path five levels down (Juice & shake bar › Fresh juices › Citrus › Orange › Large 50cl). Its dishes are listed in FILL below.
+  SECS.drinks.push({ id: 'jbar', name: 'Juice & shake bar', subs: [
+    ['jbFresh', 'Fresh juices', null, [
+      ['jbCitrus', 'Citrus', null, [
+        ['jbOrange', 'Orange', null, [['jbOr25', 'Small 25cl'], ['jbOr40', 'Medium 40cl'], ['jbOr50', 'Large 50cl'], ['jbOrMix', 'Orange mixes']]],
+        ['jbLemon', 'Lemon & lime'], ['jbGrapef', 'Grapefruit'], ['jbMandarin', 'Mandarin'], ['jbCitMix', 'Citrus mixes']]],
+      ['jbTrop', 'Tropical', null, [['jbMango', 'Mango'], ['jbPine', 'Pineapple'], ['jbPassion', 'Passion fruit'], ['jbGuava', 'Guava'], ['jbPapaya', 'Papaya'], ['jbBanana', 'Banana']]],
+      ['jbRed', 'Red fruits'], ['jbGreen', 'Green'], ['jbVeg', 'Vegetable'], ['jbMix', 'House mixes']]],
+    ['jbSmooth', 'Smoothies', null, [['jbSmFruit', 'Fruit'], ['jbSmGreen', 'Green'], ['jbSmProt', 'Protein'], ['jbSmDetox', 'Detox'], ['jbSmBowl', 'Smoothie bowls']]],
+    ['jbShake', 'Milkshakes', null, [['jbShClassic', 'Classic'], ['jbShCookie', 'Cookies & candy'], ['jbShFruit', 'Fruit'], ['jbShCoffee', 'Coffee'], ['jbShVegan', 'Vegan']]],
+    ['jbTea', 'Iced tea', null, [['jbTeBlack', 'Black'], ['jbTeGreen', 'Green'], ['jbTeHerb', 'Herbal'], ['jbTeFruit', 'Fruit']]],
+    ['jbIcoff', 'Iced coffee', null, [['jbIcBrew', 'Cold brew'], ['jbIcFrappe', 'Frappé'], ['jbIcLatte', 'Iced latte'], ['jbIcFlav', 'Flavoured']]],
+    ['jbMock', 'Mocktails', null, [['jbMoMojito', 'Mojitos'], ['jbMoSpritz', 'Spritz'], ['jbMoPunch', 'Punch'], ['jbMoColada', 'Coladas']]],
+    ['jbLassi', 'Lassi & yogurt'], ['jbKomb', 'Kombucha & kefir'], ['jbCoco', 'Coconut & plant'], ['jbEnergy', 'Energy & sports'], ['jbShots', 'Detox shots'], ['jbMilk', 'Flavoured milk']] });
   const SECTIONS = CATS.flatMap(c => (SECS[c.id] || []).map(x => ({ ...x, cat: c.id })));
   const PHOTO = {
     // burgers: one studio shot each (101–122)
@@ -6281,6 +6312,50 @@ html :is(.tk-act .pay.sweep-on, .pm-go.wake)::after { animation: none !important
     mayo: ['Truffle Mayo', 'Chipotle Mayo', 'Lemon Mayo', 'Blue Cheese Dip', 'Tartar Sauce', 'Aioli', 'Caesar Dressing', 'Sriracha Mayo', 'Wasabi Mayo', 'Herb Yogurt Dip', 'Tzatziki', 'Burger Sauce', 'Cocktail Sauce', 'Pesto Mayo', 'Honey Mayo'],
     ketch: ['Smoky Ketchup', 'Spicy Ketchup', 'Hot Sweet Chili', 'Peri-peri Sauce', 'Harissa', 'Hot Sauce', 'Buffalo Sauce', 'Teriyaki Sauce', 'Sweet & Sour', 'Chimichurri', 'Salsa', 'Mustard', 'BBQ Hickory', 'Tomato Chutney', 'Garlic Chili Oil'],
   };
+  // USE CASE 3's dishes (Drinks › Juice & shake bar), six per group
+  const jbT = (tpl, list) => list.map(f => tpl.replace('*', f)), JBO = ['Orange Juice', 'Orange & Lemon', 'Orange & Mint', 'Orange & Ginger', 'Blood Orange', 'Orange Pulp-free'];
+  const JV = ['Juice', 'Fresh Pressed', '& Mint', '& Ginger', 'Cooler', 'Lemonade'];
+  Object.assign(FILL, {
+    jbOr25: jbT('* 25cl', JBO), jbOr40: jbT('* 40cl', JBO), jbOr50: jbT('* 50cl', JBO),
+    jbOrMix: ['Orange Carrot', 'Orange Mango', 'Orange Strawberry', 'Orange Banana', 'Orange Pineapple', 'Orange Beetroot'],
+    jbLemon: ['Fresh Lemonade', 'Mint Lemonade', 'Lime Soda', 'Ginger Lemonade', 'Pink Lemonade', 'Lime & Basil'],
+    jbGrapef: jbT('Grapefruit *', ['Juice', '& Mint', '& Rosemary', 'Tonic', 'Cooler', 'Spritz']),
+    jbMandarin: jbT('Mandarin *', ['Juice', '& Ginger', '& Honey', 'Cooler', 'Lemonade', 'Fizz']),
+    jbCitMix: ['Citrus Burst', 'Triple Citrus', 'Citrus & Ginger', 'Yuzu Lemonade', 'Citrus Mint', 'Sunrise Citrus'],
+    jbMango: jbT('Mango *', JV), jbPine: jbT('Pineapple *', JV), jbPassion: jbT('Passion *', JV), jbGuava: jbT('Guava *', JV), jbPapaya: jbT('Papaya *', JV), jbBanana: jbT('Banana *', JV),
+    jbRed: ['Strawberry Juice', 'Fresh Pomegranate', 'Watermelon Juice', 'Cherry Juice', 'Red Berries', 'Raspberry Cooler'],
+    jbGreen: ['Green Apple Juice', 'Cucumber Mint', 'Kiwi Juice', 'Celery Apple', 'Green Detox Juice', 'Spinach Apple'],
+    jbVeg: ['Carrot Juice', 'Beetroot Juice', 'Tomato Juice', 'Carrot Ginger', 'Beet Apple', 'Veggie Mix'],
+    jbMix: ['House Panaché', 'Sunset Mix', 'Tropical Mix', 'Morning Glow', 'Vitamin Mix', 'Berry Mix'],
+    jbSmFruit: ['Berry Smoothie', 'Mango Banana Smoothie', 'Strawberry Banana Smoothie', 'Peach Smoothie', 'Tropical Smoothie', 'Blueberry Smoothie'],
+    jbSmGreen: ['Green Smoothie', 'Spinach Banana Smoothie', 'Kale Apple Smoothie', 'Avocado Smoothie', 'Matcha Smoothie', 'Cucumber Smoothie'],
+    jbSmProt: ['Peanut Protein Shake', 'Chocolate Protein Shake', 'Banana Oat Smoothie', 'Almond Protein Smoothie', 'Vanilla Protein Shake', 'Coffee Protein Shake'],
+    jbSmDetox: ['Detox Green Smoothie', 'Ginger Turmeric Smoothie', 'Beet Detox', 'Lemon Detox', 'Charcoal Lemonade', 'Celery Detox'],
+    jbSmBowl: ['Açaí Bowl', 'Pitaya Bowl', 'Mango Smoothie Bowl', 'Berry Smoothie Bowl', 'Green Smoothie Bowl', 'Peanut Butter Bowl'],
+    jbShClassic: ['Vanilla Shake', 'Chocolate Shake', 'Strawberry Shake', 'Caramel Shake', 'Banana Shake', 'Pistachio Shake'],
+    jbShCookie: ['Oreo Shake', 'Kinder Shake', 'Snickers Shake', 'Lotus Shake', 'M&M Shake', 'Nutella Shake'],
+    jbShFruit: ['Mango Shake', 'Berry Shake', 'Peach Shake', 'Avocado Shake', 'Date Shake', 'Cherry Shake'],
+    jbShCoffee: ['Coffee Shake', 'Mocha Shake', 'Caramel Latte Shake', 'Affogato Shake', 'Espresso Shake', 'Tiramisu Shake'],
+    jbShVegan: ['Oat Vanilla Shake', 'Almond Chocolate Shake', 'Coconut Mango Shake', 'Soy Strawberry Shake', 'Oat Banana Shake', 'Cashew Date Shake'],
+    jbTeBlack: ['Classic Iced Tea', 'Lemon Iced Tea', 'Black Peach Iced Tea', 'Earl Grey Iced', 'Sweet Tea', 'Iced Chai'],
+    jbTeGreen: ['Iced Green Tea', 'Iced Matcha', 'Jasmine Iced Tea', 'Green Tea Lemon', 'Green Tea Honey', 'Iced Mint Green Tea'],
+    jbTeHerb: ['Hibiscus Iced Tea', 'Rooibos Iced', 'Chamomile Iced', 'Iced Mint Tea', 'Lemongrass Iced', 'Verbena Iced'],
+    jbTeFruit: ['Mango Iced Tea', 'Berry Iced Tea', 'Passion Iced Tea', 'Raspberry Iced Tea', 'Apple Iced Tea', 'Lychee Iced Tea'],
+    jbIcBrew: ['Cold Brew Black', 'Cold Brew Milk', 'Nitro Cold Brew', 'Cold Brew Tonic', 'Vanilla Cold Brew', 'Cold Brew Orange'],
+    jbIcFrappe: ['Caramel Frappé', 'Mocha Frappé', 'Vanilla Frappé', 'Coffee Frappé', 'Cookie Frappé', 'Hazelnut Frappé'],
+    jbIcLatte: ['Iced Oat Latte', 'Iced Spanish Latte', 'Iced Flat White', 'Iced Cortado', 'Iced Almond Latte', 'Iced Double Latte'],
+    jbIcFlav: ['Iced Caramel Latte', 'Iced Vanilla Latte', 'Iced Hazelnut Latte', 'Iced Pistachio Latte', 'Iced Coconut Latte', 'Iced Maple Latte'],
+    jbMoMojito: ['Classic Mojito', 'Strawberry Mojito', 'Passion Mojito', 'Mango Mojito', 'Blue Mojito', 'Cucumber Mojito'],
+    jbMoSpritz: ['Virgin Spritz', 'Elderflower Spritz', 'Grapefruit Spritz', 'Peach Spritz', 'Rosemary Spritz', 'Berry Spritz'],
+    jbMoPunch: ['Fruit Punch', 'Tropical Punch', 'Red Punch', 'Citrus Punch', 'Ginger Punch', 'Party Punch'],
+    jbMoColada: ['Piña Colada (virgin)', 'Mango Colada', 'Strawberry Colada', 'Coconut Colada', 'Banana Colada', 'Passion Colada'],
+    jbLassi: ['Mango Lassi', 'Salted Lassi', 'Sweet Lassi', 'Rose Lassi', 'Strawberry Lassi', 'Raib Drink'],
+    jbKomb: ['Ginger Kombucha', 'Berry Kombucha', 'Lemon Kombucha', 'Water Kefir', 'Milk Kefir', 'Peach Kombucha'],
+    jbCoco: ['Coconut Water', 'Almond Milk', 'Oat Milk', 'Coconut Pineapple', 'Rice Milk', 'Soy Milk'],
+    jbEnergy: ['Red Bull', 'Monster Energy', 'Isotonic Lemon', 'Isotonic Orange', 'Electrolyte Water', 'Energy Juice'],
+    jbShots: ['Ginger Shot', 'Turmeric Shot', 'Wheatgrass Shot', 'Lemon Cayenne Shot', 'Beet Shot', 'Immunity Shot'],
+    jbMilk: ['Chocolate Milk', 'Strawberry Milk', 'Banana Milk', 'Vanilla Milk', 'Caramel Milk', 'Date Milk'],
+  });
   (() => {
     const ends = (kids, sec) => (kids || []).flatMap(([id, , , k]) => k ? ends(k, sec) : [{ key: id, sec, ss: id }]);
     const BASE = { burgers: 52, pizza: 66, pasta: 60, salads: 46, sides: 22, drinks: 12, dessert: 30, offers: 85, sauce: 5 };
@@ -7697,7 +7772,7 @@ html :is(.tk-act .pay.sweep-on, .pm-go.wake)::after { animation: none !important
         <div><span>Paid by</span><span>${METHOD[h.method]}</span></div>
         <div class="big"><span>Total</span><b>${fmt(h.total)}<small>Dhs</small></b></div></div>
       <div class="hv-acts"><button class="hv-btn" data-ol="print">${mic('dine/receipt-2')}Reprint</button>
-        <button class="hv-btn line-red" data-ol="refund" ${h.status !== 'paid' ? 'disabled' : ''}>${mic('dine/undo')}Refund</button></div>`;
+        <button class="hv-btn red" data-ol="refund" ${h.status !== 'paid' ? 'disabled' : ''}>${mic('dine/undo')}Refund</button></div>`;
   }
   $o('olZones').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (!b || b.dataset.f === OL.f) return; sfx.tap(); OL.f = b.dataset.f; OL.sel = null; renderOrders(true); });
   $o('olQ').addEventListener('input', e => { OL.q = e.target.value; renderOrders(); });
@@ -7790,7 +7865,7 @@ html :is(.tk-act .pay.sweep-on, .pm-go.wake)::after { animation: none !important
           || '<div class="none">No ticket tonight yet.</div>'}</div>
       </div>
       <div class="hv-acts" style="padding-top:16px"><button class="hv-btn" data-cl="edit">${mic('dine/note')}Edit</button>
-        <button class="hv-btn line-red" data-cl="del" ${c.id[0] !== 'n' ? 'disabled title="Regulars from the till are kept"' : ''}>${mic('dine/trash')}Delete</button></div>`;
+        <button class="hv-btn red" data-cl="del" ${c.id[0] !== 'n' ? 'disabled title="Regulars from the till are kept"' : ''}>${mic('dine/trash')}Delete</button></div>`;
   }
   function clientForm(c) {
     let pick = c?.av || AVATARS[Math.floor(Math.random() * AVATARS.length)];
