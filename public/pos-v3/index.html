@@ -4645,19 +4645,29 @@ html:not(.light) .hv-btn.blue:active { box-shadow: inset 0 1px 0 rgba(255,255,25
 html.light #stage .hv-btn.blue { color: #fff; text-shadow: 0 1px 1px rgba(0, 30, 80, .4); filter: url(#lflip);
   background: linear-gradient(150deg, #5fb0ff, #2a86ea 60%, #1c6fd0) !important; box-shadow: inset 0 1px 0 rgba(255,255,255,.55), inset 0 0 0 1px rgba(150,200,255,.55) !important; }
 
-/* LIGHT RECEIPT: the action strip and Park / Send / No receipt are white like the receipt (no dark band, no red glow); the icons keep their colours.
-   Pay is a solid blue so it stays strong on white. Keyed on #ticket (not ".ticket:not(.dark)", which the receipt script drops for the action buttons). */
-html #order #ticket:not(.dark) .tk-act { background: #f4f5f7 !important; }
-html #order #ticket:not(.dark) .tk-act :is(.park, .send, .norc), html #order #ticket:not(.dark) .tk-act .send.done {
+/* WHITE PAGE (Light theme): the receipt is white and so are its action strip and Park / Send / No receipt (no dark band, no red glow); the icons keep
+   their colours and Pay is a solid blue. With a dark page and a light receipt the action buttons stay dark. Keyed on #ticket (not ".ticket:not(.dark)", which the receipt script drops for the action buttons). */
+html.light #stage #order #ticket:not(.dark) .tk-act { background: #f4f5f7 !important; }
+html.light #stage #order #ticket:not(.dark) .tk-act :is(.park, .send, .norc), html.light #stage #order #ticket:not(.dark) .tk-act .send.done {
   color: #24272f !important; text-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
   background: linear-gradient(160deg, #ffffff 0%, #f1f2f5 100%) !important; box-shadow: inset 0 0 0 1px rgba(36,39,47,.09) !important; }
-html #order #ticket:not(.dark) .tk-act :is(.park, .send, .norc):hover { background: linear-gradient(160deg, #ffffff 0%, #e8eaee 100%) !important; }
-html #order #ticket:not(.dark) .tk-act .park .mi { color: #2a74d6; }
-html #order #ticket:not(.dark) .tk-act :is(.send, .send.done) .mi { color: #0f8f59; }
-html #order #ticket:not(.dark) .tk-act .norc .mi { color: #3d4049; }
-html #order #ticket:not(.dark) .tk-act .norc.on { color: #1c4f94 !important; background: rgba(79,163,247,.14) !important; box-shadow: inset 0 0 0 2px rgba(42,134,234,.85) !important; }
-html #order #ticket:not(.dark) .tk-act .pay { background: linear-gradient(150deg, #4a9ff5 0%, #2a86ea 60%, #1c6fd0 100%) !important;
+html.light #stage #order #ticket:not(.dark) .tk-act :is(.park, .send, .norc):hover { background: linear-gradient(160deg, #ffffff 0%, #e8eaee 100%) !important; }
+html.light #stage #order #ticket:not(.dark) .tk-act .park .mi { color: #2a74d6; }
+html.light #stage #order #ticket:not(.dark) .tk-act :is(.send, .send.done) .mi { color: #0f8f59; }
+html.light #stage #order #ticket:not(.dark) .tk-act .norc .mi { color: #3d4049; }
+html.light #stage #order #ticket:not(.dark) .tk-act .norc.on { color: #1c4f94 !important; background: rgba(79,163,247,.14) !important; box-shadow: inset 0 0 0 2px rgba(42,134,234,.85) !important; }
+html.light #stage #order #ticket:not(.dark) .tk-act .pay { background: linear-gradient(150deg, #4a9ff5 0%, #2a86ea 60%, #1c6fd0 100%) !important;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.35), inset 0 0 0 1px rgba(28,111,208,.5) !important; text-shadow: 0 1px 1px rgba(0,30,80,.35) !important; }
+
+/* ADD CLIENT (top of the receipt): a full 44px touch target with a crisp icon; on a light receipt it is solid red, so it does not wash out to pink on white.
+   The order type next to it ("Takeaway") is dark on a light receipt (it was white on white). */
+html #order .tk-client:not(.has) { width: 44px !important; height: 44px !important; min-width: 44px; padding: 0 !important; border-radius: 8px !important; display: grid !important; place-items: center; }
+html #order .tk-client:not(.has) .mi { width: 22px !important; height: 22px !important; background-color: #fff !important; }
+html #order #ticket:not(.dark) .tk-client:not(.has) { background: linear-gradient(150deg, #ff5966 0%, #e0102a 60%, #c4122a 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.35), inset 0 0 0 1px rgba(150,0,20,.25), 0 6px 14px -6px rgba(224,16,42,.55) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+html #order #ticket:not(.dark) .tk-client:not(.has)::before { background: linear-gradient(180deg, rgba(255,255,255,.28), rgba(255,255,255,0)) !important; }
+html #order #ticket:not(.dark) .tk-client:not(.has):active { background: linear-gradient(150deg, #e8404d 0%, #c40c24 60%, #a80d22 100%) !important; }
+html #order #ticket:not(.dark) #oType { color: #24272f; }
 
 #hello { isolation: isolate; }
 #hello::before { content: ""; position: absolute; z-index: -1; inset: -150px -200px -150px -180px; pointer-events: none;
@@ -5919,7 +5929,7 @@ html #order #ticket:not(.dark) .tk-act .pay { background: linear-gradient(150deg
     const g = e.target.closest('.glass-btn'); if (!g) return;
     if (g.hasAttribute('data-en-aria-label') ? /language/i.test(g.dataset.enAriaLabel) : /language/i.test(g.getAttribute('aria-label'))) {
       if (langMenu.hidden) { sfx.tap(); openLangMenu(g); } else langMenu.hidden = true;
-    } else { sfx.tap(); setTheme(THEME === 'light' ? LASTDARK : 'light', true); }
+    } else { sfx.tap(); window.__tkReset?.(); setTheme(THEME === 'light' ? LASTDARK : 'light', true); }
   });
 
 
@@ -6459,6 +6469,8 @@ html #order #ticket:not(.dark) .tk-act .pay { background: linear-gradient(150deg
   const tkAuto = () => document.documentElement.classList.contains('light') ? 'light' : 'dark';
   O.tk = tkPicked || tkAuto();
   window.__tkFollow = () => { if (tkPicked) return; O.tk = tkAuto(); const tk = document.getElementById('ticket'); if (tk) tk.classList.toggle('dark', O.tk === 'dark'); };
+  // picking a theme also lets the receipt follow it again (white page, white receipt; dark page, dark receipt); the receipt can still be picked after
+  window.__tkReset = () => { tkPicked = null; try { localStorage.removeItem(TK_KEY); } catch (e) {} };
   // profile drawer → Category photos: one switch for the photos in the category rail and the sub-category list (icons unless photos are turned on)
   O.catPics = false;   // every sign-in starts on icons; photos, once turned on, last until the next sign-out (a refresh keeps them)
   const syncPics = () => $o('order').classList.toggle('no-pics', !O.catPics);
@@ -9234,7 +9246,7 @@ html #order #ticket:not(.dark) .tk-act .pay { background: linear-gradient(150deg
     if (tb && tb.dataset.mode) { sfx.tap(); setMode(tb.dataset.mode, true); renderDrawer(); return; }
     if (tb && tb.dataset.lang) { sfx.tap(); setLang(tb.dataset.lang); renderDrawer(); return; }
     if (tb && tb.dataset.tk) { O.tk = tkPicked = tb.dataset.tk; try { localStorage.setItem(TK_KEY, O.tk); } catch (err) {} sfx.tap(); renderTicket(); renderDrawer(); return; }
-    if (tb) { sfx.tap(); setTheme(tb.dataset.theme, true); renderDrawer(); return; }
+    if (tb) { sfx.tap(); window.__tkReset?.(); setTheme(tb.dataset.theme, true); renderTicket(); renderDrawer(); return; }
     const b = e.target.closest('.dr-it'); if (!b) return;
     const a = b.dataset.dr; sfx.tap();
     if (a === 'motion') { stage.classList.toggle('lite'); renderDrawer(); return; }
